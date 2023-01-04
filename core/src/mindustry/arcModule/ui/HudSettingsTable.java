@@ -143,7 +143,7 @@ public class HudSettingsTable extends Table{
                     t.button("[cyan]雾",textStyle, () ->{
                         if(!state.rules.pvp || player.team().id == 255)
                             state.rules.fog = !state.rules.fog;
-                    }).checked(a->state.rules.fog).size(30,30).tooltip("战争迷雾").visible(!state.rules.pvp || player.team().id == 255);
+                    }).checked(a->state.rules.fog).size(30,30).tooltip("战争迷雾");
                 }).left();
                 sp.row();
                 sp.table(t -> {
