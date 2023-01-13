@@ -14,11 +14,9 @@ jobs:
           java-version: 16
       - name: build
         run: |
-          git clone --depth=1 --branch=master https://github.com/YaeSakuraQvQ/Mindustry-CN-ARC/
-          cd Mindustry-CN-ARC
           ./gradlew desktop:dist
       - name: Upload
         uses: actions/upload-artifact@v2
         with:
           name: mindustry
-          path: ./home/runner/work/Mindustry-CN-ARC/Mindustry-CN-ARC/Mindustry-CN-ARC/desktop/build/libs/Mindustry.jar
+          path: ./desktop/build/libs/Mindustry.jar
