@@ -1,6 +1,6 @@
 name: Pull Request Tests
 
-on: [pull_request, workflow_dispatch]
+on: [pull_request]
 
 permissions:
   contents: read # to fetch code (actions/checkout)
