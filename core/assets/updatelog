@@ -1,3 +1,37 @@
+[cyan]------------------------[v141.1-1/13]---------------------------
+Fixed some new crashes
+Reverted addition to env mapping due to instability - do not use the Env#add method, it will not work correctly
+
+[cyan]------------------------[v141-1/12]---------------------------
+Fixed many various crashes
+Fixed world message being replaceable
+Fixed various Serpulo sectors having no waves
+Fixed inaccessible resources under blocks appearing in sector resources info
+Fixed units following wrong team when assisting
+Fixed liquid puddles not syncing in multiplayer
+Many other minor bugfixes
+Improved loading speed of maps with many power graphs
+Improved performance of entity removal (should make effects/bullets less laggy)
+Made Oct shield an octagon
+Made block statuses flash when low on power/liquid instead of staying green
+Disabled campaign research/state syncing across multiplayer due to confusion - campaigns should be completely separate now
+Decreased Scathe fog uncover range (75% of range -> 40% of range)
+Increased Quell build cost
+Nerfed Locus, buffed Vanquish, Conquer, Cleroi
+Added rule for unit crash damage
+
+[cyan]------------------------[v140.4-11/13]---------------------------
+Fixed some placeholder/unfinished sector descriptions in many languages
+Fixed payload blocks rotating to face unit direction
+Fixed duplicate UUIDs being allowed on servers in certain circumstances
+Fixed some minor crashes
+Fixed incorrect shoot speed multiplier display for blocks
+Fixed certain Erekir resources being unlocked while on Serpulo (although the tech tree items are still shared)
+Fixed commanding all unit factories triggering rate limit on servers
+Many other small bugfixes
+Increased long tap duration on mobile for less annoying accidental payload pickup
+Made most turrets target conveyors/ducts/etc again
+
 [cyan]------------------------[v140.3-11/11]---------------------------
 7.0, an update that has been in development for more than 1.5 years, is finally here.
 

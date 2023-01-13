@@ -103,7 +103,7 @@ public class LCanvas extends Table{
 
     public void rebuild(){
         targetWidth = useRows() ? 400f : 900f;
-        float s = pane != null ? pane.getScrollPercentY() : 0f;
+        float s = pane != null ? pane.getVisualScrollY() : 0f;
         String toLoad = statements != null ? save() : null;
 
         clear();
@@ -120,9 +120,11 @@ public class LCanvas extends Table{
         }).grow().get();
         pane.setFlickScroll(false);
 
+        pane.setScrollYForce(s);
+        pane.updateVisualScroll();
         //load old scroll percent
         Core.app.post(() -> {
-            pane.setScrollPercentY(s);
+            pane.setScrollYForce(s);
             pane.updateVisualScroll();
         });
 

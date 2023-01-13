@@ -30,6 +30,7 @@ import mindustry.type.UnitType;
 import mindustry.ui.Styles;
 import mindustry.ui.dialogs.BaseDialog;
 import mindustry.world.Block;
+import mindustry.world.Tile;
 import mindustry.world.blocks.payloads.BuildPayload;
 import mindustry.world.blocks.payloads.Payload;
 import mindustry.world.blocks.payloads.UnitPayload;
@@ -63,15 +64,17 @@ public class AdvanceToolTable extends Table {
     public boolean fpslock = false;
     private float elevation = 0f;
 
+    private final Vec2 initA = new Vec2(0, 0), initB = new Vec2(0, 0), finalA = new Vec2(0, 0);
+
     public AdvanceToolTable() {
         rebuild();
         Events.on(EventType.WorldLoadEvent.class, e -> {
-            if(!state.rules.editor){
-                Core.settings.put("worldCreator",false);
-                Core.settings.put("forcePlacement",false);
-                Core.settings.put("allBlocksReveal",false);
+                if (!state.rules.editor) {
+                    Core.settings.put("worldCreator", false);
+                    Core.settings.put("forcePlacement", false);
+                    Core.settings.put("allBlocksReveal", false);
+                }
             }
-        }
         );
     }
 
@@ -193,6 +196,7 @@ public class AdvanceToolTable extends Table {
                                         Core.settings.put("allBlocksReveal", !Core.settings.getBool("allBlocksReveal"));
                                         ui.hudfrag.blockfrag.rebuild();
                                     }).checked(b -> Core.settings.getBool("allBlocksReveal")).tooltip("[acid]显示并允许建造所有物品").size(50f, 30f);
+                                    tBox.button("[orange]复制地形", flatToggleMenut, this::tileCopyer).tooltip("[acid]复制特定地形").size(70f, 30f).checked(jb -> false);
                                 }).left();
                     }).left().row();
                 }
@@ -274,31 +278,80 @@ public class AdvanceToolTable extends Table {
         }
     }
 
-    private void teamChangeMenu() {
-        BaseDialog dialog = new BaseDialog("队伍选择器");
-        Table selectTeam = new Table().top();
+    private void tileCopyer() {
+        BaseDialog dialog = new BaseDialog("地块复制器");
+        dialog.cont.table(t -> {
+            t.table(tt -> {
+                tt.add("复制区角A：x= ");
+                TextField x = tt.field(Strings.autoFixed(initA.x, 2), text -> {
+                    initA.x = Float.parseFloat(text);
+                }).valid(Strings::canParseFloat).maxTextLength(8).get();
 
-        dialog.cont.pane(td -> {
-            for (Team team : Team.all) {
-                if (team.id % 10 == 6) {
-                    td.row();
-                    td.add("队伍：" + team.id + "~" + (team.id + 10));
+                tt.add("  ,y= ");
+                TextField y = tt.field(Strings.autoFixed(initA.y, 2), text -> {
+                    initA.y = Float.parseFloat(text);
+                }).valid(Strings::canParseFloat).maxTextLength(8).get();
+
+                tt.button(StatusEffects.blasted.emoji(), () -> {
+                    if (Marker.markList.size == 0) return;
+                    initA.set(World.toTile(Marker.markList.peek().markPos.x), World.toTile(Marker.markList.peek().markPos.y));
+                    x.setText(World.toTile(Marker.markList.peek().markPos.x) + "");
+                    y.setText(World.toTile(Marker.markList.peek().markPos.y) + "");
+                }).tooltip(Marker.markList.size == 0 ? "[red]未标记" : ("选择上个标记点：" + World.toTile(Marker.markList.peek().markPos.x) + "," + World.toTile(Marker.markList.peek().markPos.y))).height(50f);
+            }).row();
+            t.table(tt -> {
+                tt.add("复制区角B：x= ");
+                TextField x = tt.field(Strings.autoFixed(initB.x, 2), text -> {
+                    initB.x = Float.parseFloat(text);
+                }).valid(Strings::canParseFloat).maxTextLength(8).get();
+
+                tt.add("  ,y= ");
+                TextField y = tt.field(Strings.autoFixed(initB.y, 2), text -> {
+                    initB.y = Float.parseFloat(text);
+                }).valid(Strings::canParseFloat).maxTextLength(8).get();
+
+                tt.button(StatusEffects.blasted.emoji(), () -> {
+                    if (Marker.markList.size == 0) return;
+                    initB.set(World.toTile(Marker.markList.peek().markPos.x), World.toTile(Marker.markList.peek().markPos.y));
+                    x.setText(World.toTile(Marker.markList.peek().markPos.x) + "");
+                    y.setText(World.toTile(Marker.markList.peek().markPos.y) + "");
+                }).tooltip(Marker.markList.size == 0 ? "[red]未标记" : ("选择上个标记点：" + World.toTile(Marker.markList.peek().markPos.x) + "," + World.toTile(Marker.markList.peek().markPos.y))).height(50f);
+            }).row();
+            t.table(tt -> {
+                tt.add("粘贴区左下坐标：x= ");
+                TextField x = tt.field(Strings.autoFixed(finalA.x, 2), text -> {
+                    finalA.x = Float.parseFloat(text);
+                }).valid(Strings::canParseFloat).maxTextLength(8).get();
+
+                tt.add("  ,y= ");
+                TextField y = tt.field(Strings.autoFixed(finalA.y, 2), text -> {
+                    finalA.y = Float.parseFloat(text);
+                }).valid(Strings::canParseFloat).maxTextLength(8).get();
+
+                tt.button(StatusEffects.blasted.emoji(), () -> {
+                    if (Marker.markList.size == 0) return;
+                    finalA.set(World.toTile(Marker.markList.peek().markPos.x), World.toTile(Marker.markList.peek().markPos.y));
+                    x.setText(World.toTile(Marker.markList.peek().markPos.x) + "");
+                    y.setText(World.toTile(Marker.markList.peek().markPos.y) + "");
+                }).tooltip(Marker.markList.size == 0 ? "[red]未标记" : ("选择上个标记点：" + World.toTile(Marker.markList.peek().markPos.x) + "," + World.toTile(Marker.markList.peek().markPos.y))).height(50f);
+            }).row();
+            t.button("复制！", () -> {
+                ui.arcInfo("复制蓝图中...\n[orange]测试中功能，请等待后续完善");
+                Vec2 left2 = new Vec2(Math.min(initA.x, initB.x), Math.min(initA.y, initB.y));
+                for (int x = 0; x <= Math.abs(initA.x - initB.x); x++) {
+                    for (int y = 0; y <= Math.abs(initA.y - initB.y); y++) {
+                        Tile copyTile = world.tile((int) (left2.x + x), (int) (left2.y + y));
+                        Tile thisTile = world.tile((int) (finalA.x + x), (int) (finalA.y + y));
+                        Tile.setFloor(thisTile, copyTile.floor(), copyTile.overlay());
+                        if (copyTile.build == null)
+                            thisTile.setBlock(copyTile.block());
+                        else thisTile.setBlock(copyTile.block(), copyTile.build.team, copyTile.build.rotation);
+
+                    }
                 }
-                ImageButton button = new ImageButton(Tex.whiteui, Styles.clearTogglei);
-                button.getStyle().imageUpColor = team.color;
-                button.margin(10f);
-                button.resizeImage(40f);
-                button.clicked(() -> {
-                    player.team(team);
-                    dialog.hide();
-                });
-                button.update(() -> button.setChecked(player.team() == team));
-                td.add(button);
-            }
-        });
 
-        dialog.add(selectTeam).center();
-        dialog.row();
+            }).height(50f).fillX();
+        });
         dialog.addCloseButton();
         dialog.show();
     }

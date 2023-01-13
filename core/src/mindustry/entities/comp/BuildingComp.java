@@ -380,6 +380,10 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         for(var edge : block.getEdges()){
             Building build = nearby(edge.x, edge.y);
             if(build != null && build.team == team && build instanceof HeatBlock heater){
+                //massive hack but I don't really care anymore
+                if(heater instanceof HeatConductorBuild cond){
+                    cond.updateHeat();
+                }
 
                 boolean split = build.block instanceof HeatConductor cond && cond.splitHeat;
                 // non-routers must face us, routers must face away - next to a redirector, they're forced to face away due to cycles anyway
@@ -576,7 +580,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
             return BlockStatus.noInput;
         }
 
-        return BlockStatus.active;
+        return ((state.tick / 30f) % 1f) < efficiency ? BlockStatus.active : BlockStatus.noInput;
     }
 
     /** Call when nothing is happening to the entity. This increments the internal sleep timer. */
@@ -1154,7 +1158,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     }
 
     public void drawBars(){
-        Draw.z(Layer.shields + 4f);
+        Draw.z(Layer.turret + 4f);
         if(maxHealth < Core.settings.getInt("blockbarminhealth") || (health / maxHealth > 0.9f )) return;
         Draw.color(team.color, 0.3f);
         Lines.stroke(4f);
@@ -1613,7 +1617,12 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
     public boolean collision(Bullet other){
         boolean wasDead = health <= 0;
 
-        damage(other.team, other.damage() * other.type().buildingDamageMultiplier);
+        float damage = other.damage() * other.type().buildingDamageMultiplier;
+        if(!other.type.pierceArmor){
+            damage = Damage.applyArmor(damage, block.armor);
+        }
+
+        damage(other.team, damage);
         Events.fire(bulletDamageEvent.set(self(), other));
 
         if(health <= 0 && !wasDead){
@@ -1869,7 +1878,7 @@ abstract class BuildingComp implements Posc, Teamc, Healthc, Buildingc, Timerc, 
         if(Mathf.zero(dm)){
             damage = health + 1;
         }else{
-            damage = Damage.applyArmor(damage, block.armor) / dm;
+            damage /= dm;
         }
 
         //TODO handle this better on the client.

@@ -535,6 +535,7 @@ public class SettingsMenuDialog extends BaseDialog{
         arc.checkPref("arcdrillmode", false);
         arc.checkPref("arcDrillProgress",false);
         arc.checkPref("arcchoiceuiIcon", false);
+        arc.checkPref("hidedisplays",false);
         arc.checkPref("arclogicbordershow", true);
         arc.checkPref("arcPlacementEffect",false);
 

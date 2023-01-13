@@ -163,7 +163,7 @@ public class arcChatPicture {
             });
             Core.scene.add(t);
             buildTable();
-            ui.arcInfo("已收到图片!，来源：" + (playersender.isNull() ? "" : playersender.name) + "\n[gray]使用参考中央监控室-图片分享器");
+            ui.arcInfo("已收到图片!，来源：" + (playersender != null ? playersender.isNull() ? "" : playersender.name : "") + "\n[gray]使用参考中央监控室-图片分享器");
         }
 
         private void buildTable() {

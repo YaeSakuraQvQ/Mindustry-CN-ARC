@@ -4,6 +4,7 @@ import arc.*;
 import arc.graphics.g2d.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.*;
 import mindustry.core.UI;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
@@ -53,6 +54,7 @@ public class HeatConductor extends Block{
         public float heat = 0f;
         public float[] sideHeat = new float[4];
         public IntSet cameFrom = new IntSet();
+        public long lastHeatUpdate = -1;
 
         @Override
         public void draw(){
@@ -77,6 +79,13 @@ public class HeatConductor extends Block{
 
         @Override
         public void updateTile(){
+            updateHeat();
+        }
+
+        public void updateHeat(){
+            if(lastHeatUpdate == Vars.state.updateId) return;
+
+            lastHeatUpdate = Vars.state.updateId;
             heat = calculateHeat(sideHeat, cameFrom);
         }
 
