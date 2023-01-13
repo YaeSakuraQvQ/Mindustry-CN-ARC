@@ -8,8 +8,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - name: Set up JDK 16
+        uses: actions/setup-java@v1
+        with:
+          java-version: 16
       - name: Trigger BE build
         run: |
           git clone --depth=1 --branch=master https://github.com/YaeSakuraQvQ/Mindustry-CN-ARC/
           cd Mindustry-CN-ARC
-          gradlew desktop:dist
+          ./gradlew desktop:dist
