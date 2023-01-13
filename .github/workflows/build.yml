@@ -12,8 +12,13 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 16
-      - name: Trigger BE build
+      - name: build
         run: |
           git clone --depth=1 --branch=master https://github.com/YaeSakuraQvQ/Mindustry-CN-ARC/
           cd Mindustry-CN-ARC
           ./gradlew desktop:dist
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: mindustry
+          path: ./desktop/build/libs/Mindustry.jar
