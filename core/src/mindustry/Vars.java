@@ -41,7 +41,7 @@ import static arc.Core.*;
 public class Vars implements Loadable{
     /** ARC */
     public static String arcVersion = Version.arcBuild + "";
-    public static String arcVersionPrefix = "<ARC~" + Version.arcBuild + ">";
+    public static String arcVersionPrefix = "<ARC~" + Version.arcBuild + ">";
     public static int changeLogRead = 18;
     public static Seq<District.advDistrict> districtList = new Seq<>();
     public static String userContentURL = "https://raw.fastgit.org";
