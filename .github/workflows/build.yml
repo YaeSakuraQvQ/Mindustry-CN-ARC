@@ -21,4 +21,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: mindustry
-          path: ./desktop/build/libs/Mindustry.jar
+          path: ./home/runner/work/Mindustry-CN-ARC/Mindustry-CN-ARC/Mindustry-CN-ARC/desktop/build/libs/Mindustry.jar
