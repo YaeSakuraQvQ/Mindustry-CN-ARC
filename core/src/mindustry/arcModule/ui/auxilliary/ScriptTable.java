@@ -33,6 +33,10 @@ public class ScriptTable extends BaseToolsTable{
             Marker.lockonLastMark();
         });
 
+        scriptButton(Items.copper.uiIcon, "一键装弹", () -> {
+            Vars.player.dropItems();
+        });
+
         scriptButton(Icon.modeAttack, "自动攻击", () -> {
             boolean at = Core.settings.getBool("autotarget");
             Core.settings.put("autotarget", !at);
@@ -54,9 +58,6 @@ public class ScriptTable extends BaseToolsTable{
             Core.settings.put("removePan", !ab);
             ui.arcInfo("已" + (ab?"取消":"开启") + "强制追踪控制单位");
         }, b -> Core.settings.getBool("removePan"));
-        scriptButton(Items.copper.uiIcon, "一键放置", () -> {
-            player.dropItems();
-        });
     }
 
     private void scriptButton(Drawable region, String describe, Runnable runnable, Boolf<ImageButton> checked){
