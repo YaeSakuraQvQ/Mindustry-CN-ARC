@@ -1,5 +1,6 @@
 package mindustry.world.blocks.defense.turrets;
 
+import arc.Core;
 import arc.audio.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
@@ -125,7 +126,7 @@ public class TractorBeamTurret extends BaseTurret{
                     }
 
                     any = true;
-                    target.impulseNet(Tmp.v1.set(this).sub(target).limit((force + (1f - target.dst(this) / range) * scaledForce) * edelta));
+                    target.impulseNet(Tmp.v1.set(this).sub(target).limit(((force + (1f - target.dst(this) / range) * scaledForce) * edelta) * Core.settings.getFloat("牵引光束拉扯倍率", 1f) * (Core.settings.getBool("牵引光束反向拉扯", false) ? 1 : -1)));
                 }
             }else{
                 strength = Mathf.lerpDelta(strength, 0, 0.1f);
