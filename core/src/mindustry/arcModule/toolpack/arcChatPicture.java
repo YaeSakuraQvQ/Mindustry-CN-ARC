@@ -85,7 +85,7 @@ public class arcChatPicture {
             t.row();
             t.button("[orange]随机二次元(大雾)", () -> {
                 try {
-                    Http.get("https://api.ixiaowai.cn/api/api.php", res -> {
+                    Http.get("https://api.yimian.xyz/img/?type=moe", res -> {
                         Pixmap pix = new Pixmap(res.getResult());
                         Timer.schedule(() -> new floatFigure(pix, player), 0.01f);
                     });
