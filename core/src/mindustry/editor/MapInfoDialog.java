@@ -122,8 +122,32 @@ public class MapInfoDialog extends BaseDialog{
 
             TextField author = t.field(state.isPlaying() ? state.map.author() : tags.get("author", ""), text -> {
                 tags.put("author", text);
-            }).size(400, 55f).maxTextLength(50).get();
+            }).size(400, 55f).get();
             author.setMessageText("@unknown");
+
+            t.row();
+
+            t.add("modeName").padRight(8).left();
+
+            TextField modeName = t.field(state.rules.modeName, text -> state.rules.modeName = text).size(345, 55f).get();
+            modeName.setMessageText("@unknown");
+            t.button("重置", () -> state.rules.modeName = null).size(55f, 55f);
+
+            t.row();
+
+            t.add("mission").padRight(8).left();
+
+            TextField mission = t.field(state.rules.mission, text -> state.rules.mission = text).size(345, 55f).get();
+            mission.setMessageText("@unknown");
+            t.button("重置", () -> state.rules.mission = null).size(55f, 55f);
+
+            t.row();
+
+            t.add("backgroundTexture").padRight(8).left();
+
+            TextField backgroundTexture = t.field(state.rules.backgroundTexture, text -> state.rules.backgroundTexture = text).size(345, 55f).get();
+            backgroundTexture.setMessageText("@unknown");
+            t.button("重置", () -> state.rules.backgroundTexture = null).size(55f, 55f);
 
             t.row();
 
