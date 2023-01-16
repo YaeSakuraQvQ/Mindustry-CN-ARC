@@ -135,15 +135,14 @@ public class HudSettingsTable extends Table{
                     t.button("[cyan]弹",textStyle, () ->{
                         Core.settings.put("bulletShow", !Core.settings.getBool("bulletShow"));
                     }).checked(a->Core.settings.getBool("bulletShow")).size(30,30).tooltip("子弹显示");
+                    t.button("[cyan]雾",textStyle, () ->{
+                        state.rules.fog = !state.rules.fog;
+                    }).checked(a->state.rules.fog).size(30,30).tooltip("战争迷雾");
                     t.button("[violet]锁",textStyle,()->{
                         Core.settings.put("removeLogicLock", !Core.settings.getBool("removeLogicLock"));
                         control.input.logicCutscene = false;
                         ui.arcInfo("已移除逻辑视角锁定");
                     }).checked(a->Core.settings.getBool("removeLogicLock")).size(30,30).tooltip("逻辑锁定");
-                    t.button("[cyan]雾",textStyle, () ->{
-                        if(!state.rules.pvp || player.team().id == 255)
-                            state.rules.fog = !state.rules.fog;
-                    }).checked(a->state.rules.fog).size(30,30).tooltip("战争迷雾").visible(!state.rules.pvp || player.team().id == 255);
                 }).left();
                 sp.row();
                 sp.table(t -> {
