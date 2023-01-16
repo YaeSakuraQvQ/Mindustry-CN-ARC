@@ -203,6 +203,7 @@ public class UI implements ApplicationListener, Loadable{
         language = new LanguageDialog();
         database = new DatabaseDialog();
         settings = new SettingsMenuDialog();
+        klpMenu = new KlpMenuDialog();
         host = new HostDialog();
         paused = new PausedDialog();
         about = new AboutDialog();
