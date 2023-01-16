@@ -61,6 +61,7 @@ public class UI implements ApplicationListener, Loadable{
     public HostDialog host;
     public PausedDialog paused;
     public SettingsMenuDialog settings;
+    public KlpMenuDialog klpMenu;
     public KeybindDialog controls;
     public MapEditorDialog editor;
     public LanguageDialog language;
