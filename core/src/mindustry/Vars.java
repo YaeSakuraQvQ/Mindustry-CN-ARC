@@ -360,7 +360,7 @@ public class Vars implements Loadable{
         changeLogRead = Math.abs(Integer.parseInt(("" + uuid.hashCode()).substring(0, 2)));
     
         arcVersion = Version.arcBuild <= 0 ? "Dev" : String.valueOf(Version.arcBuild);
-        arcVersionPrefix = "<ARC" + Iconc.unitCrawler + "~" + arcVersion + ">";
+        arcVersionPrefix = "<ARC" + "[violet]" + "~" + arcVersion + ">";
     }
 
     /** Checks if a launch failure occurred.
