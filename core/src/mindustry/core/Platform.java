@@ -15,6 +15,9 @@ import mindustry.ui.dialogs.*;
 import rhino.*;
 
 import java.net.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import static mindustry.Vars.*;
 
