@@ -1,5 +1,6 @@
 package mindustry.entities.comp;
 
+import arc.Core;
 import arc.math.*;
 import arc.util.*;
 import mindustry.annotations.Annotations.*;
@@ -34,12 +35,12 @@ abstract class BoundedComp implements Velc, Posc, Healthc, Flyingc{
         if(!net.client() || isLocal()){
 
             float dx = 0f, dy = 0f;
-
+            var bigNum = Core.settings.getFloat("地图边界拓展", 0f) * tilesize;
             //repel unit out of bounds
-            if(x < left) dx += (-(x - left)/warpDst);
-            if(y < bot) dy += (-(y - bot)/warpDst);
-            if(x > right) dx -= (x - right)/warpDst;
-            if(y > top) dy -= (y - top)/warpDst;
+            if(x < left - bigNum) dx += (-(x - left)/warpDst);
+            if(y < bot - bigNum) dy += (-(y - bot)/warpDst);
+            if(x > right + bigNum) dx -= (x - right)/warpDst;
+            if(y > top + bigNum) dy -= (y - top)/warpDst;
 
             velAddNet(dx * Time.delta, dy * Time.delta);
         }
