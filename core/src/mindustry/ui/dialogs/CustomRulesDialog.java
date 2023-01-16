@@ -267,7 +267,6 @@ public class CustomRulesDialog extends BaseDialog{
         check("@rules.unitPayloadUpdate",b->rules.unitPayloadUpdate = b,()->rules.unitPayloadUpdate);
         check("@rules.showSpawns",b->rules.showSpawns = b,()->rules.showSpawns);
         check("@rules.possessionAllowed", b -> rules.possessionAllowed = b, () -> rules.possessionAllowed);
-        check("禁用重建", b -> rules.ghostBlocks = b, () -> !rules.ghostBlocks);
         main.button("@hiddenBuildItems", () -> showBanned("@hiddenBuildItems", ContentType.item, rules.hiddenBuildItems, Item::showUnlock)).left().width(300f).row();
 
         check("@rules.limitarea", b -> rules.limitMapArea = b, () -> rules.limitMapArea);
