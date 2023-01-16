@@ -372,8 +372,15 @@ public class BulletType extends Content implements Cloneable{
         }
 
         if(entity instanceof Unit unit){
-            Tmp.v3.set(unit).sub(b).nor().scl(knockback * 80f);
-            if(impact) Tmp.v3.setAngle(b.rotation() + (knockback < 0 ? 180f : 0f));
+            if (Core.settings.getBool("反向击退", false)){
+                Tmp.v3.set(unit).sub(b).nor().scl(knockback * -80f * Core.settings.getFloat("被击退倍率", 1f));
+                if (impact)
+                    Tmp.v3.setAngle(b.rotation() + (knockback < 0 ? -180f * Core.settings.getFloat("被击退倍率", 1f) : 0f));
+            }else {
+                Tmp.v3.set(unit).sub(b).nor().scl(knockback * 80f * Core.settings.getFloat("被击退倍率", 1f));
+                if (impact)
+                    Tmp.v3.setAngle(b.rotation() + (knockback < 0 ? 180f * Core.settings.getFloat("被击退倍率", 1f) : 0f));
+            }
             unit.impulse(Tmp.v3);
             unit.apply(status, statusDuration);
 
