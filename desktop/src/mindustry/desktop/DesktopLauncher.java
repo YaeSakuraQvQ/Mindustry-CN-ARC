@@ -19,6 +19,7 @@ import mindustry.core.*;
 import mindustry.desktop.steam.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
+import mindustry.mod.Mods;
 import mindustry.net.*;
 import mindustry.net.Net.*;
 import mindustry.service.*;
@@ -37,8 +38,15 @@ public class DesktopLauncher extends ClientLauncher{
     public static void main(String[] arg){
         try{
             Vars.loadLogger();
+            int enabled = 0;
+            if (mods != null) {
+                for (Mods.LoadedMod mod : mods.mods) {
+                    if (mod.enabled()) enabled++;
+                }
+            }
+            int finalEnabled = enabled;
             new SdlApplication(new DesktopLauncher(arg), new SdlConfig(){{
-                title = "Mindustry";
+                title = "Mindustry-CN-ARC-YZH | VERSION " + (Version.arcBuild <= 0 ? "Dev" : Version.arcBuild) + " | " + finalEnabled + "/" + (mods == null ? 0 : mods.mods.size) + " Mods Enable";
                 maximized = true;
                 width = 900;
                 height = 700;
@@ -59,6 +67,7 @@ public class DesktopLauncher extends ClientLauncher{
         }
     }
 
+    
     public DesktopLauncher(String[] args){
         Version.init();
         boolean useSteam = Version.modifier.contains("steam");
