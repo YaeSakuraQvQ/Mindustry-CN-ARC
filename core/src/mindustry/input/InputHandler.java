@@ -102,6 +102,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
     private WidgetGroup group = new WidgetGroup();
 
+    public Vec2 lastCommandPos;
+
     public boolean arcScanMode = false;
 
     private final Eachable<BuildPlan> allPlans = cons -> {
@@ -248,10 +250,6 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
                 unit.lastCommanded = player.coloredName();
                 
-                //remove when other player command
-                if(!headless && player != Vars.player){
-                    control.input.selectedUnits.remove(unit);
-                }
             }
         }
 
@@ -342,6 +340,8 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         var unit = player.unit();
         Item item = unit.item();
         int accepted = build.acceptStack(item, unit.stack.amount, unit);
+
+        unit.aim(build.x, build.y);
 
         Call.transferItemTo(unit, item, accepted, unit.x, unit.y, build);
 
@@ -834,6 +834,25 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
         }
     }
 
+    public void commandTap(Vec2 target, int[] ids){
+        if(commandMode){
+            if(ids.length > 0){
+
+                Teamc attack = world.buildWorld(target.x, target.y);
+
+                if(attack == null || attack.team() == player.team()){
+                    attack = selectedEnemyUnit(target.x, target.y);
+                }
+
+                Call.commandUnits(player, ids, attack instanceof Building b ? b : null, attack instanceof Unit u ? u : null, target);
+            }
+
+            if(commandBuildings.size > 0){
+                Call.commandBuilding(player, commandBuildings.mapInt(b -> b.pos()).toArray(), target);
+            }
+        }
+    }
+
     public void commandTap(float screenX, float screenY){
         if(commandMode){
             //right click: move to position
@@ -859,6 +878,7 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
                 }
 
                 Call.commandUnits(player, ids, attack instanceof Building b ? b : null, attack instanceof Unit u ? u : null, target);
+                lastCommandPos = target;
             }
 
             if(commandBuildings.size > 0){
