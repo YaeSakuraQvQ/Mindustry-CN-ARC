@@ -27,7 +27,7 @@ public class HeatCrafter extends GenericCrafter{
 
         addBar("heat", (HeatCrafterBuild entity) ->
             new Bar(() ->
-            UI.simpleFormat("热量",entity.heat,heatRequirement,0),
+            UI.simpleFormat("热量",entity.heat,heatRequirement,0) + "[lightgray](" + (int)(entity.efficiencyScale() * 100 + 0.01f) + ")",
             () -> Pal.lightOrange,
             () -> entity.heat / heatRequirement));
     }

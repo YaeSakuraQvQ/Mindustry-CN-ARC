@@ -1,3 +1,14 @@
+[cyan]------------------------[v141.3-1/23]---------------------------
+Fixed host research not syncing to clients correctly
+Fixed clients being able to open research dialog
+Fixed a crash with certain mods
+Fixed "consumer-less" modded blocks always being at 100% efficiency
+
+[cyan]------------------------[v141.2-1/15]---------------------------
+Fixed Sublimate not working correctly
+Fixed Spanish language having corrupted letters
+Fixed server chatSpamLimit config having wrong value
+
 [cyan]------------------------[v141.1-1/13]---------------------------
 Fixed some new crashes
 Reverted addition to env mapping due to instability - do not use the Env#add method, it will not work correctly

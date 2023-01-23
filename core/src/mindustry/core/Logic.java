@@ -384,7 +384,12 @@ public class Logic implements ApplicationListener{
     public static void researched(Content content){
         if(!(content instanceof UnlockableContent u)) return;
 
+        boolean was = !u.unlockedNow();
         state.rules.researched.add(u.name);
+
+        if(!was){
+            Events.fire(new UnlockEvent(u));
+        }
     }
 
     @Override
@@ -401,6 +406,8 @@ public class Logic implements ApplicationListener{
         if(Core.settings.modified() && !state.isPlaying()){
             Core.settings.forceSave();
         }
+
+        boolean runStateCheck = !net.client() && !world.isInvalidMap() && !state.isEditor() && state.rules.canGameOver;
 
         if(state.isGame()){
             if(!net.client()){
@@ -467,9 +474,11 @@ public class Logic implements ApplicationListener{
                 Groups.update();
             }
 
-            if(!net.client() && !world.isInvalidMap() && !state.isEditor() && state.rules.canGameOver){
+            if(runStateCheck){
                 checkGameState();
             }
+        }else if(netServer.isWaitingForPlayers() && runStateCheck){
+            checkGameState();
         }
     }
 
