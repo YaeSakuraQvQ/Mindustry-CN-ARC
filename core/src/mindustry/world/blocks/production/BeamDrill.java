@@ -79,7 +79,7 @@ public class BeamDrill extends Block{
         super.setBars();
 
         addBar("drillspeed", (BeamDrillBuild e) ->
-            new Bar(() -> (e.lastItem == null ? "挖掘速度：" : e.lastItem.emoji()) +" "+ Strings.fixed(e.lastDrillSpeed * 60 , 2) + "/s", () -> Pal.ammo, () -> e.warmup));
+            new Bar(() -> (e.lastItem == null ? "挖掘速度：0.00/s" : e.lastItem.emoji() +" "+ Strings.fixed(e.lastDrillSpeed * 60 , 2) + "/s"), () -> Pal.ammo, () -> e.warmup));
     }
 
     @Override

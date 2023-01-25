@@ -604,7 +604,7 @@ public class Turret extends ReloadTurret{
         }
 
         protected void updateReload(){
-            float multiplier = hasAmmo() ? peekAmmo().reloadMultiplier : 1f;
+            float multiplier = hasAmmo() ? peekAmmo() == null ? 1f : peekAmmo().reloadMultiplier : 1f;
             reloadCounter += delta() * multiplier * baseReloadSpeed();
 
             //cap reload for visual reasons
