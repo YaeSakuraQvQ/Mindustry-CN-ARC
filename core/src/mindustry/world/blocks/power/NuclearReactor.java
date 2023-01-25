@@ -22,6 +22,8 @@ import static mindustry.Vars.*;
 public class NuclearReactor extends PowerGenerator{
     public final int timerFuel = timers++;
 
+    public final Vec2 tr = new Vec2();
+
     public Color lightColor = Color.valueOf("7f19ea");
     public Color coolColor = new Color(1, 1, 1, 0f);
     public Color hotColor = Color.valueOf("ff9575a3");
@@ -200,6 +202,7 @@ public class NuclearReactor extends PowerGenerator{
             if(hexPos.length != itemCapacity + 6){
                 genHexPos();
             }
+            if(posId >= itemCapacity + 6) return new Vec2(0f, 0f);
             Vec2 v = new Vec2(hexPos[posId].x, hexPos[posId].y);
             //Log.infoTag("Reactor", posId + " | " + v.x + "," + v.y);
             v.scl(gap);
