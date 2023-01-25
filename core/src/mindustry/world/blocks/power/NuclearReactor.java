@@ -172,8 +172,8 @@ public class NuclearReactor extends PowerGenerator{
         }
 
         public void drawFuelRods(){
-            Item item = consumes.getItem().items[0].item;
-            int fuel = items.get(item);
+            Item item = Items.thorium;
+            int fuel = items.get(fuelItem);
             Draw.color(item.color);
             //Drawf.light(x, y, 12f, liquids.current().color, ((float)fuel / (float)itemCapacity));
 
