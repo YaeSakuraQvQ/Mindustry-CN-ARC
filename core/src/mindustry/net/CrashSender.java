@@ -21,9 +21,7 @@ public class CrashSender{
 
     public static String createReport(String error){
         String report = "喜报！你的学术端崩溃了！\n";
-        if(mods != null && mods.list().size == 0 && Version.build != -1){
-            report += "在确定不是你自己的问题后在这里报告: " + Vars.reportIssueURL + "\n\n";
-        }
+        report += "在确定不是你自己的问题后在这里报告: " + Vars.reportIssueURL + "\n\n";
         return report
         + "版本: " + Version.combined() + (Vars.headless ? " (服务器)" : "") + "\n"
         + "系统: " + OS.osName + " x" + (OS.osArchBits) + " (" + OS.osArch + ")\n"

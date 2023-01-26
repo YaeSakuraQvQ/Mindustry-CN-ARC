@@ -381,7 +381,7 @@ public class Turret extends ReloadTurret{
                     }
                     Draw.reset();
                 }
-                if(Core.settings.getBool("showTurretAmmo") && this instanceof ItemTurret.ItemTurretBuild){
+                if(Core.settings.getBool("showTurretAmmo") && this instanceof ItemTurret.ItemTurretBuild && ammo.any()){
                     //lc参考miner代码
                     ItemTurret.ItemEntry entry = (ItemTurret.ItemEntry)ammo.peek();
                     Item lastAmmo= entry.item;
