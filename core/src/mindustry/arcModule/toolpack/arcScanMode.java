@@ -126,7 +126,7 @@ public class arcScanMode {
         sfpt.visible = sfpt.visible && state.isPlaying();
         spawnerTable.clear();
         flyerTable.clear();
-        if (!control.input.arcScanMode) {
+        if (!control.input.arcScanMode || arcWave.isEmpty()) {
             spt.visible = false;
             sfpt.visible = false;
             return;
