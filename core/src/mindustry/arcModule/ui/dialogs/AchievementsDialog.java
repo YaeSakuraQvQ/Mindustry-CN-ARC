@@ -42,7 +42,6 @@ public class AchievementsDialog extends BaseDialog {
     public AchievementsDialog() {
         super("ARC-统计与成就");
 
-
         cont.pane(t -> {
             SStatTable = t;
             t.row();
@@ -143,6 +142,25 @@ public class AchievementsDialog extends BaseDialog {
 
         });
 
+
+        browserTable.row();
+        browserTable.table(t->{
+            t.button("[red]重置成就",()-> ui.showConfirm("你确定要重置所有成就吗",()->{
+                for (Achievement ach : Achievement.all){
+                    ach.removeAchieve();
+                }
+                ui.arcInfo("已移除所有成就");
+                rebuildBrowser();
+            })).height(50f).width(200f);
+            if(Core.settings.getBool("otherCheat"))
+                t.button("[red]一键完成",()-> ui.showConfirm("你确定要一键完成所有成就吗",()->{
+                    for (Achievement ach : Achievement.all){
+                        ach.complete();
+                    }
+                    ui.arcInfo("已完成所有成就");
+                    rebuildBrowser();
+                })).height(50f).width(200f);
+        });
     }
 
     private String formatTime(int time) {

@@ -725,6 +725,7 @@ public class SettingsMenuDialog extends BaseDialog{
         cheating.checkPref("showOtherTeamState", false);
         cheating.checkPref("selectTeam",false);
         cheating.checkPref("playerNeedShooting", false);
+        cheating.checkPref("otherCheat",false);
         }
 
     public void exportData(Fi file) throws IOException{

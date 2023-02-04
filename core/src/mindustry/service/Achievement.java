@@ -146,6 +146,13 @@ public enum Achievement{
         }
     }
 
+    public void removeAchieve(){
+        if (service.isAchieved(name())){
+            service.clearAchievement(name());
+            completed = false;
+        }
+    }
+
     public void checkCompletion(){
         if(!isAchieved() && stat != null && stat.get() >= statGoal){
             complete();
