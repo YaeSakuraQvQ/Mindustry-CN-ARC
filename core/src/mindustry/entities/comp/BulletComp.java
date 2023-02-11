@@ -1,5 +1,6 @@
 package mindustry.entities.comp;
 
+import arc.Core;
 import arc.func.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
@@ -243,6 +244,7 @@ abstract class BulletComp implements Timedc, Damagec, Hitboxc, Teamc, Posc, Draw
 
     @Override
     public void draw(){
+        if(!Core.settings.getBool("bulletShow")) return;
         Draw.z(type.layer);
 
         type.draw(self());

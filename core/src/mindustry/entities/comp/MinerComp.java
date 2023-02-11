@@ -126,7 +126,7 @@ abstract class MinerComp implements Itemsc, Posc, Teamc, Rotc, Drawc{
 
     @Override
     public void draw(){
-        if(!mining()) return;
+        if(!mining()||!Core.settings.getBool("showminebeam")) return;
         float focusLen = hitSize / 2f + Mathf.absin(Time.time, 1.1f, 0.5f);
         float swingScl = 12f, swingMag = tilesize / 8f;
         float flashScl = 0.3f;
