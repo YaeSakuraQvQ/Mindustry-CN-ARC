@@ -589,6 +589,7 @@ public class SettingsMenuDialog extends BaseDialog{
         arc.checkPref("ShowInfoPopup",true);
         arc.checkPref("arcShareWaveInfo", false);
         arc.checkPref("arcAlwaysTeamColor",false);
+        arc.checkPref("arcAutoGG",false);
 
         arc.addCategory("arcPlayerEffect");
         arc.stringInput("playerEffectColor", "ffd37f");
