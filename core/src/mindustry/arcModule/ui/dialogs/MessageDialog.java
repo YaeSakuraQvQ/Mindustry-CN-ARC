@@ -68,6 +68,8 @@ public class MessageDialog extends BaseDialog {
         buttons.button("导出", Icon.upload, this::exportMsg).name("导出聊天记录");
 
         buttons.button("图片分享器", Icon.image, arcChatPicture::arcSharePicture);
+
+        buttons.button("松鼠音乐", () -> ui.MusicDialog.show());
         shown(this::build);
         onResize(this::build);
 
@@ -251,6 +253,7 @@ public class MessageDialog extends BaseDialog {
             if (District.resolveMessage(message)) return true;
             if (resolveMarkMsg(message, null)) return true;
             if (resolveServerMsg(message)) return true;
+            if (ui.MusicDialog.resolveMsg(message)) return true;
         }
 
         addMsg(new MessageDialog.advanceMsg(MessageDialog.arcMsgType.normal, message));
@@ -264,6 +267,7 @@ public class MessageDialog extends BaseDialog {
             if (District.resolveMessage(message)) return true;
             if (resolveMarkMsg(message, playersender)) return true;
             if (arcChatPicture.resolveMessage(message, playersender)) return true;
+            if (ui.MusicDialog.resolveMsg(message, playersender)) return true;
 
             if (playersender != null) {
                 addMsg(new MessageDialog.advanceMsg(MessageDialog.arcMsgType.chat, message, playersender.name(), new Vec2(playersender.x, playersender.y)));
@@ -411,6 +415,7 @@ public class MessageDialog extends BaseDialog {
         markContent("标记", "内容", Color.valueOf("#7FFFD4")),
         markPlayer("标记", "玩家", Color.valueOf("#7FFFD4")),
         arcChatPicture("分享", "图片", Color.yellow),
+        music("分享", "音乐", Color.pink),
         district("规划区", "", Color.violet),
 
         serverTips("服务器", "小贴士", Color.valueOf("#98FB98"), false),

@@ -45,7 +45,7 @@ public class arcChatPicture {
 
         MessageDialog.addMsg(new MessageDialog.advanceMsg(MessageDialog.arcMsgType.arcChatPicture, text));
 
-        Http.get(url, res -> {
+        Http.get(url, res -> new Thread(() -> {
             try {
                 Pixmap pix = new Pixmap(res.getResult());
                 Timer.schedule(() -> new floatFigure(pix, playersender), 0.01f);
@@ -53,7 +53,7 @@ public class arcChatPicture {
                 Log.err(e);
                 ui.arcInfo("[orange]图片读取失败");
             }
-        });
+        }).start());
 
         return true;
     }
@@ -91,7 +91,9 @@ public class arcChatPicture {
                     });
                 } catch (Exception e) {
                     Log.err(e);
-                    ui.arcInfo("[orange]图片读取失败");
+                    Core.app.post(() -> {
+                        ui.arcInfo("[orange]图片读取失败");
+                    });
                 }
 
             }).padTop(30f).width(400f);
@@ -123,8 +125,8 @@ public class arcChatPicture {
                 post.header("filename", figureFile.name());
                 post.header("size", String.valueOf(figureFile.length()));
                 post.header("token", "3ab6950d5970c57f938673911f42fd32");
-                post.timeout=10000;
-                post.error(e -> ui.arcInfo("发生了一个错误:"+e.toString()));
+                post.timeout = 10000;
+                post.error(e -> Core.app.post(() -> ui.arcInfo("发生了一个错误:"+e.toString())));
                 post.submit(r -> figureLink.setText("http://squirrel.gq/api/get?id=" + r.getResultAsString()));
             }).width(300f);
 
@@ -133,7 +135,9 @@ public class arcChatPicture {
 
     private static boolean checkPic() {
         if (curPicture >= maxPicture) {
-            ui.arcInfo("当前图片已达上限，仅允许自己添加图片", 10);
+            Core.app.post(() -> {
+                ui.arcInfo("当前图片已达上限，仅允许自己添加图片", 10);
+            });
             return false;
         } else
             return true;
@@ -195,6 +199,7 @@ public class arcChatPicture {
                     t.setPosition(t.x + deltaX / 2, t.y + deltaY / 2);
                 }
             });
+            pix.dispose();
         }
 
         private void clear() {

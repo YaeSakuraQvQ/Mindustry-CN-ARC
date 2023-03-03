@@ -1,3 +1,19 @@
+[cyan]------------------------[v142-2/22]---------------------------
+Actually fixed host research not syncing to clients correctly (for real this time)
+Fixed Steam workshop maps displaying an error upon update attempt
+Fixed sublimates targeting ducts but being unable to hit them
+Fixed sandbox displaying as survival with Discord integration
+Fixed certain blocks not displaying placement efficiency on mobile
+Fixed repair turrets incorrectly displaying status as red when not targeting
+Fixed 'hidden' content (planets, etc) displaying in list of mod content
+Fixed several crashes
+Fixed Oct shield break effect being hexagonal
+Improved mod dependency resolution (Contributed by @Phinner)
+Buffed Conquer slightly, nerfed Collaris range slightly
+Made Disrupt/Quell no longer target air units
+Added a boost toggle command for units that can support it (nova, etc) - keep in mind that these units cannot shoot when flying, and will not try to find a landing position if blocked
+Decreased frequency of save events on dedicated server; may fix some player connection performance issues
+
 [cyan]------------------------[v141.3-1/23]---------------------------
 Fixed host research not syncing to clients correctly
 Fixed clients being able to open research dialog

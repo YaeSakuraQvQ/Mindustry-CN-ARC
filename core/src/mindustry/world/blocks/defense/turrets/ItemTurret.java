@@ -22,7 +22,7 @@ import mindustry.world.meta.*;
 import static mindustry.Vars.*;
 
 public class ItemTurret extends Turret{
-    public ObjectMap<Item, BulletType> ammoTypes = new ObjectMap<>();
+    public ObjectMap<Item, BulletType> ammoTypes = new OrderedMap<>();
 
     public ItemTurret(String name){
         super(name);
@@ -55,16 +55,17 @@ public class ItemTurret extends Turret{
     }
 
     @Override
-    public void drawPlace(int x, int y, int rotation, boolean valid){
+    public void drawPlace(int x, int y, int rotation, boolean valid) {
         super.drawPlace(x, y, rotation, valid);
 
-        ammoTypes.each((Item, BulletType)->{
-            if(!Item.unlockedNow()) return;
-            if(BulletType.rangeChange>0) Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, range + BulletType.rangeChange, Pal.placing);
+        ammoTypes.each((Item, BulletType) -> {
+            if (!Item.unlockedNow()) return;
+            if (BulletType.rangeChange > 0)
+                Drawf.dashCircle(x * tilesize + offset, y * tilesize + offset, range + BulletType.rangeChange, Pal.placing);
 
         });
 
-        if(Core.settings.getBool("arcTurretPlacementItem")) {
+        if (Core.settings.getBool("arcTurretPlacementItem")) {
             int sectors = ammoTypes.size;
             drawIndex = 0;
             float iconSize = 6f + 2f * size;
@@ -72,7 +73,7 @@ public class ItemTurret extends Turret{
                 drawIndex += 1;
                 if (!Item.unlockedNow()) return;
                 for (int i = 0; i < 4; i++) {
-                    float rot = (i + ((float)drawIndex) / sectors) / 4 * 360f + Time.time * 0.5f;
+                    float rot = (i + ((float) drawIndex) / sectors) / 4 * 360f + Time.time * 0.5f;
                     Draw.rect(Item.uiIcon,
                             x * tilesize + offset + (Mathf.sin((float) Math.toRadians(rot)) * (range + BulletType.rangeChange + iconSize + 1f)),
                             y * tilesize + offset + (Mathf.cos((float) Math.toRadians(rot)) * (range + BulletType.rangeChange + iconSize + 1f)),
@@ -80,6 +81,19 @@ public class ItemTurret extends Turret{
                 }
             });
         }
+    }
+
+    @Override
+    public void setBars(){
+        super.setBars();
+
+        addBar("ammo", (ItemTurretBuild entity) ->
+            new Bar(
+                "stat.ammo",
+                Pal.ammo,
+                () -> (float)entity.totalAmmo / maxAmmo
+            )
+        );
     }
 
     @Override
@@ -156,8 +170,8 @@ public class ItemTurret extends Turret{
             super.onProximityAdded();
 
             //add first ammo item to cheaty blocks so they can shoot properly
-            if(cheating() && ammoTypes.size > 0){
-                handleItem(this, ammoTypes.entries().next().key);
+            if(!hasAmmo() && cheating() && ammoTypes.size > 0){
+                handleItem(this, ammoTypes.keys().next());
             }
         }
 
@@ -166,14 +180,6 @@ public class ItemTurret extends Turret{
             unit.ammo((float)unit.type().ammoCapacity * totalAmmo / maxAmmo);
 
             super.updateTile();
-        }
-
-        @Override
-        public void displayBars(Table bars){
-            super.displayBars(bars);
-
-            bars.add(new Bar(() -> Core.bundle.format("stat.ammoDetail", totalAmmo, maxAmmo), () -> Pal.ammo, () -> (float)totalAmmo / maxAmmo)).growX();
-            bars.row();
         }
 
         @Override

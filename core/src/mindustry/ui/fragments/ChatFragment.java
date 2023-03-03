@@ -306,9 +306,14 @@ public class ChatFragment extends Table{
     }
 
     public void addMessage(String message,@Nullable Player playersender){
-        if(message != null) ui.MessageDialog.resolveMsg(message,playersender);
-        if(playersender != null && playersender.unit() != null) message = playersender.unit().type.emoji() + " " + message;
-        addMessage(message);
+        try {
+            if (message != null) ui.MessageDialog.resolveMsg(message, playersender);
+            if (playersender != null && playersender.unit() != null)
+                message = playersender.unit().type.emoji() + " " + message;
+            addMessage(message);
+        } catch (Exception e) {
+            Log.err(e);
+        }
     }
 
     private boolean arcMessage(String message){
