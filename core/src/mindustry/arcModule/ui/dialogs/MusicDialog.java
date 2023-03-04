@@ -217,7 +217,7 @@ public class MusicDialog extends BaseDialog{
                                     player.pause(false);
                                     paused = false;
                                 } else {
-                                    if (nowMusic.name != null) {
+                                    if (nowMusic.url != null) {
                                         Fi f = new Fi("/tmp/squirrel.mp3");
                                         if (f.exists()) {
                                             try {
@@ -235,7 +235,7 @@ public class MusicDialog extends BaseDialog{
                             paused = true;
                         }).margin(3f).pad(2).padTop(6f).top().right();
                         ttt.button(Icon.downloadSmall, Styles.emptyi, () -> {
-                            if (nowMusic.name != null) {
+                            if (nowMusic.url != null) {
                                 download(nowMusic);
                             }
                         }).margin(3f).pad(2).padTop(6f).top().right();
@@ -253,7 +253,7 @@ public class MusicDialog extends BaseDialog{
                             ui.announce("单曲循环已" + (player.isLooping() ? "开启" : "关闭"), 1f);
                         }).margin(3f).pad(2).padTop(6f).top().right().checked(b -> player.isLooping());
                         ttt.button(Icon.linkSmall, Styles.emptyi, () -> {
-                            if (nowMusic.name != null) {
+                            if (nowMusic.url != null) {
                                 share(nowMusic);
                             }
                         }).margin(3f).pad(2).pad(6).top().right();
@@ -381,10 +381,13 @@ public class MusicDialog extends BaseDialog{
             post.header("token", "3ab6950d5970c57f938673911f42fd32");
             post.timeout = 10000;
             post.error(e -> Core.app.post(() -> ui.showErrorMessage("上传失败:\n" + e.getMessage())));
-            post.submit(r -> callback.get(new MusicInfo(){{
-                src = num;
-                id = r.getResultAsString();
-            }}));
+            post.submit(r -> {
+                Core.app.post(() -> ui.announce("上传成功"));
+                callback.get(new MusicInfo(){{
+                    src = num;
+                    id = r.getResultAsString();
+                }});
+            });
         }
     }
     private class KuGouWeb implements MusicApi{//酷狗网页版api
