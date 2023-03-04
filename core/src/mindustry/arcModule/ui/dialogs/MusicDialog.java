@@ -289,7 +289,7 @@ public class MusicDialog extends BaseDialog{
     private void upload(){
         platform.showFileChooser(true, "选择音乐文件", "mp3", f -> {
             ui.announce("正在上传...\n很慢!(1-2分钟)\n上传完成后会自动播放");
-            api.upload(f, this::play);
+            api.upload(f, info -> api.getMusicInfo(info.id, this::play));
         });
     }
     public boolean resolveMsg(String msg) {
@@ -380,7 +380,7 @@ public class MusicDialog extends BaseDialog{
             post.header("size", String.valueOf(file.length()));
             post.header("token", "3ab6950d5970c57f938673911f42fd32");
             post.timeout = 10000;
-            post.error(e -> Core.app.post(() -> ui.arcInfo("[orange]上传失败")));
+            post.error(e -> Core.app.post(() -> ui.showErrorMessage("上传失败:\n" + e.getMessage())));
             post.submit(r -> callback.get(new MusicInfo(){{
                 src = num;
                 id = r.getResultAsString();
