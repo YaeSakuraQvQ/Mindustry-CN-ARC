@@ -92,7 +92,7 @@ public class MusicDialog extends BaseDialog{
             switchDialog.addCloseButton();
             Events.run(EventType.Trigger.update, this::updateProgress);
         } catch (Exception err) {
-            Events.on(EventType.ClientLoadEvent.class, e -> ui.showErrorMessage("松鼠音乐加载失败!\n" + err.getMessage()));
+            Events.on(EventType.ClientLoadEvent.class, e -> ui.showException("松鼠音乐加载失败!", err));
         }
     }
     private void switchApi(){
@@ -112,16 +112,21 @@ public class MusicDialog extends BaseDialog{
         });
     }
     private void play(MusicInfo info) {
+        player.stop();
         nowMusic = info;
-        Http.get(info.url, r -> {
-            Fi tmp = new Fi("/tmp/squirrel.mp3");
-            tmp.writeBytes(r.getResult());
-            player.stop();
-            player.pause(false);
-            player.load(tmp);
-            player.play();
-            loadStatus.run();
-        });
+        try {
+            Http.get(info.url, r -> {
+                Fi tmp = new Fi("/tmp/squirrel.mp3");
+                tmp.writeBytes(r.getResult());
+                player.stop();
+                player.pause(false);
+                player.load(tmp);
+                player.play();
+                loadStatus.run();
+            });
+        } catch (Exception e) {
+            ui.showException("发生了一个错误", e);
+        }
     }
     private void playDirectly(Fi f) throws Exception {
         player.stop();
@@ -380,7 +385,7 @@ public class MusicDialog extends BaseDialog{
             post.header("size", String.valueOf(file.length()));
             post.header("token", "3ab6950d5970c57f938673911f42fd32");
             post.timeout = 10000;
-            post.error(e -> Core.app.post(() -> ui.showErrorMessage("上传失败:\n" + e.getMessage())));
+            post.error(e -> Core.app.post(() -> ui.showException("上传失败", e)));
             post.submit(r -> {
                 Core.app.post(() -> ui.announce("上传成功"));
                 callback.get(new MusicInfo(){{

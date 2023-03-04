@@ -148,6 +148,7 @@ public class arcChatPicture {
         private final Pixmap pix;
         private float sizeM = 1f;
         private final @Nullable Player sender;
+        private TextureRegion cache;
 
         floatFigure(Pixmap pixmap, @Nullable Player playersender) {
             curPicture += 1;
@@ -155,6 +156,7 @@ public class arcChatPicture {
             pix = pixmap;
             t = new Table(Styles.black3);
             sender = playersender;
+            cache = new TextureRegion(new Texture(pix));
 
             t.add(pic);
             t.visible = false;
@@ -167,14 +169,13 @@ public class arcChatPicture {
             Core.scene.add(t);
             buildTable();
             ui.arcInfo("已收到图片!，来源：" + (playersender != null ? playersender.isNull() ? "" : playersender.name : "") + "\n[gray]使用参考中央监控室-图片分享器");
+            pix.dispose();
         }
 
         private void buildTable() {
             pic.clear();
             float ratio = Math.max(pix.width, pix.height) / 500f / sizeM;
             t.visible = true;
-            TextureRegion cache = new TextureRegion(new Texture(pix));
-
             pic.image(cache).size(pix.width / ratio, pix.height / ratio).get();
             pic.row();
             pic.table(tp -> {
@@ -198,7 +199,6 @@ public class arcChatPicture {
                     t.setPosition(t.x + deltaX / 2, t.y + deltaY / 2);
                 }
             });
-            pix.dispose();
         }
 
         private void clear() {
