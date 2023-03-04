@@ -45,15 +45,18 @@ public class arcChatPicture {
 
         MessageDialog.addMsg(new MessageDialog.advanceMsg(MessageDialog.arcMsgType.arcChatPicture, text));
 
-        Http.get(url, res -> new Thread(() -> {
-            try {
-                Pixmap pix = new Pixmap(res.getResult());
-                Timer.schedule(() -> new floatFigure(pix, playersender), 0.01f);
-            } catch (Exception e) {
-                Log.err(e);
-                ui.arcInfo("[orange]图片读取失败");
-            }
-        }).start());
+        Http.get(url, res -> {
+            byte[] data = res.getResult();
+            new Thread(() -> {
+                try {
+                    Pixmap pix = new Pixmap(data);
+                    Timer.schedule(() -> new floatFigure(pix, playersender), 0.01f);
+                } catch (Exception e) {
+                    Log.err(e);
+                    ui.arcInfo("[orange]图片读取失败");
+                }
+            }).start();
+        });
 
         return true;
     }
@@ -91,9 +94,7 @@ public class arcChatPicture {
                     });
                 } catch (Exception e) {
                     Log.err(e);
-                    Core.app.post(() -> {
-                        ui.arcInfo("[orange]图片读取失败");
-                    });
+                    Core.app.post(() -> ui.arcInfo("[orange]图片读取失败"));
                 }
 
             }).padTop(30f).width(400f);
@@ -135,9 +136,7 @@ public class arcChatPicture {
 
     private static boolean checkPic() {
         if (curPicture >= maxPicture) {
-            Core.app.post(() -> {
-                ui.arcInfo("当前图片已达上限，仅允许自己添加图片", 10);
-            });
+            Core.app.post(() -> ui.arcInfo("当前图片已达上限，仅允许自己添加图片", 10));
             return false;
         } else
             return true;
