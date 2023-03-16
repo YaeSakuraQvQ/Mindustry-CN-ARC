@@ -2,11 +2,10 @@ package mindustry.arcModule.ui.auxilliary;
 
 
 import arc.Core;
+import arc.graphics.Color;
 import arc.graphics.Colors;
-import arc.scene.ui.Label;
 import arc.scene.ui.TextField;
 import arc.scene.ui.layout.*;
-import arc.struct.ObjectIntMap;
 import mindustry.content.*;
 import mindustry.editor.*;
 import mindustry.gen.*;
@@ -105,14 +104,16 @@ public class MapInfoTable extends BaseToolsTable{
             c.add("颜色").color(getThemeColor()).center().fillX().row();
             c.image().color(getThemeColor()).fillX().row();
             c.table(ct->{
-                Colors.getColors().forEach((colorEntry)->{
-                    ct.button("[#" + colorEntry.value  +"]" + colorEntry.key,cleart, ()->{
-                        Core.app.setClipboardText("[#" + colorEntry.value  +"]");
-                        sField.setText(sField.getText() + "[#" + colorEntry.value  +"]");
-                    }).size(50f).tooltip( colorEntry.key);
+                for(var colorEntry : Colors.getColors()){
+                    Color value = colorEntry.value;
+                    String key = colorEntry.key;
+                    ct.button("[#" + value  +"]" + key,cleart, ()->{
+                        Core.app.setClipboardText("[#" + value  +"]");
+                        sField.setText(sField.getText() + "[#" + value  +"]");
+                    }).size(50f).tooltip(key);
                     uiRowIndex+=1;
                     if(uiRowIndex%15==0) ct.row();
-                });
+                }
             }).row();
             c.add("物品").color(getThemeColor()).center().fillX().row();
             c.image().color(getThemeColor()).fillX().row();

@@ -37,6 +37,8 @@ public class LogicDialog extends BaseDialog{
 
     @Nullable LExecutor executor;
 
+    private boolean dispose = false;
+
     public LogicDialog(){
         super("logic");
 
@@ -47,7 +49,12 @@ public class LogicDialog extends BaseDialog{
         addCloseListener();
 
         shown(this::setup);
-        hidden(() -> consumer.get(canvas.save()));
+        hidden(() -> {
+            if(!dispose){
+                consumer.get(canvas.save());
+            } else {
+                dispose = false;
+            }});
         onResize(() -> {
             setup();
             canvas.rebuild();
@@ -379,6 +386,13 @@ public class LogicDialog extends BaseDialog{
             dialog.addCloseButton();
             dialog.show();
         }).disabled(t -> canvas.statements.getChildren().size >= LExecutor.maxInstructions);
+
+        buttons.button("丢弃更改", Icon.cancel, () -> {
+            ui.showConfirm("确认丢弃?", () -> {
+                dispose = true;
+                hide();
+            });
+        });
     }
 
     public void show(String code, LExecutor executor, boolean privileged, Cons<String> modified){
