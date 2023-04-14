@@ -7,10 +7,10 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
-import mindustry.graphics.*;
-import mindustry.input.*;
 import mindustry.ui.Fonts;
 import mindustry.ui.Styles;
+import mindustry.graphics.*;
+import mindustry.input.*;
 import mindustry.world.meta.*;
 
 import static arc.Core.*;

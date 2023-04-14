@@ -18,8 +18,7 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.logic.*;
-import mindustry.type.Item;
-import mindustry.type.Liquid;
+import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.consumers.*;
@@ -52,7 +51,7 @@ public class ForceProjector extends Block{
     protected static ForceBuild paramEntity;
     protected static Effect paramEffect;
     protected static final Cons<Bullet> shieldConsumer = bullet -> {
-        if(bullet.team != paramEntity.team && bullet.type.absorbable && Intersector.isInRegularPolygon(((ForceProjector)(paramEntity.block)).sides, paramEntity.x, paramEntity.y, paramEntity.realRadius() * 2f, ((ForceProjector)(paramEntity.block)).shieldRotation, bullet.x, bullet.y)){
+        if(bullet.team != paramEntity.team && bullet.type.absorbable && Intersector.isInRegularPolygon(((ForceProjector)(paramEntity.block)).sides, paramEntity.x, paramEntity.y, paramEntity.realRadius(), ((ForceProjector)(paramEntity.block)).shieldRotation, bullet.x, bullet.y)){
             bullet.absorb();
             paramEffect.at(bullet);
             paramEntity.hit = 1f;
@@ -106,37 +105,10 @@ public class ForceProjector extends Block{
         stats.add(Stat.shieldHealth, shieldHealth, StatUnit.none);
         stats.add(Stat.cooldownTime, (int) (shieldHealth / cooldownBrokenBase / 60f), StatUnit.seconds);
         stats.add(Stat.regenSpeed, cooldownNormal * Time.toSeconds, StatUnit.perSecond);
-        if (consumeCoolant || consItems) {
-            stats.add(Stat.booster, table -> {
-                table.row();
-                table.table(c -> {
-                    if (consumeCoolant) {
-                        for(Liquid liquid : content.liquids()){
-                            if(!consumesLiquid(liquid)) continue;
-
-                            c.image(liquid.uiIcon).size(3 * 8).padRight(4).right().top();
-                            c.add(liquid.localizedName).padRight(10).left().top();
-                            c.table(Tex.underline, bt -> {
-                                bt.left().defaults().padRight(3).left();
-                                bt.add(Core.bundle.format("shield.regenspeed", cooldownLiquid * (1f + (liquid.heatCapacity - 0.4f) * 0.9f)));
-                            }).left().padTop(-9);
-                            c.row();
-                        }
-                    }
-                    if (consItems) {
-                        if (itemConsumer instanceof ConsumeItems ci) {
-                            Item item = ci.items[0].item;
-                            c.image(item.uiIcon).size(3 * 8).padRight(4).right().top();
-                            c.add(item.localizedName).padRight(10).left().top();
-                            c.table(Tex.underline, bt -> {
-                                bt.left().defaults().padRight(3).left();
-                                bt.add(Core.bundle.format("shield.phaseboost", phaseRadiusBoost / tilesize, phaseShieldBoost));
-                            }).left().padTop(-9);
-                            c.row();
-                        }
-                    }
-                }).colspan(table.getColumns());
-            });
+        if(consItems && itemConsumer instanceof ConsumeItems coni){
+            stats.remove(Stat.booster);
+            stats.add(Stat.booster, StatValues.itemBoosters("+{0} " + StatUnit.shieldHealth.localized(), stats.timePeriod, phaseShieldBoost, phaseRadiusBoost, coni.items, this::consumesItem));
+            stats.add(Stat.booster, StatValues.speedBoosters(Core.bundle.get("shield.regenspeed"), coolantConsumption, cooldownLiquid, true, this::consumesLiquid, true));
         }
     }
 
@@ -150,6 +122,9 @@ public class ForceProjector extends Block{
         Draw.color(player.team().color);
         Lines.stroke(1f);
         Lines.poly(x * tilesize + offset, y * tilesize + offset, sides, radius, shieldRotation);
+        Draw.color(player.team().color);
+        Lines.stroke(1f);
+        Lines.poly(x * tilesize + offset, y * tilesize + offset, sides, radius+phaseRadiusBoost, shieldRotation);
         Draw.color();
     }
 

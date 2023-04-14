@@ -704,9 +704,12 @@ public class UnitType extends UnlockableContent{
         }
 
         if(mineTier >= 1){
-            //stats.add(Stat.uniMineTier,mineTier);
-            //stats.addPercent(Stat.mineSpeed, mineSpeed);
-            stats.add(Stat.mineTier, StatValues.drillUnit(this));
+            stats.addPercent(Stat.mineSpeed, mineSpeed);
+            stats.add(Stat.mineTier, StatValues.drillables(mineSpeed, 1f, 1, null, b ->
+                b.itemDrop != null &&
+                (b instanceof Floor f && (((f.wallOre && mineWalls) || (!f.wallOre && mineFloor))) ||
+                (!(b instanceof Floor) && mineWalls)) &&
+                b.itemDrop.hardness <= mineTier && (!b.playerUnmineable || Core.settings.getBool("doubletapmine"))));
         }
         if(buildSpeed > 0){
             stats.addPercent(Stat.buildSpeed, buildSpeed);
@@ -926,7 +929,7 @@ public class UnitType extends UnlockableContent{
         //only do this after everything else was initialized
         sample = constructor.get();
     }
-    
+
     public float estimateDps(){
         //calculate estimated DPS for one target based on weapons
         if(dpsEstimate < 0){
@@ -938,7 +941,7 @@ public class UnitType extends UnlockableContent{
                 dpsEstimate /= 25f;
             }
         }
-        
+
         return dpsEstimate;
     }
 

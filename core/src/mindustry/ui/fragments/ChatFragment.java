@@ -296,7 +296,7 @@ public class ChatFragment extends Table{
 
         fadetime += 1f;
         fadetime = Math.min(fadetime, messagesShown) + 1f;
-        
+
         if(scrollPos > 0) scrollPos++;
     }
 

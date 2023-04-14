@@ -408,10 +408,8 @@ public class BeControl{
                             Log.info("&lcSaving...");
                             SaveIO.save(saveDirectory.child("autosavebe." + saveExtension));
                             Log.info("&lcAutosaved.");
-
-                        netServer.kickAll(KickReason.serverRestarting);
-                        Threads.sleep(500);
-
+                            netServer.kickAll(KickReason.serverRestarting);
+                            Threads.sleep(32);
                             Log.info("&lcVersion downloaded, exiting. Note that if you are not using a auto-restart script, the server will not restart automatically.");
                             //replace old file with new
                             dest.copyTo(source);

@@ -115,6 +115,8 @@ public class Stat implements Comparable<Stat>{
     moduleTier = new Stat("moduletier", StatCat.function),
     regenSpeed = new Stat("regenSpeed", StatCat.function),
 
+    unitType = new Stat("unittype", StatCat.function),
+
     booster = new Stat("booster", StatCat.optional),
     boostEffect = new Stat("boostEffect", StatCat.optional),
     affinities = new Stat("affinities", StatCat.optional),

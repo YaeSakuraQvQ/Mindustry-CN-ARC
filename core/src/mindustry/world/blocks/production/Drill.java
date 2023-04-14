@@ -18,6 +18,7 @@ import mindustry.logic.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 import mindustry.world.*;
+import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
@@ -111,7 +112,7 @@ public class Drill extends Block{
         addBar("drillspeed", (DrillBuild e) ->
              new Bar(() -> (e.dominantItem == null ? "挖掘速度：" : e.dominantItem.emoji()) +" "+ Strings.fixed(e.lastDrillSpeed * 60 * e.timeScale() , 2) + "/s", () -> Pal.ammo, () -> e.warmup));
         if(!(this instanceof BurstDrill) && Core.settings.getBool("arcDrillProgress"))
-        addBar("progress", (DrillBuild e) ->
+            addBar("progress", (DrillBuild e) ->
                 new Bar(() -> e.dominantItem == null ? "":Iconc.production + " " + Math.round(e.progress / (drillTime + hardnessDrillMultiplier * e.dominantItem.hardness) * 100) + " %", () -> e.dominantItem == null ? Pal.ammo : e.dominantItem.color, () -> e.dominantItem == null ? 0 : e.progress / (drillTime + hardnessDrillMultiplier * e.dominantItem.hardness)));
     }
 
@@ -185,15 +186,15 @@ public class Drill extends Block{
     public void setStats(){
         super.setStats();
 
-        //stats.add(Stat.Tier, tier);
-
-        //stats.add(Stat.drillTier, StatValues.blocks(b -> b instanceof Floor f && !f.wallOre && f.itemDrop != null && f.itemDrop.hardness <= tier && f.itemDrop != blockedItem));
         stats.add(Stat.drillTier, StatValues.drillBlock(this));
 
-        //stats.add(Stat.drillTime, drillTime);
-        //stats.add(Stat.drillSpeed, 60f / drillTime * size * size, StatUnit.itemsSecond);
-        if(liquidBoostIntensity != 1){
-            stats.add(Stat.boostEffect, liquidBoostIntensity * liquidBoostIntensity, StatUnit.timesSpeed);
+        if(liquidBoostIntensity != 1 && findConsumer(f -> f instanceof ConsumeLiquidBase) instanceof ConsumeLiquidBase consBase){
+            stats.remove(Stat.booster);
+            stats.add(Stat.booster,
+                StatValues.speedBoosters("{0}" + StatUnit.timesSpeed.localized(),
+                consBase.amount,
+                liquidBoostIntensity * liquidBoostIntensity, false, this::consumesLiquid)
+            );
         }
     }
 

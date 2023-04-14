@@ -1,3 +1,27 @@
+[cyan]------------------------[v143.1-4/8]---------------------------
+Fixed startup crash when changing UI scale to 5%
+Fixed network error when calling world logic explosion instruction with a null team
+Fixed sector background simulation not taking into account builder/repair units
+Fixed server-side network error when placing certain large logic schematics
+Fixed force projector hitbox being a square
+Fixed blank weapon stat boxes for certain units
+Fixed various regressions from last release (batteries being broken in mods, server menus not closing...)
+Added support for multi-barrel recoil in mods (Contributed by @MEEPofFaith)
+Made duo barrels move separately when shooting
+Improved stat display for various blocks (Contributed by @JniTrRny)
+[cyan]------------------------[v143-4/1]---------------------------
+Fixed some keybinds missing translations
+Fixed a long-standing pathfinding issue of enemy wave units exhibiting "confused" behavior in certain maps
+Fixed a server exploit that allowed users to block others from connecting
+Made entity sync network errors log a warning instead of forcibly disconnecting clients
+Made server list show multiple servers per row on wide screens
+Misc fixes to Steam lobby system; you can now set a name/color when hosting
+New UI for turret/unit weapon stats in core database (Contributed by @MEEPofFaith)
+Improved support for modded planets with different radii (Contributed by @Pasu4)
+Added support for cloudMesh: and HexSkyMesh as a type for planets in JSON mods
+Added world logic setProp instruction - while unfinished, this instruction allows world processors to set attributes of buildings and units, like health or items stored
+Added server Call#textInput method for getting text input from players (Contributed by @Darkness6030)
+Added server Call#followUpMenu method for showing menus that replace the last shown menu without an animation (Contributed by @Xasmedy)
 [cyan]------------------------[v142-2/22]---------------------------
 Actually fixed host research not syncing to clients correctly (for real this time)
 Fixed Steam workshop maps displaying an error upon update attempt
