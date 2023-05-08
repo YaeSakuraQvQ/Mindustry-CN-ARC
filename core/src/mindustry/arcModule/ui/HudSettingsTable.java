@@ -185,7 +185,7 @@ public class HudSettingsTable extends Table{
             });
         }
 
-        button("[cyan]控", () -> {
+        button("[violet]", () -> {
             expandList = !expandList;
             rebuild();
         }).width(32f).fillY();
