@@ -1,3 +1,28 @@
+[cyan]------------------------[v144.1-5/12]---------------------------
+Fixed Erekir missile units committing suicide after shooting (amazing I know)
+Reverted new gas sprites (too wacky)
+[cyan]------------------------[v144-5/12]---------------------------
+Fixed "any" environment button not enabling
+Fixed a crash related to an experimental rule being enabled on certain servers
+Fixed lag caused by sorters updating minimap very quickly
+Fixed Serpulo generated bases sometimes having unlinked power nodes
+Fixed JSON planets/sectors/status effects not having a mod name prefix - this may break bundles
+Fixed invalid liquid consumption stats on plasma bores
+Doubled max schematic size
+Canvas blocks now show their image preview in the schematics dialog
+Newly created maps and schematics now use the provided name as a filename instead of random numbers (Limited to alphanumeric characters)
+Added camera rectangle to map view, right-click to move the camera [Desktop]
+Added building damage indicators to minimap
+Added logic pathfind instruction - supports arbitrary coordinates
+Added unit health multiplier rule
+Added map 'ends after wave' rule (Contributed by @JniTrRny)
+Added search bar for wave UI (Contributed by @JniTrRny)
+Added new Erekir gas and liquid sprites (Contributed by @stacktrace-error)
+Added functionality to make overlays/floors place-able in mods (or servers with the revealedBlocks rule edited)
+Added piston regions to blocks that did not have them (Contributed by @MEEPofFaith)
+Added search bar to custom game menu
+Added 'rebuild area' button to mobile - note that the mod scheme-size V2.7.54 breaks this functionality - disable or update it to use this feature properly!
+Improved server list UI
 [cyan]------------------------[v143.1-4/8]---------------------------
 Fixed startup crash when changing UI scale to 5%
 Fixed network error when calling world logic explosion instruction with a null team
