@@ -66,6 +66,8 @@ public class NetClient implements ApplicationListener{
         net.handleClient(Connect.class, packet -> {
             Log.info("Connecting to server: @", packet.addressTCP);
 
+            lastServer = packet.addressTCP.substring(1);
+
             player.admin = false;
 
             reset();

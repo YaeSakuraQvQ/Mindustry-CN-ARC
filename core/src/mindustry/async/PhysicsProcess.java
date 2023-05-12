@@ -1,5 +1,6 @@
 package mindustry.async;
 
+import arc.Core;
 import arc.math.*;
 import arc.math.geom.*;
 import arc.math.geom.QuadTree.*;
@@ -38,7 +39,7 @@ public class PhysicsProcess implements AsyncProcess{
 
         //find Units without bodies and assign them
         for(Unit entity : group){
-            if(entity == null || entity.type == null || !entity.type.physics) continue;
+            if(entity == null || entity.type == null || !entity.type.physics || Core.settings.getBool("单位不碰撞", false)) continue;
 
             if(entity.physref == null){
                 PhysicsBody body = new PhysicsBody();

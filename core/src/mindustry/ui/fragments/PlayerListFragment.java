@@ -199,11 +199,11 @@ public class PlayerListFragment{
                 }).size(buttonSize);
 
                 button.button("[coral]" + Iconc.planeOutline, Styles.cleart,
-                () -> {
-                    ui.showConfirm("@confirm", Core.bundle.format("confirmvotekick",  user.name()), () -> {
-                        Call.sendChatMessage("/votekick " + user.name());
-                    });
-                }).size(buttonSize);
+                        () -> {
+                            ui.showConfirm("@confirm", Core.bundle.format("confirmvotekick",  user.name()), () -> {
+                                Call.sendChatMessage("/votekick " + user.name());
+                            });
+                        }).size(buttonSize);
 
                 if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
                     button.button("[gold]" + Iconc.zoom, Styles.cleart, () -> Call.adminRequest(user, AdminAction.trace)).size(buttonSize);

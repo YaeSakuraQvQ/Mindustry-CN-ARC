@@ -45,7 +45,6 @@ public class AIToolsTable extends BaseToolsTable {
         aiButton(new ArcBuilderAI(), poly, "重建AI");
         aiButton(new ArcRepairAI(), mega, "修复AI");
         aiButton(new DefenderAI(), oct, "保护AI");
-        if(Core.settings.getBool("vipMode"))    //测试赞助者功能，暂不开放。未经授权请不要分享破解方式
         button(Icon.spray1Small, clearLineNoneTogglei, arcPlayerEffect::arcPlayerEffectSetting).checked(t->false);
     }
 

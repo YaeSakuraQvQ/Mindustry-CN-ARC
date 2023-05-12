@@ -72,7 +72,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
 
     /** Move based on preferred unit movement type. */
     public void movePref(Vec2 movement){
-        if(type.omniMovement){
+        if((type.omniMovement || Core.settings.getBool("没有角度移动", false)) && !Core.settings.getBool("我爱角度移动", false)){
             moveAt(movement);
         }else{
             rotateMove(movement);
@@ -91,7 +91,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         moveAt(Tmp.v2.trns(rotation, vec.len()));
 
         if(!vec.isZero()){
-            rotation = Angles.moveToward(rotation, vec.angle(), type.rotateSpeed * Time.delta);
+            rotation = Angles.moveToward(rotation, vec.angle(), type.rotateSpeed * Time.delta * Core.settings.getFloat("单位转向速度", 1f));
         }
     }
 
@@ -132,16 +132,17 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     public float speed(){
         float strafePenalty = isGrounded() || !isPlayer() ? 1f : Mathf.lerp(1f, type.strafePenalty, Angles.angleDist(vel().angle(), rotation) / 180f);
         float boost = Mathf.lerp(1f, type.canBoost ? type.boostMultiplier : 1f, elevation);
-        return type.speed * strafePenalty * boost * floorSpeedMultiplier();
+        return type.speed * strafePenalty * boost * floorSpeedMultiplier() * Core.settings.getFloat("单位移动速度", 1f);
     }
 
     /** @return where the unit wants to look at. */
     public float prefRotation(){
-        if(activelyBuilding() && type.rotateToBuilding){
+        if(Core.settings.getBool("角度锁定", false)) return rotation;
+        if(activelyBuilding() && type.rotateToBuilding && !Core.settings.getBool("建筑时不会面朝建筑", false)){
             return angleTo(buildPlan());
         }else if(mineTile != null){
             return angleTo(mineTile);
-        }else if(moving() && type.omniMovement){
+        }else if(moving() && (type.omniMovement || Core.settings.getBool("没有角度移动", false) && !Core.settings.getBool("我爱角度移动", false))){
             return vel().angle();
         }
         return rotation;
@@ -381,7 +382,11 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     }
 
     public void lookAt(float angle){
-        rotation = Angles.moveToward(rotation, angle, type.rotateSpeed * Time.delta * speedMultiplier());
+        if(Core.settings.getBool("瞬间转向")){
+            rotation = angle;
+        }else{
+            rotation = Angles.moveToward(rotation, angle, type.rotateSpeed * Time.delta * speedMultiplier() * Core.settings.getFloat("单位转向速度", 1f));
+        }
     }
 
     public void lookAt(Position pos){
@@ -550,7 +555,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
         drag = type.drag * (isGrounded() ? (floorOn().dragMultiplier) : 1f) * dragMultiplier * state.rules.dragMultiplier;
 
         //apply knockback based on spawns
-        if(team != state.rules.waveTeam && state.hasSpawns() && (!net.client() || isLocal()) && hittable()){
+        if(!Core.settings.getBool("刷怪圈也阻止不了我对你的爱" , true) && (team != state.rules.waveTeam && state.hasSpawns() && (!net.client() || isLocal()))){
             float relativeSize = state.rules.dropZoneRadius + hitSize/2f + 1f;
             for(Tile spawn : spawner.getSpawns()){
                 if(within(spawn.worldx(), spawn.worldy(), relativeSize)){

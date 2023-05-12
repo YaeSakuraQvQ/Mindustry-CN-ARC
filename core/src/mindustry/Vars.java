@@ -40,7 +40,7 @@ import static arc.Core.*;
 
 public class Vars implements Loadable{
     /** ARC */
-    public static String arcVersion = Version.arcBuild + "";
+    public static String arcVersion = Version.arcBuild + "";
     public static String arcVersionPrefix = "<ARC~" + Version.arcBuild + ">";
     public static int changeLogRead = 18;
     public static Seq<District.advDistrict> districtList = new Seq<>();
@@ -51,6 +51,9 @@ public class Vars implements Loadable{
 
     /** 服务器远程控制允许或移除作弊功能 */
     public static Boolean arcCheatServer = false;
+
+    /** 服务器ip地址 */
+    public static @Nullable String lastServer = null;
 
     /** pr-5921  Used in blocks with selection menus such sorters for how large the menu should be */
     public static int blockSelectionRows = 5, blockSelectionColumns = 6;
@@ -355,6 +358,9 @@ public class Vars implements Loadable{
 
         String uuid = Core.settings.getString("uuid", "o");
         changeLogRead = Math.abs(Integer.parseInt(("" + uuid.hashCode()).substring(0, 2)));
+    
+        arcVersion = Version.arcBuild <= 0 ? "Dev" : String.valueOf(Version.arcBuild);
+        arcVersionPrefix = "<ARC" + "[violet]" + "~" + arcVersion + ">";
     }
 
     /** Checks if a launch failure occurred.
@@ -531,8 +537,7 @@ public class Vars implements Loadable{
     }
 
     public static Boolean arcInfoControl(){
-        return   (!arcCheatServer && (Core.settings.getBool("showOtherTeamState") ||
-                        player.team().id == 255 || state.rules.mode() != Gamemode.pvp));
+        return true;
     }
 
 }

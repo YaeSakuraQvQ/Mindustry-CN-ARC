@@ -21,6 +21,7 @@ import mindustry.type.*;
 
 import java.util.*;
 
+import static arc.Core.settings;
 import static mindustry.Vars.*;
 
 public class BlockInventoryFragment{
@@ -73,10 +74,15 @@ public class BlockInventoryFragment{
         if(!build.canWithdraw()) return;
 
         //take everything
+        if(player.unit().stack.item != lastItem) {
+            Call.transferInventory(player, build);
+        }
         int amount = Math.min(requested, player.unit().maxAccepted(lastItem));
 
         if(amount > 0){
+
             Call.requestItem(player, build, lastItem, amount);
+
             holding = false;
             holdTime = 0f;
             held = true;
@@ -152,7 +158,9 @@ public class BlockInventoryFragment{
 
                 container.add(i);
 
-                Boolp canPick = () -> player.unit().acceptsItem(item) && !state.isPaused() && player.within(build, itemTransferRange);
+                Boolp canPick = () -> !state.isPaused() && player.within(build, itemTransferRange) &&
+                        ((player.unit().stack.item == item && player.unit().stack.amount + 1 <= player.unit().itemCapacity()) ||
+                                player.unit().stack.item != item);
 
                 HandCursorListener l = new HandCursorListener();
                 l.enabled = canPick;
