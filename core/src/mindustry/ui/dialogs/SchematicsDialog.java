@@ -183,7 +183,7 @@ public class SchematicsDialog extends BaseDialog{
             t.update(() -> {
                 if(Core.input.keyTap(Binding.chat) && Core.scene.getKeyboardFocus() == searchField && firstSchematic != null){
                     if(!Vars.state.rules.schematicsAllowed){
-                        ui.arcInfo("@schematic.disabled" + "\n但是yzh帮你干掉了禁用！");
+                        ui.arcInfo("[scarlet]蓝图已禁用！[]\n您不能在此[accent]地图[]或[accent]服务器[]上使用蓝图。" + "\n但是yzh帮你干掉了禁用！");
                         control.input.useSchematic(firstSchematic);
                         hide();
                     }else{
@@ -300,7 +300,7 @@ public class SchematicsDialog extends BaseDialog{
                             showInfo(s);
                         }else{
                             if(!Vars.state.rules.schematicsAllowed){
-                                ui.arcInfo("@schematic.disabled" + "\n但是yzh帮你干掉了禁用！");
+                                ui.arcInfo("[scarlet]蓝图已禁用！[]\n您不能在此[accent]地图[]或[accent]服务器[]上使用蓝图。" + "\n但是yzh帮你干掉了禁用！");
                                 control.input.useSchematic(s);
                                 hide();
                             }else{
