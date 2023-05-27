@@ -367,16 +367,17 @@ public class Turret extends ReloadTurret{
                         Draw.color(team.color, 0.8f);
                         Lines.circle(x, y, range());
                     }
-                    int turretShowRange = Core.settings.getInt("turretShowRange");
-                    if (turretShowRange==3 || (turretShowRange==2 && targetAir) || (turretShowRange==1 && targetGround)){
+                    Draw.reset();
+                }
+                int turretShowRange = Core.settings.getInt("turretShowRange");
+                if (turretShowRange==3 || (turretShowRange==2 && targetAir) || (turretShowRange==1 && targetGround)){
                         Draw.z(Layer.turret-0.8f);
                         Draw.color(team.color,0.05f);
                         Fill.circle(x, y, range());
                         Draw.color(team.color,0.3f);
                         Lines.circle(x, y, range());
+                        Draw.reset();
                     }
-                    Draw.reset();
-                }
                 if(Core.settings.getBool("showTurretAmmo") && this instanceof ItemTurret.ItemTurretBuild && ammo.any()){
                     //lc参考miner代码
                     ItemTurret.ItemEntry entry = (ItemTurret.ItemEntry)ammo.peek();
