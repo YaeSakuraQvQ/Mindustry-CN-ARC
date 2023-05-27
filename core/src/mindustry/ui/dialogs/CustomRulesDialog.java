@@ -155,17 +155,7 @@ public class CustomRulesDialog extends BaseDialog{
         number("@rules.dropzoneradius", false, f -> rules.dropZoneRadius = f * tilesize, () -> rules.dropZoneRadius / tilesize, () -> rules.waves);
 
         title("@rules.title.resourcesbuilding");
-        check("@rules.infiniteresources", b -> {
-            rules.infiniteResources = b;
-
-            //reset to serpulo if any env was enabled
-            if(!b && rules.hiddenBuildItems.isEmpty()){
-                rules.env = Planets.serpulo.defaultEnv;
-                rules.hiddenBuildItems.clear();
-                rules.hiddenBuildItems.addAll(Planets.serpulo.hiddenItems);
-                setup();
-            }
-        }, () -> rules.infiniteResources);
+        check("@rules.infiniteresources", b -> rules.infiniteResources = b, () -> rules.infiniteResources);
         check("@rules.onlydepositcore", b -> rules.onlyDepositCore = b, () -> rules.onlyDepositCore);
         check("@rules.reactorexplosions", b -> rules.reactorExplosions = b, () -> rules.reactorExplosions);
         check("@rules.schematic", b -> rules.schematicsAllowed = b, () -> rules.schematicsAllowed);
@@ -199,6 +189,7 @@ public class CustomRulesDialog extends BaseDialog{
         }
 
         title("@rules.title.unit");
+        check("@rules.unitammo", b -> rules.unitAmmo = b, () -> rules.unitAmmo);
         check("@rules.unitcapvariable", b -> rules.unitCapVariable = b, () -> rules.unitCapVariable);
         numberi("@rules.unitcap", f -> rules.unitCap = f, () -> rules.unitCap, -999, 999);
         number("@rules.unitdamagemultiplier", f -> rules.unitDamageMultiplier = f, () -> rules.unitDamageMultiplier);
@@ -224,14 +215,6 @@ public class CustomRulesDialog extends BaseDialog{
         check("@rules.fog", b -> rules.fog = b, () -> rules.fog);
         check("@rules.staticFog", b -> rules.staticFog = b, () -> rules.staticFog);
         check("@rules.lighting", b -> rules.lighting = b, () -> rules.lighting);
-
-        if(experimental){
-            check("@rules.limitarea", b -> rules.limitMapArea = b, () -> rules.limitMapArea);
-            numberi("x", x -> rules.limitX = x, () -> rules.limitX, () -> rules.limitMapArea, 0, 10000);
-            numberi("y", y -> rules.limitY = y, () -> rules.limitY, () -> rules.limitMapArea, 0, 10000);
-            numberi("w", w -> rules.limitWidth = w, () -> rules.limitWidth, () -> rules.limitMapArea, 0, 10000);
-            numberi("h", h -> rules.limitHeight = h, () -> rules.limitHeight, () -> rules.limitMapArea, 0, 10000);
-        }
 
         main.button(b -> {
             b.left();
@@ -269,7 +252,7 @@ public class CustomRulesDialog extends BaseDialog{
         check("@rules.unitPayloadUpdate",b->rules.unitPayloadUpdate = b,()->rules.unitPayloadUpdate);
         check("@rules.showSpawns",b->rules.showSpawns = b,()->rules.showSpawns);
         check("@rules.possessionAllowed", b -> rules.possessionAllowed = b, () -> rules.possessionAllowed);
-        check("禁用重建", b -> rules.ghostBlocks = b, () -> !rules.ghostBlocks);
+        check("@rules.ghostBlocks", b -> rules.ghostBlocks = b, () -> rules.ghostBlocks);
         main.button("@hiddenBuildItems", () -> showBanned("@hiddenBuildItems", ContentType.item, rules.hiddenBuildItems, Item::showUnlock)).left().width(300f).row();
 
         check("@rules.limitarea", b -> rules.limitMapArea = b, () -> rules.limitMapArea);
@@ -304,6 +287,14 @@ public class CustomRulesDialog extends BaseDialog{
                 rules.hiddenBuildItems.clear();
             }).group(group).checked(b -> rules.hiddenBuildItems.size == 0);
         }).left().fill(false).expand(false, false).row();
+
+        number("@rules.dragMultiplier", f -> state.rules.dragMultiplier = f, () -> state.rules.dragMultiplier);
+
+        check("@rules.borderDarkness",b -> rules.borderDarkness = b, () -> rules.borderDarkness);
+        number("@rules.backgroundSpeed", f -> state.rules.backgroundSpeed = f, () -> state.rules.backgroundSpeed);
+        number("@rules.backgroundScl", f -> state.rules.backgroundScl = f, () -> state.rules.backgroundScl);
+        number("@rules.backgroundOffsetX", f -> state.rules.backgroundOffsetX = f, () -> state.rules.backgroundOffsetX);
+        number("@rules.backgroundOffsetY", f -> state.rules.backgroundOffsetY = f, () -> state.rules.backgroundOffsetY);
 
         title("@rules.title.teams");
 
@@ -422,7 +413,7 @@ public class CustomRulesDialog extends BaseDialog{
             t.field((prov.get()) + "", s -> cons.get(Strings.parseInt(s)))
                 .update(a -> a.setDisabled(!condition.get()))
                 .padRight(100f)
-                    .valid(f -> Strings.parseInt(f) >= -999999 && Strings.parseInt(f) <= 999999999).width(120f).left();
+                .valid(f -> Strings.parseInt(f) >= -Integer.MAX_VALUE && Strings.parseInt(f) <= Integer.MAX_VALUE).width(120f).left();
         }).padTop(0).row();
     }
 

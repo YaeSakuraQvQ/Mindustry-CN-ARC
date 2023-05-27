@@ -54,12 +54,8 @@ public class DatabaseDialog extends BaseDialog{
         for(int j = 0; j < allContent.length; j++){
             ContentType type = ContentType.all[j];
 
-            Seq<UnlockableContent> array = allContent[j]
-                .select(c -> c instanceof UnlockableContent u &&
-                    (Core.settings.getBool("allBlocksReveal") || !u.isHidden()) &&
-                    (text.isEmpty() || u.localizedName.toLowerCase().contains(text.toLowerCase()))
-                ).as();
-
+            Seq<Content> array = allContent[j]
+                .select(c -> c instanceof UnlockableContent u && (text.isEmpty() || u.localizedName.toLowerCase().contains(text.toLowerCase())));
             if(array.size == 0) continue;
 
             all.add("@content." + type.name() + ".name").growX().left().color(getThemeColor());

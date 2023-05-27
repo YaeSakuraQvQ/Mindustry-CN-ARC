@@ -1,17 +1,21 @@
 package mindustry.world.blocks.defense;
 
+import arc.Core;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.util.*;
 import arc.util.io.*;
+import mindustry.Vars;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.world.*;
+
+import java.util.Random;
 
 import static mindustry.Vars.*;
 
@@ -42,11 +46,13 @@ public class BaseShield extends Block{
                 //instakill units that are stuck inside the shield (TODO or maybe damage them instead?)
                 unit.kill();
             }else{
-                //stop
-                unit.vel.setZero();
-                //get out
-                unit.move(Tmp.v1.set(unit).sub(paramBuild).setLength(overlapDst + 0.01f));
-
+                //no
+                if(overlapDst > unit.hitSize * Core.settings.getFloat("屏障立场进入程度", 0f)) {
+                    //stop
+                    unit.vel.setZero();
+                    //get out
+                    unit.move(Tmp.v1.set(unit).sub(paramBuild).setLength(overlapDst + 0.01f - unit.hitSize * Core.settings.getFloat("屏障立场进入程度", 0f)));
+                }
                 if(Mathf.chanceDelta(0.12f * Time.delta)){
                     Fx.circleColorSpark.at(unit.x, unit.y, paramBuild.team.color);
                 }
@@ -128,13 +134,33 @@ public class BaseShield extends Block{
                 Draw.color(team.color, Color.white, Mathf.clamp(hit));
 
                 if(renderer.animateShields){
+                    Draw.color(team.color, Color.white, Mathf.clamp(hit));
                     Fill.poly(x, y, sides, radius);
+                    if (Core.settings.getFloat("屏障立场进入程度", 0f) > 0f){
+                        Draw.color(Color.white, Color.white, Mathf.clamp(hit));
+                        Fill.poly(x, y, sides, radius - player.unit().hitSize * Core.settings.getFloat("屏障立场进入程度", 0f));
+                        Draw.color(Color.red, Color.white, Mathf.clamp(hit));
+                        Fill.poly(x, y, sides, radius - player.unit().hitSize * 1.5f);
+                    }
                 }else{
                     Lines.stroke(1.5f);
                     Draw.alpha(0.09f + Mathf.clamp(0.08f * hit));
                     Fill.poly(x, y, sides, radius);
+                    if (Core.settings.getFloat("屏障立场进入程度", 0f) > 0f){
+                        Draw.color(Color.white, Color.white, Mathf.clamp(hit));
+                        Fill.poly(x, y, sides, radius - player.unit().hitSize * Core.settings.getFloat("屏障立场进入程度", 0f));
+                        Draw.color(Color.red, Color.white, Mathf.clamp(hit));
+                        Fill.poly(x, y, sides, radius - player.unit().hitSize * 1.5f);
+                        Draw.color(team.color, Color.white, Mathf.clamp(hit));
+                    }
                     Draw.alpha(1f);
                     Lines.poly(x, y, sides, radius);
+                    if (Core.settings.getFloat("屏障立场进入程度", 0f) > 0f){
+                        Draw.color(Color.white, Color.white, Mathf.clamp(hit));
+                        Lines.poly(x, y, sides, radius - player.unit().hitSize * Core.settings.getFloat("屏障立场进入程度", 0f));
+                        Draw.color(Color.red, Color.white, Mathf.clamp(hit));
+                        Lines.poly(x, y, sides, radius - player.unit().hitSize * 1.5f);
+                    }
                     Draw.reset();
                 }
             }

@@ -353,18 +353,7 @@ public class Turret extends ReloadTurret{
             drawer.draw(this);
             Draw.z(Layer.turret);
 
-            if (Core.settings.getBool("turretForceShowRange")){
-                int turretShowRange = Core.settings.getInt("turretShowRange");
-                if (turretShowRange==3 || (turretShowRange==2 && targetAir) || (turretShowRange==1 && targetGround)){
-                    Draw.z(Layer.turret-0.8f);
-                    Draw.color(team.color,0.05f);
-                    Fill.circle(x, y, range());
-                    Draw.color(team.color,0.3f);
-                    Lines.circle(x, y, range());
-                }
-                Draw.reset();
-            }
-            if ( (hasAmmo()) && arcInfoControl(team) ){
+            if ( (hasAmmo()) || !(Core.settings.getBool("ignoreNoAmmo")) ){
                 boolean canHitCommand = (control.input.block!=null && targetGround) || (control.input.commandMode && (control.input.selectedUnits.size>0));
                 boolean turretAlert = Core.settings.getInt("turretAlertRange") > 0f &&
                         ((!player.unit().isNull() && player.unit().targetable(team)) || canHitCommand);

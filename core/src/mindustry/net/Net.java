@@ -201,6 +201,7 @@ public class Net{
             Log.info("Disconnecting.");
         }
         provider.disconnectClient();
+        lastServer = null;
         server = false;
         active = false;
     }

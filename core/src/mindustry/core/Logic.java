@@ -35,7 +35,8 @@ public class Logic implements ApplicationListener{
 
         Events.on(BlockDestroyEvent.class, event -> {
             //skip if rule is off
-            if(!state.rules.ghostBlocks) return;
+            //but why?fuck you anuke
+            if(!state.rules.ghostBlocks && false) return;
 
             //blocks that get broken are appended to the team's broken block queue
             Tile tile = event.tile;

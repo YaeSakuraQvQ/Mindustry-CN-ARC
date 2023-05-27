@@ -10,6 +10,8 @@ import arc.math.*;
 import arc.math.geom.*;
 import arc.scene.*;
 import arc.scene.ui.layout.*;
+import arc.struct.ObjectMap;
+import arc.struct.Seq;
 import arc.util.*;
 import mindustry.*;
 import mindustry.arcModule.Marker;
@@ -26,6 +28,11 @@ import mindustry.type.UnitType;
 import mindustry.ui.*;
 import mindustry.world.*;
 import mindustry.world.blocks.ControlBlock;
+
+import java.lang.reflect.Array;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Objects;
 
 import static arc.Core.*;
 import static mindustry.Vars.net;
@@ -54,6 +61,9 @@ public class DesktopInput extends InputHandler{
     public long selectMillis = 0;
     /** Previously selected tile. */
     public Tile prevSelected;
+
+    /** Previously selected tile. */
+    public Seq<Unit> lastCommand = new Seq<Unit>();
 
     public boolean autoAim = false;
     /** Current thing being shot at. */
@@ -219,6 +229,10 @@ public class DesktopInput extends InputHandler{
     public void update(){
         super.update();
 
+        if(input.keyTap(Binding.klpMenu) && !ui.klpMenu.isShown()){
+            ui.klpMenu.show();
+        }
+
         if(net.active() && Core.input.keyTap(Binding.player_list) && (scene.getKeyboardFocus() == null || scene.getKeyboardFocus().isDescendantOf(ui.listfrag.content) || scene.getKeyboardFocus().isDescendantOf(ui.minimapfrag.elem))){
             ui.listfrag.toggle();
         }
@@ -226,6 +240,10 @@ public class DesktopInput extends InputHandler{
         boolean locked = locked();
         boolean panCam = false;
         float camSpeed = (!Core.input.keyDown(Binding.boost) ? panSpeed : panBoostSpeed) * Time.delta;
+
+        if((input.keyDown(Binding.drop) && settings.getBool("按住一键装填", false)) || input.keyTap(Binding.drop)){
+            player.dropItems();
+        }
 
         if(input.keyDown(Binding.pan) && !scene.hasField() && !scene.hasDialog()){
             panCam = true;
@@ -270,6 +288,7 @@ public class DesktopInput extends InputHandler{
         }else{
             commandMode = false;
         }
+        if (!commandMode) lastCommand.clear();
 
         if(input.keyTap(Binding.arcScanMode)) arcScanMode = !arcScanMode;
 
@@ -713,6 +732,21 @@ public class DesktopInput extends InputHandler{
             int level = settings.getInt("superUnitEffect");
             settings.put("superUnitEffect", (level + 1) % 3);
         }
+        if (commandMode && settings.getBool("强制控制单位", false) && lastCommand.size > 0){
+            Seq<Unit> needCommand = new Seq<>();
+            for (Unit unit : lastCommand){
+                if(!Objects.equals(unit.lastCommanded, "[#" + player.color.toString().toUpperCase() + "]" + player.name)){
+                    unit.lastCommanded = "[#" + player.color.toString().toUpperCase() + "]" + player.name;
+                    needCommand.add(unit);
+                }
+            }
+            int[] ids = new int[needCommand.size];
+            for(int i = 0; i < ids.length; i++){
+                ids[i] = needCommand.get(i).id;
+            }
+            if(needCommand.size > 0) commandTap(lastCommandPos, ids);
+        }
+
 
     }
 
@@ -740,6 +774,10 @@ public class DesktopInput extends InputHandler{
         if(scene.hasMouse() || !commandMode) return false;
 
         if(button == KeyCode.mouseRight){
+            lastCommand.clear();
+            for (Unit unit : selectedUnits){
+                lastCommand.add(unit);
+            }
             commandTap(x, y);
         }
 
@@ -845,7 +883,7 @@ public class DesktopInput extends InputHandler{
         else {
             target = null;
         }
-        if (type.omniMovement && type.faceTarget && unit.isShooting) {
+        if (((type.omniMovement || settings.getBool("没有角度移动",false) && !settings.getBool("没爱角度移动",false))&& type.faceTarget && unit.isShooting) || (settings.getBool("强制看向鼠标",false) || ((settings.getBool("推进转向",false) && boosted)))) {
             unit.lookAt(lookAtAngle);
         }
         else {
@@ -853,7 +891,8 @@ public class DesktopInput extends InputHandler{
         }
 
         unit.movePref(movement);
-        if (!autoAim) unit.aim(aimPos);
+
+        if (!autoAim && (!settings.getBool("自由鼠标", false) && !(settings.getBool("按住一键装填自由鼠标", false) && input.keyDown(Binding.drop))) || (player.shooting && !input.keyDown(Binding.drop))) unit.aim(Core.input.mouseWorld());
         unit.controlWeapons(true, player.shooting && !boosted);
 
         player.boosting = Core.input.keyDown(Binding.boost) || Core.settings.getBool("forceBoost");
@@ -866,7 +905,9 @@ public class DesktopInput extends InputHandler{
                 tryPickupPayload();
             }
 
-            if(Core.input.keyTap(Binding.dropCargo)){
+            if(Core.input.keyTap(Binding.dropCargo) || (settings.getBool("残血丢下荷载")
+                    && unit.health <= unit.maxHealth * settings.getFloat("残载-血量阈值", 0.25f))
+            ){
                 tryDropPayload();
             }
         }
