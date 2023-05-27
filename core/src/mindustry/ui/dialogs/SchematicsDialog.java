@@ -958,23 +958,6 @@ public class SchematicsDialog extends BaseDialog{
             addCloseButton();
         }
 
-        boolean getSettingB(String setting){
-            return Core.settings.getBool(setting, false);
-        }
-    
-        private void addCheckSetting(String text, String setting, @Nullable String desc){
-            addCheckSetting(text, setting, desc, settings);
-        }
-    
-        private void addCheckSetting(String text, String setting, @Nullable String desc, Table settingsTable){
-            if (desc == null) desc = text;
-            settingsTable.check(text, Core.settings.getBool(setting, false), b -> {
-                Core.settings.put(setting, !Core.settings.getBool(setting,false));
-             }).tooltip(desc).row();
-        }
-
-
-
         public void show(Schematic schem){
             cont.clear();
             title.setText("[[" + Core.bundle.get("schematic") + "] " +schem.name());
@@ -1046,13 +1029,14 @@ public class SchematicsDialog extends BaseDialog{
                     }
                 }
             });
-            buttons.button("快捷蓝图",Icon.copy,() -> {
+            /** buttons.button("快捷蓝图",Icon.copy,() -> {
                 new BaseDialog("快捷蓝图");
                 Table quickschemTable = new Table();
                 quickschemTable.add("快捷蓝图").color(getThemeColor()).colspan(4).pad(10).padTop(15).padBottom(4).row();
                 addCheckSetting("[cyan]快捷蓝图", "快捷蓝图", null, quickschemTable);
                 if (getSettingB("快捷蓝图")){
                     quickschemTable.table(table -> {
+                        quickschemTable.add("[cyan]快捷蓝图").row();
                         quickschemTable.add("设置图标").row();
                         TextField iconField = cont.field(null).size(400f,55f).left.get;
                         quickschemTable.add("设置到快捷蓝图").row();
@@ -1071,7 +1055,7 @@ public class SchematicsDialog extends BaseDialog{
                 dialog.row();
                 dialog.addCloseButton();
                 dialog.show();
-                    });
+                    }); */
             show();
         }
     }
