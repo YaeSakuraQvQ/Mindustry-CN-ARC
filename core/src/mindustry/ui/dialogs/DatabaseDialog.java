@@ -69,7 +69,7 @@ public class DatabaseDialog extends BaseDialog{
                 int count = 0;
 
                 for(int i = 0; i < array.size; i++){
-                    UnlockableContent unlock = array.get(i);
+                    UnlockableContent unlock = (UnlockableContent)array.get(i);
 
                     Image image = unlocked(unlock) ? new Image(unlock.uiIcon).setScaling(Scaling.fit) : new Image(Icon.lock, Pal.gray);
 
