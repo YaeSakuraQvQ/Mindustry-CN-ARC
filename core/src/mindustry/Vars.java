@@ -49,9 +49,6 @@ public class Vars implements Loadable{
     /** 开始游玩时间 */
     public static Long startPlayTime = Time.millis();
 
-    /** 服务器远程控制允许或移除作弊功能 */
-    public static Boolean arcCheatServer = false;
-
     /** 服务器ip地址 */
     public static @Nullable String lastServer = null;
 
@@ -533,7 +530,7 @@ public class Vars implements Loadable{
     }
 
     public static Boolean arcInfoControl(Team team){
-        return team == player.team() || arcInfoControl();
+        return true;
     }
 
     public static Boolean arcInfoControl(){

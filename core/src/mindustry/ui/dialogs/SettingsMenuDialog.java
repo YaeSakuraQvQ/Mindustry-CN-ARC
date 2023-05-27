@@ -550,7 +550,7 @@ public class SettingsMenuDialog extends BaseDialog{
             else if(s==3){return "全部";}
             else{return "";}
         });
-        arc.checkPref("turretForceShowRange", false);
+        arc.checkPref("ignoreNoAmmo", true);
         arc.sliderPref("turretAlertRange",0,0,30,1, i -> i > 0 ? i + "格" : "关闭");
         arc.checkPref("blockWeaponTargetLine", false);
         arc.checkPref("blockWeaponTargetLineWhenIdle", false);

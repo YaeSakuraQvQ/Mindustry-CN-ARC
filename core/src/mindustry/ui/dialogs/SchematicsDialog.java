@@ -182,14 +182,14 @@ public class SchematicsDialog extends BaseDialog{
 
             t.update(() -> {
                 if(Core.input.keyTap(Binding.chat) && Core.scene.getKeyboardFocus() == searchField && firstSchematic != null){
-                    /*if(!Vars.state.rules.schematicsAllowed){
-                        //ui.showInfo("@schematic.disabled" + "\n但是yzh帮你干掉了禁用！");
+                    if(!Vars.state.rules.schematicsAllowed){
+                        ui.arcInfo("@schematic.disabled" + "\n但是yzh帮你干掉了禁用！");
+                        control.input.useSchematic(firstSchematic);
+                        hide();
                     }else{
                         control.input.useSchematic(firstSchematic);
                         hide();
-                    }*/
-                    control.input.useSchematic(firstSchematic);
-                    hide();
+                    }
                 }
             });
 
@@ -300,7 +300,9 @@ public class SchematicsDialog extends BaseDialog{
                             showInfo(s);
                         }else{
                             if(!Vars.state.rules.schematicsAllowed){
-                                ui.showInfo("@schematic.disabled");
+                                ui.arcInfo("@schematic.disabled" + "\n但是yzh帮你干掉了禁用！");
+                                control.input.useSchematic(s);
+                                hide();
                             }else{
                                 control.input.useSchematic(s);
                                 hide();
@@ -1027,6 +1029,33 @@ public class SchematicsDialog extends BaseDialog{
                     }
                 }
             });
+            buttons.button("快捷蓝图",Icon.copy,() -> {
+                BaseDialog = new BaseDialog("快捷蓝图");
+                Table quickschemTable = new Table();
+                quickschemTable.add("快捷蓝图").color(getThemeColor()).colspan(4).pad(10).padTop(15).padBottom(4).row();
+                addCheckSetting("[cyan]快捷蓝图", "快捷蓝图", null, quickschemTable);
+                if (getSettingB("快捷蓝图")){
+                    quickschemTable.table(table -> {
+                        quickschemTable.add("设置图标").row();
+                        TextField iconField = cont.field(s.name(),null).size(400f,55f).left.get;
+                        quickschemTable.add("设置到快捷蓝图").row();
+                        for (int i = 1; i <= 20; i++) {
+                            int finalI = i;
+                            table.button("快捷蓝图 " + i, () -> {
+                                        Core.settings.put("quickschemSlot" + finalI, new java.lang.String(schem.name()));
+                                        Core.settings.put("iconSlot" + finalI, iconField.getText());
+                                        rebuild();
+                                    }).tooltip(Core.settings.getString("quickschemSlot" + finalI) + "[yellow]:[white]" + Core.settings.getString("iconSlot" + finalI))
+                                    .width(128f).height(64f);
+                            if (i == 5) table.row();
+                                }
+                            }).row();
+                        }
+                dialog.add(quickschemTable).center();
+                dialog.row();
+                dialog.addCloseButton();
+                dialog.show();
+                    });
             show();
         }
     }

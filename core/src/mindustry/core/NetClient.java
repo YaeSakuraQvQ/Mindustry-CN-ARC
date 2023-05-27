@@ -111,14 +111,6 @@ public class NetClient implements ApplicationListener{
 
             net.send(c, true);
 
-            Timer timer=new Timer();
-            timer.schedule(new TimerTask(){
-            public void run(){
-                Call.serverPacketReliable("ARC",arcVersion);
-                Call.serverPacketReliable("ARC-build",Version.arcBuild + "");
-                Call.serverPacketReliable("CheatOverride",arcCheatServer + "");
-            }},5000);
-
         });
 
         net.handleClient(Disconnect.class, packet -> {
