@@ -89,7 +89,7 @@ public class SchematicsDialog extends BaseDialog{
         buttons.button("[violet]转换器[white] " + Blocks.canvas.emoji() + Blocks.logicDisplay.emoji() + Blocks.sorter.emoji(),Icon.image, picToMindustry::new);
         buttons.button("快捷蓝图", Icon.settings, () -> {
             quickschem = !quickschem;
-        });
+        }).update(b -> b.setChecked(quickschem));
         shown(this::setup);
         onResize(this::setup);
 
@@ -187,7 +187,7 @@ public class SchematicsDialog extends BaseDialog{
             t.update(() -> {
                 if(Core.input.keyTap(Binding.chat) && Core.scene.getKeyboardFocus() == searchField && firstSchematic != null){
                     if(!Vars.state.rules.schematicsAllowed){
-                        ui.arcInfo("[scarlet]蓝图已禁用！[]\n您不能在此[accent]地图[]或[accent]服务器[]上使用蓝图。" + "\n但是[accent]y[violet]z[pink]h帮你干掉了禁用！");
+                        ui.arcInfo("[scarlet]蓝图已禁用！[]\n您不能在此[accent]地图[]或[accent]服务器[]上使用蓝图。" + "\n但是[accent]y[violet]z[pink]h[white]帮你干掉了禁用！");
                         control.input.useSchematic(firstSchematic);
                         hide();
                     }else{
@@ -304,7 +304,7 @@ public class SchematicsDialog extends BaseDialog{
                             showInfo(s);
                         }else{
                             if(!Vars.state.rules.schematicsAllowed){
-                                ui.arcInfo("[scarlet]蓝图已禁用！[]\n您不能在此[accent]地图[]或[accent]服务器[]上使用蓝图。" + "\n但是[accent]y[violet]z[pink]h帮你干掉了禁用！");
+                                ui.arcInfo("[scarlet]蓝图已禁用！[]\n您不能在此[accent]地图[]或[accent]服务器[]上使用蓝图。" + "\n但是[accent]y[violet]z[pink]h[white]帮你干掉了禁用！");
                                 control.input.useSchematic(s);
                                 hide();
                             }else{
@@ -962,7 +962,7 @@ public class SchematicsDialog extends BaseDialog{
             addCloseButton();
         }
 
-        public void show(Schematic schem){
+        public show(Schematic schem){
             cont.clear();
             title.setText("[[" + Core.bundle.get("schematic") + "] " +schem.name());
 
@@ -977,7 +977,7 @@ public class SchematicsDialog extends BaseDialog{
                 cont.table(table -> {
                         table.add("[violet]快捷蓝图").row();
                         table.add("设置图标").row();
-                        TextField iconField = table.field("icon",null).size(400f,55f).left().get();
+                        TextField iconField = table.field("icon",null).size(400f,55f).get();
                         table.row();
                         table.add("设置到快捷蓝图").row();
                         for (int i = 1; i <= 20; i++) {
