@@ -962,7 +962,7 @@ public class SchematicsDialog extends BaseDialog{
             addCloseButton();
         }
 
-        public show(Schematic schem){
+        public void show(Schematic schem){
             cont.clear();
             title.setText("[[" + Core.bundle.get("schematic") + "] " +schem.name());
 
