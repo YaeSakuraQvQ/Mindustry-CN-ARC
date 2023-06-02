@@ -87,7 +87,7 @@ public class SchematicsDialog extends BaseDialog{
             }
         });
         buttons.button("[violet]转换器[white] " + Blocks.canvas.emoji() + Blocks.logicDisplay.emoji() + Blocks.sorter.emoji(),Icon.image, picToMindustry::new);
-        buttons.button("[cyan]快捷蓝图", Icon.settings, () -> {
+        buttons.button("快捷蓝图", Icon.settings, () -> {
             quickschem = !quickschem;
         });
         shown(this::setup);
@@ -977,16 +977,17 @@ public class SchematicsDialog extends BaseDialog{
                 cont.table(table -> {
                         table.add("[violet]快捷蓝图").row();
                         table.add("设置图标").row();
-                        TextField iconField = cont.field("icon",null).size(400f,55f).left().get();
+                        TextField iconField = table.field("icon",null).size(400f,55f).left().get();
+                        table.row();
                         table.add("设置到快捷蓝图").row();
                         for (int i = 1; i <= 20; i++) {
                             int finalI = i;
-                            table.button("快捷蓝图 " + i, () -> {
+                            table.button(Icon.save + i, () -> {
                                         Core.settings.put("quickschemSlot" + finalI, new java.lang.String(schem.name()));
                                         Core.settings.put("iconSlot" + finalI, iconField.getText());
                                     }).tooltip(Core.settings.getString("quickschemSlot" + finalI) + "[yellow]:[white]" + Core.settings.getString("iconSlot" + finalI))
                                     .width(128f).height(64f);
-                            if (i == 5) table.row();
+                            if (i % 5 == 0) table.row();
                             }
                 });
                 cont.row();
