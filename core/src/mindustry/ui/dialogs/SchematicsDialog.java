@@ -982,7 +982,7 @@ public class SchematicsDialog extends BaseDialog{
                         table.add("设置到快捷蓝图").row();
                         for (int i = 1; i <= 20; i++) {
                             int finalI = i;
-                            table.button(Icon.save + i, () -> {
+                            table.button(" " + i, () -> {
                                         Core.settings.put("quickschemSlot" + finalI, new java.lang.String(schem.name()));
                                         Core.settings.put("iconSlot" + finalI, iconField.getText());
                                     }).tooltip(Core.settings.getString("quickschemSlot" + finalI) + "[yellow]:[white]" + Core.settings.getString("iconSlot" + finalI))
