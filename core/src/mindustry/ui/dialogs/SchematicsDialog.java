@@ -89,7 +89,7 @@ public class SchematicsDialog extends BaseDialog{
         buttons.button("[violet]转换器[white] " + Blocks.canvas.emoji() + Blocks.logicDisplay.emoji() + Blocks.sorter.emoji(),Icon.image, picToMindustry::new);
         buttons.button("快捷蓝图", Icon.settings, () -> {
             quickschem = !quickschem;
-        }).update(b -> b.setChecked(quickschem));
+        }).update(button -> button.setChecked(quickschem));
         shown(this::setup);
         onResize(this::setup);
 

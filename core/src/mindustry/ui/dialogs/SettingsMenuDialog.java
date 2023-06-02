@@ -505,11 +505,12 @@ public class SettingsMenuDialog extends BaseDialog{
         arc.checkPref("arcSpecificTable",true);
         arc.checkPref("logicSupport",true);
         arc.checkPref("powerStatistic", true);
-        arc.sliderPref("arccoreitems", 3, 0, 3, 1, s -> {
+        arc.sliderPref("arccoreitems", 3, 0, 4, 1, s -> {
             if(s==0){return "不显示";}
             else if(s==1){return "资源状态";}
             else if(s==2){return "兵种状态";}
-            else{return "显示资源和兵种";}
+            else if(s==3){return "显示资源和兵种";}
+            else{return "空白占位";}
         });
         arc.sliderPref("arcCoreItemsCol",5,4,15,1, i -> i + "列");
         arc.checkPref("showFloatingSettings",false);
