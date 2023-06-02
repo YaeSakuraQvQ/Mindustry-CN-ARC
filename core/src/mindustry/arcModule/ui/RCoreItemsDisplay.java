@@ -157,11 +157,11 @@ public class RCoreItemsDisplay extends CoreItemsDisplay{
         }
         if(arccoreitems == 4){
             new Table(t -> {
-                row();
-                row();
-                row();
-                row();
-                row();
+                t.row();
+                t.row();
+                t.row();
+                t.row();
+                t.row();
                 t.add(" ");
             });
         }
