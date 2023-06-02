@@ -156,13 +156,11 @@ public class RCoreItemsDisplay extends CoreItemsDisplay{
             }
         }
         if(arccoreitems == 4){
-            label(() -> {
             row();
             row();
             row();
             row();
             row();
-        }).padRight(3).minWidth(52f).left();
         }
 
     }
