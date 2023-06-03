@@ -160,18 +160,23 @@ public class RCoreItemsDisplay extends CoreItemsDisplay{
                 label(() -> {
                     return ("  ");
                 }).padRight(3).minWidth(52f).left();
+                t.row();
                 label(() -> {
                     return ("  ");
                 }).padRight(3).minWidth(52f).left();
+                t.row();
                 label(() -> {
                     return ("  ");
                 }).padRight(3).minWidth(52f).left();
+                t.row();
                 label(() -> {
                     return ("  ");
                 }).padRight(3).minWidth(52f).left();
+                t.row();
                 label(() -> {
                     return ("  ");
                 }).padRight(3).minWidth(52f).left();
+                t.row();
             });
         }
 
