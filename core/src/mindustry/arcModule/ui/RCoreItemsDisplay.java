@@ -157,11 +157,18 @@ public class RCoreItemsDisplay extends CoreItemsDisplay{
         }
         if(arccoreitems == 4){
             new Table(t -> {
-                t.add(" ").row();
-                t.add(" ").row();
-                t.add(" ").row();
-                t.add(" ").row();
-                t.add(" ").row();
+                label(() -> {
+                    return ("  ");
+                }).padRight(3).minWidth(52f).left();
+                label(() -> {
+                    return ("  ");
+                }).padRight(3).minWidth(52f).left();
+                label(() -> {
+                    return ("  ");
+                }).padRight(3).minWidth(52f).left();
+                label(() -> {
+                    return ("  ");
+                }).padRight(3).minWidth(52f).left();
                 label(() -> {
                     return ("  ");
                 }).padRight(3).minWidth(52f).left();
