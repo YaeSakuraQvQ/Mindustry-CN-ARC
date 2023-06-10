@@ -229,6 +229,44 @@ public class StatValues{
         });
     }
 
+    public static StatValue drillUnit(UnitType unit){
+        Seq<Block> list = content.blocks().select(b ->
+                b.itemDrop != null &&
+                        (b instanceof Floor f && (((f.wallOre && unit.mineWalls) || (!f.wallOre && unit.mineFloor))) ||
+                                (!(b instanceof Floor) && unit.mineWalls)) &&
+                        b.itemDrop.hardness <= unit.mineTier && (!b.playerUnmineable || Core.settings.getBool("doubletapmine")));
+        list.sort(t->t.itemDrop.hardness);
+        return table -> {
+            table.row();
+            table.table(t -> {
+                t.background(Styles.grayPanel);
+                t.table(tt->{
+                    StringBuilder oreList = new StringBuilder();
+                    if(unit.mineHardnessScaling) {
+                        for (int i = 0; i < list.size; i++) {
+                            Block block = list.get(i);
+                            oreList.append(block.emoji()).append(" ").append(block.localizedName);
+                            if (i == list.size - 1 || list.get(i + 1).itemDrop.hardness != block.itemDrop.hardness) {
+                                tt.labelWrap(oreList.toString()).width(250f).padLeft(20f).padTop(5f);
+                                float eff = 60f * unit.mineSpeed / (50f + list.get(i).itemDrop.hardness * 15f);
+                                tt.add("[stat]" + Strings.fixed(eff, 2)).padLeft(20f);
+                                tt.row();
+                                oreList = new StringBuilder();
+                            } else oreList.append("  ");
+                        }
+                    } else {
+                        for (int i = 0; i < list.size; i++) {
+                            Block block = list.get(i);
+                            oreList.append(block.emoji()).append(" ").append(block.localizedName);
+                        }
+                        tt.labelWrap(oreList.toString()).width(250f).padLeft(20f).padTop(5f);
+                        float eff = 60f * unit.mineSpeed / (50f + 15f);
+                        tt.add("[stat]" + Strings.fixed(eff, 2)).padLeft(20f);
+                    }
+                });
+            });
+        };
+    }
     public static StatValue drillBlock(Drill drill) {
         Seq<Block> list = content.blocks().select(b -> b instanceof Floor f && !f.wallOre && f.itemDrop != null && f.itemDrop.hardness <= drill.tier && f.itemDrop != drill.blockedItem);
 
@@ -296,56 +334,6 @@ public class StatValues{
         };
     }
 
-    public static StatValue drillUnit(UnitType unit){
-        Seq<Block> list = content.blocks().select(b ->
-                b.itemDrop != null &&
-                        (b instanceof Floor f && (((f.wallOre && unit.mineWalls) || (!f.wallOre && unit.mineFloor))) ||
-                                (!(b instanceof Floor) && unit.mineWalls)) &&
-                        b.itemDrop.hardness <= unit.mineTier && (!b.playerUnmineable || Core.settings.getBool("doubletapmine")));
-        list.sort(t->t.itemDrop.hardness);
-        if(unit.mineHardnessScaling){
-            return table -> {
-                table.row();
-                table.table(t -> {
-                    t.background(Styles.grayPanel);
-                    t.add("[stat]" + unit.mineTier + "[lightgray]级[#" + getThemeColor() + "] ~ [stat]" + (int)(unit.mineSpeed * 100) + "[lightgray]%");
-                    t.row();
-                    t.table(tt->{
-                        StringBuilder oreList = new StringBuilder();
-                        for (int i = 0; i < list.size; i++) {
-                            Block block = list.get(i);
-                            oreList.append(block.emoji()).append(" ").append(block.localizedName);
-                            if (i == list.size - 1 || list.get(i + 1).itemDrop.hardness != block.itemDrop.hardness) {
-                                tt.labelWrap(oreList.toString()).width(250f).padLeft(20f).padTop(5f);
-                                float eff = 60f * unit.mineSpeed / (50f + list.get(i).itemDrop.hardness * 15f);
-                                tt.add("[stat]" + Strings.fixed(eff, 2)).padLeft(20f);
-                                tt.row();
-                                oreList = new StringBuilder();
-                            } else oreList.append("  ");
-                        }
-                    });
-                });
-            };
-        }
-        else return table -> {
-            table.row();
-            table.table(t -> {
-                t.background(Styles.grayPanel);
-                t.add("[stat]" + unit.mineTier + "[lightgray]级[#" + getThemeColor() + "] ~ [stat]" + (int)(unit.mineSpeed * 100) + "[lightgray]%");
-                t.row();
-                t.table(tt->{
-                    StringBuilder oreList = new StringBuilder();
-                    for (int i = 0; i < list.size; i++) {
-                        Block block = list.get(i);
-                        oreList.append(block.emoji()).append(" ").append(block.localizedName);
-                    }
-                    tt.labelWrap(oreList.toString()).width(250f).padLeft(20f).padTop(5f);
-                    float eff = 60f * unit.mineSpeed / (50f + 15f);
-                    tt.add("[stat]" + Strings.fixed(eff, 2)).padLeft(20f);
-                });
-            });
-        };
-    }
 
     public static StatValue blocks(Boolf<Block> pred){
         return content(content.blocks(), pred);
@@ -374,10 +362,8 @@ public class StatValues{
                             info.add(block.localizedName).left().row();
                             info.add(block.itemDrop.emoji()).left();
                         }).grow();
-                        if(multipliers != null){
-                            b.add(Strings.autoFixed(60f / (Math.max(drillTime + drillMultiplier * block.itemDrop.hardness, drillTime) / multipliers.get(block.itemDrop, 1f)) * size, 2) + StatUnit.perSecond.localized())
-                            .right().pad(10f).padRight(15f).color(Color.lightGray);
-                        }
+                        b.add(Strings.autoFixed(60f / ((drillTime + drillMultiplier * block.itemDrop.hardness) / (multipliers == null ? 1 : multipliers.get(block.itemDrop, 1f))) * size, 2) + StatUnit.perSecond.localized())
+                        .right().pad(10f).padRight(15f).color(Color.lightGray);
                     }).growX().pad(5);
                     if(++i % 2 == 0) c.row();
                 }

@@ -111,9 +111,10 @@ public class BeamDrill extends Block{
     public void setStats(){
         super.setStats();
 
+        stats.add(Stat.drillSpeed, 60f / drillTime * size, StatUnit.perSecond);
+
         stats.add(Stat.drillTier, StatValues.drillables(drillTime, 0f, size, drillMultipliers, b -> (b instanceof Floor f && f.wallOre && f.itemDrop != null && f.itemDrop.hardness <= tier) || (b instanceof StaticWall w && w.itemDrop != null && w.itemDrop.hardness <= tier)));
 
-        stats.add(Stat.drillSpeed, 60f / drillTime * size, StatUnit.itemsSecond);
 
         if(optionalBoostIntensity != 1 && findConsumer(f -> f instanceof ConsumeLiquidBase && f.booster) instanceof ConsumeLiquidBase consBase){
             stats.remove(Stat.booster);

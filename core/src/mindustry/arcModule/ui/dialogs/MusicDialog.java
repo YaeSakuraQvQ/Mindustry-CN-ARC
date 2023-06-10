@@ -5,20 +5,25 @@ import arc.Events;
 import arc.audio.Music;
 import arc.files.Fi;
 import arc.func.Cons;
+import arc.func.Cons2;
 import arc.graphics.Color;
 import arc.graphics.Pixmap;
 import arc.graphics.Texture;
 import arc.graphics.g2d.TextureRegion;
+import arc.input.KeyCode;
+import arc.math.geom.Vec2;
+import arc.scene.event.*;
 import arc.scene.ui.Button;
+import arc.scene.ui.CheckBox;
+import arc.scene.ui.Dialog;
 import arc.scene.ui.Slider;
 import arc.scene.ui.layout.Scl;
 import arc.scene.ui.layout.Table;
-import arc.util.Http;
-import arc.util.Log;
-import arc.util.Nullable;
+import arc.util.*;
 import arc.util.serialization.JsonReader;
 import arc.util.serialization.JsonValue;
 import mindustry.Vars;
+import mindustry.arcModule.ui.RStyles;
 import mindustry.game.EventType;
 import mindustry.gen.Call;
 import mindustry.gen.Icon;
@@ -29,16 +34,19 @@ import mindustry.ui.dialogs.BaseDialog;
 
 import java.net.URLEncoder;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Objects;
 
 import static mindustry.Vars.*;
 import static mindustry.arcModule.RFuncs.getPrefix;
 
 public class MusicDialog extends BaseDialog{
-    public static final String version = "1.0.4";
+    public static final String version = "1.1.0";
     public static final String ShareType = "[pink]<Music>";
+    private Table lrcTable;
     private MusicApi api;
-    private MusicApi[] apis;
+    private static MusicApi[] apis;
     private Music player;
     private String search = "";
     private Runnable loadSearch, loadStatus;
@@ -47,8 +55,15 @@ public class MusicDialog extends BaseDialog{
     private float progress, vol;
     private Slider progressBar;
     private MusicInfo nowMusic;
-    private boolean loaded, updating, paused;
+    private boolean loaded, updating, paused, isPlaying;
     private BaseDialog switchDialog;
+    private float fontScale = 1f;
+    private String lrcColor, nextLrcColor, lrcLine1 = "松鼠音乐", lrcLine2 = "松鼠音乐";
+    private LRCParser lrcParser;
+    private LRC nowLRC;
+    private Dialog settingsDialog, listDialog;
+    private MusicList list;
+    private MusicList[] lists;
     public MusicDialog() {
         super("松鼠音乐");
         try {
@@ -57,11 +72,17 @@ public class MusicDialog extends BaseDialog{
             searchPage = allPage = 1;
             progress = 0;
             apis = new MusicApi[]{null, new Squirrel(), new KuGouWeb()};
+            lists = new MusicList[]{null, new MusicList((byte) 1), new MusicList((byte) 2)};
             api = apis[2];
+            list = lists[2];
             addCloseButton();
             button(Icon.info, () -> ui.showInfo("[pink]松鼠音乐v" + version + "\n[gold]松鼠制作\n[cyan]松鼠站:squi2rel.tk"));
+            settingsDialog = new SettingsDialog();
+            listDialog = new ListDialog();
+            button(Icon.settings, () -> settingsDialog.show());
             buttons.button("切换api", this::switchApi);
-            buttons.button("上传本地音乐", this::upload).disabled(b -> !api.canUpload());
+            buttons.button("上传本地音乐", this::upload).disabled(b -> !api.canUpload);
+            buttons.button("歌单", () -> listDialog.show());
             onResize(this::setup);
             shown(() -> {
                 if(check()) setup();
@@ -71,15 +92,16 @@ public class MusicDialog extends BaseDialog{
             loaded = true;
             setup();
             switchDialog = new BaseDialog("切换api");
-            switchDialog.cont.label(() -> "当前api: (" + api.getId() + ")" + api.getName());
+            switchDialog.cont.label(() -> "当前api: (" + api.thisId + ")" + api.name);
             switchDialog.cont.row();
             switchDialog.cont.pane(p -> {
                 for(MusicApi capi : apis) {
                     if(capi != null) {
-                        byte id = capi.getId();
-                        String name = capi.getName();
+                        byte id = capi.thisId;
+                        String name = capi.name;
                         p.button("(" + id + ")" + name, () -> {
                             api = apis[id];
+                            list = lists[id];
                             setup();
                             switchDialog.hide();
                         }).width(200f);
@@ -88,9 +110,19 @@ public class MusicDialog extends BaseDialog{
                 }
             }).growX().growY();
             switchDialog.addCloseButton();
+            lrcParser = new LRCParser();
+            fontScale = Core.settings.getFloat("lrcFontScale", 1);
+            lrcColor = "[" + Core.settings.getString("lrcColor", "blue") + "]";
+            nextLrcColor = "[" + Core.settings.getString("nextLrcColor", "white") + "]";
+            buildLRC();
             Events.run(EventType.Trigger.update, this::updateProgress);
-        } catch (Exception err) {
-            Events.on(EventType.ClientLoadEvent.class, e -> ui.showException("松鼠音乐加载失败!", err));
+        } catch (Exception ignored) {}
+    }
+    private void buildLRC() {
+        if(lrcTable != null) lrcTable.remove();
+        if(Core.settings.getBool("showLRC")) {
+            lrcTable = new LRCTable();
+            Core.scene.add(lrcTable);
         }
     }
     private void switchApi(){
@@ -110,20 +142,25 @@ public class MusicDialog extends BaseDialog{
         });
     }
     private void play(MusicInfo info) {
-        player.stop();
+        stop();
         nowMusic = info;
+        list.add(info);
+        list.set(list.indexOf(info));
         try {
+            if(info.lrc != null) nowLRC = info.lrc;
             Http.get(info.url, r -> {
-                Fi tmp = new Fi(tmpDirectory + "/squirrel.mp3");
+                Fi tmp = new Fi(tmpDirectory.child("music") + "/squirrel.mp3");
                 tmp.writeBytes(r.getResult());
                 player.stop();
                 player.pause(false);
                 player.load(tmp);
                 player.play();
+                Timer.schedule(() -> isPlaying = true, 1f);//badly
                 loadStatus.run();
             });
         } catch (Exception e) {
             ui.showException("发生了一个错误", e);
+            playNext();
         }
     }
     private void playDirectly(Fi f) throws Exception {
@@ -131,16 +168,24 @@ public class MusicDialog extends BaseDialog{
         player.pause(false);
         player.load(f);
         player.play();
+        Timer.schedule(() -> isPlaying = true, 1);
         loadStatus.run();
     }
     private void share(MusicInfo info) {
-        Vars.ui.showConfirm("分享","确认分享到聊天框?",() -> api.getMusicInfo(info.id, fullinfo -> Call.sendChatMessage(getPrefix("pink", "Music") + " " + fullinfo.src + "M" + fullinfo.id)));
+        Vars.ui.showConfirm("分享","确认分享到聊天框?", () -> api.getMusicInfo(info.id, fullInfo -> Call.sendChatMessage(getPrefix("pink", "Music") + " " + fullInfo.src + "M" + fullInfo.id)));
+    }
+    private void share(MusicList list) {
+        if(list.size() == 0) return;
+        Vars.ui.showConfirm("分享","确认分享到聊天框?", () -> Call.sendChatMessage(getPrefix("pink", "Music") + " $M" + list.build()));
     }
     private void setup() {
         if(!loaded) return;
+        Fi tmpDir = tmpDirectory.child("music");
+        tmpDir.mkdirs();
+        tmpDir.emptyDirectory();
         cont.top();
         cont.clear();
-        if(api.canSearch()) {
+        if(api.canSearch) {
             cont.table(s -> {
                 s.left();
                 s.field(search, res -> search = res).growX().get();
@@ -158,7 +203,7 @@ public class MusicDialog extends BaseDialog{
                         t.clear();
                         for (byte i = 0; i < searchResult.count; i++) {
                             MusicInfo info = searchResult.list[i];
-                            Button[] buttons = {null};//Variable 'button' might not have been initialized
+                            Button[] buttons = {null};
                             Button button = buttons[0] = t.button(b -> {
                             }, () -> {
                                 if (!buttons[0].childrenPressed()) {
@@ -170,8 +215,8 @@ public class MusicDialog extends BaseDialog{
                             button.clearChildren();
                             button.add(inner).growX();
                             inner.add(info.author + " - " + info.name).left().padLeft(10f).wrap().style(Styles.outlineLabel).growX();
-                            inner.button(Icon.download, Styles.emptyi, () -> download(info)).margin(3f).pad(2).padTop(6f).top().right();
-                            inner.button(Icon.link, Styles.emptyi, () -> share(info)).margin(3f).pad(2).pad(6).top().right();
+                            inner.button(Icon.download, RStyles.clearLineNonei, () -> download(info)).margin(3f).pad(2).padTop(6f).top().right();
+                            inner.button(Icon.link, RStyles.clearLineNonei, () -> share(info)).margin(3f).pad(2).pad(6).top().right();
                             button.row();
                             t.row();
                         }
@@ -214,48 +259,27 @@ public class MusicDialog extends BaseDialog{
                 tt.table(ms -> {
                     ms.table(ttt -> {
                         ttt.add(nowMusic.name == null ? "松鼠音乐" : (nowMusic.author + " - " + nowMusic.name)).left().wrap().style(Styles.outlineLabel).growX();
-                        ttt.button(Icon.play, Styles.emptyi, () -> {
-                            if (!player.isPlaying()) {
-                                if (paused) {
-                                    player.pause(false);
-                                    paused = false;
-                                } else {
-                                    if (nowMusic.url != null) {
-                                        Fi f = new Fi(tmpDirectory + "/squirrel.mp3");
-                                        if (f.exists()) {
-                                            try {
-                                                playDirectly(f);
-                                            } catch (Exception ignored) {
-
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }).margin(3f).padTop(6f).top().right();
-                        ttt.button(Icon.pause, Styles.emptyi, () -> {
-                            player.pause(true);
-                            paused = true;
-                        }).margin(3f).pad(2).padTop(6f).top().right();
-                        ttt.button(Icon.downloadSmall, Styles.emptyi, () -> {
+                        ttt.button(Icon.play, RStyles.clearLineNonei, this::play).margin(3f).padTop(6f).top().right();
+                        ttt.button(Icon.pause, RStyles.clearLineNonei, this::pause).margin(3f).pad(2).padTop(6f).top().right();
+                        ttt.button(Icon.downloadSmall, RStyles.clearLineNonei, () -> {
                             if (nowMusic.url != null) {
                                 download(nowMusic);
                             }
                         }).margin(3f).pad(2).padTop(6f).top().right();
                         ttt.label(() -> "音量:" + (byte) vol);
-                        ttt.button(Icon.upSmall, Styles.emptyi, () -> {
+                        ttt.button(Icon.upSmall, RStyles.clearLineNonei, () -> {
                             vol = Math.min(vol + 10, 100);
                             player.setVolume(vol / 100);
                         }).margin(3f).pad(2).padTop(6f).top().right();
-                        ttt.button(Icon.downSmall, Styles.emptyi, () -> {
+                        ttt.button(Icon.downSmall, RStyles.clearLineNonei, () -> {
                             vol = Math.max(vol - 10, 0);
                             player.setVolume(vol / 100);
                         }).margin(3f).pad(2).padTop(6f).top().right();
-                        ttt.button(Icon.refreshSmall, Styles.emptyi, () -> {
+                        ttt.button(Icon.refreshSmall, RStyles.clearLineNoneTogglei, () -> {
                             player.setLooping(!player.isLooping());
                             ui.announce("单曲循环已" + (player.isLooping() ? "开启" : "关闭"), 1f);
                         }).margin(3f).pad(2).padTop(6f).top().right().checked(b -> player.isLooping());
-                        ttt.button(Icon.linkSmall, Styles.emptyi, () -> {
+                        ttt.button(Icon.linkSmall, RStyles.clearLineNonei, () -> {
                             if (nowMusic.url != null) {
                                 share(nowMusic);
                             }
@@ -277,12 +301,96 @@ public class MusicDialog extends BaseDialog{
         });
         loadStatus.run();
     }
+    private class ListDialog extends BaseDialog{
+        public ListDialog(){
+            super("歌单列表");
+            buttons.button(Icon.trash, () -> ui.showConfirm("松鼠音乐", "是否清空歌单", () -> {
+                list = new MusicList((byte) 0);
+                build();
+            }));
+            build();
+            buttons.button(Icon.link, () -> share(list));
+            buttons.button(Icon.download, () -> platform.showFileChooser(false, "保存歌单文件", "list", f -> f.writeString(list.build())));
+            buttons.button(Icon.upload, () -> platform.showFileChooser(true, "加载歌单文件", "list", f -> MusicList.parse(f.readString(), MusicDialog.this::loadList)));
+            addCloseButton();
+            onResize(this::build);
+            shown(this::build);
+        }
+        private void build(){
+            cont.clear();
+            float width = Core.graphics.getWidth() / Scl.scl() * 0.9f;
+            for (MusicInfo info : list.list) {
+                Button[] buttons = {null};
+                MusicInfo[] infoL = {info};//badly
+                Button button = buttons[0] = cont.button(b -> {
+                }, RStyles.clearLineNonei, () -> {
+                    if (!buttons[0].childrenPressed()) {
+                        MusicDialog.this.play(infoL[0]);
+                    }
+                }).width(width).pad(2f).get();
+                Table inner = new Table(Tex.whiteui);
+                inner.setColor(Color.black);
+                button.clearChildren();
+                button.add(inner).growX();
+                inner.add(info.author + " - " + info.name).left().padLeft(10f).wrap().style(Styles.outlineLabel).growX();
+                inner.button(Icon.trash, RStyles.clearLineNonei, () -> {
+                    if(list.remove(infoL[0])){
+                        playNext();
+                    }
+                    build();
+                }).margin(3f).pad(2).padTop(6f).top().right();
+                inner.button(Icon.download, RStyles.clearLineNonei, () -> download(infoL[0])).margin(3f).pad(2).padTop(6f).top().right();
+                inner.button(Icon.link, RStyles.clearLineNonei, () -> share(infoL[0])).margin(3f).pad(2).pad(6).top().right();
+                button.row();
+                button.update(() -> button.setChecked(Objects.equals(list.currentMusic.id, nowMusic.id)));
+                cont.row();
+            }
+        }
+    }
+    private void updateLRC(double pos){
+        if(nowLRC == null) return;
+        nowLRC.get(pos, (s1, s2) -> {
+            lrcLine1 = s1;
+            lrcLine2 = s2;
+        });
+    }
+    private void play(){
+        if (!player.isPlaying()) {
+            if (paused) {
+                player.pause(false);
+                paused = false;
+                isPlaying = true;
+            } else {
+                if (nowMusic.url != null) {
+                    Fi f = new Fi(tmpDirectory + "/squirrel.mp3");
+                    if (f.exists()) {
+                        try {
+                            isPlaying = false;
+                            playDirectly(f);
+                            Timer.schedule(() -> isPlaying = true, 1f);
+                        } catch (Exception ignored) {}
+                    }
+                }
+            }
+        }
+    }
+    private void pause(){
+        player.pause(true);
+        paused = true;
+        isPlaying = false;
+    }
     private void updateProgress() {
         if(!loaded) return;
         updating = true;
-        progress = player.getPosition();
+        float pos = player.getPosition();
+        progress = pos;
         progressBar.setValue(progress);
         updating = false;
+        updateLRC(pos * 1000);
+        if(pos == 0 && isPlaying && !player.isLooping()) {
+            isPlaying = false;
+            playNext();
+        }
     }
     private void download(MusicInfo info) {
         platform.showFileChooser(false, "下载音乐", "mp3", fi -> api.getMusicInfo(info.id, fullinfo -> Http.get(fullinfo.url, r -> {
@@ -296,6 +404,26 @@ public class MusicDialog extends BaseDialog{
             api.upload(f, info -> api.getMusicInfo(info.id, this::play));
         });
     }
+    private void loadList(MusicList list){
+        if(list == null) return;
+        this.list = list;
+        list.set(0);
+        playNext(false);
+    }
+    private void stop(){
+        player.stop();
+        isPlaying = false;
+        paused = false;
+    }
+    private void playNext(){
+        playNext(true);
+    }
+    private void playNext(boolean next){
+        stop();
+        MusicInfo info = next ? list.getNext() : list.currentMusic;
+        if(info == null) return;
+        if(info.url == null) apis[info.src].getMusicInfo(info.id, this::play); else this.play(info);
+    }
     public boolean resolveMsg(String msg) {
         return resolveMsg(msg, null);
     }
@@ -305,17 +433,22 @@ public class MusicDialog extends BaseDialog{
         }
         try {
             MessageDialog.addMsg(new MessageDialog.advanceMsg(MessageDialog.arcMsgType.music, msg));
-            int start = msg.indexOf(ShareType) + ShareType.length() + 8;
-            int split = msg.indexOf("M", start);
-            byte src = Byte.parseByte(msg.substring(start, split));
-            String id = msg.substring(split + 1);
-            if(src > apis.length || apis[src] == null && src != 0) {
-                Core.app.post(() -> ui.showErrorMessage("无法找到api!\n可能是学术版本太旧或者伪造消息"));
+            int start = msg.indexOf(' ', msg.indexOf(ShareType) + ShareType.length());
+            int split = msg.indexOf('M', start);
+            String mark = msg.substring(start + 1, split);
+            if(mark.equals("$")) {
+                Core.app.post(() -> ui.showConfirm("松鼠音乐", (sender == null ? "" : sender.name) + "分享了一个歌单\n播放?", () -> MusicList.parse(msg.substring(split + 1), this::loadList)));
+            } else {
+                byte src = Byte.parseByte(mark);
+                String id = msg.substring(split + 1);
+                if (src > apis.length || apis[src] == null && src != 0) {
+                    Core.app.post(() -> ui.arcInfo("[red]无法找到api!\n可能是学术版本太旧"));
+                }
+                if (src == 0) return true;
+                MusicApi current = apis[src];
+                current.getMusicInfo(id, info -> Core.app.post(() -> ui.showConfirm("松鼠音乐", (sender == null ? "" : sender.name) + "分享了一首来自" + current.name + "的音乐" + (info.name == null ? "" : ":\n" + info.author + " - " + info.name) + "\n播放?", () -> current.getMusicInfo(info.id, this::play))), true);
+                return true;
             }
-            if(src == 0) return true;
-            MusicApi current = apis[src];
-            current.getMusicInfo(id, info -> Core.app.post(() -> ui.showConfirm("松鼠音乐", (sender == null ? "" : sender.name) + "分享了一首来自" + current.getName() + "的音乐" + (info.name == null ? "" : ":\n" + info.author + " - " + info.name) + "\n播放?", () -> current.getMusicInfo(info.id, this::play))), true);
-            return true;
         } catch (Exception e) {
             Log.err(e);
             Core.app.post(() -> ui.arcInfo("[orange]音乐读取失败"));
@@ -331,6 +464,7 @@ public class MusicDialog extends BaseDialog{
         public String id;
         public byte src;
         public int length;
+        public LRC lrc;
     }
 
     public static class MusicSet{
@@ -344,43 +478,38 @@ public class MusicDialog extends BaseDialog{
         }
     }
 
-    public interface MusicApi{
-        String getName();
-        byte getId();
-        boolean canSearch();
-        boolean canUpload();
-        void getMusicInfo(String id, Cons<MusicInfo> callback);
-        void getMusicInfo(String id, Cons<MusicInfo> callback, boolean noTip);
-        void search(String name, int page, Cons<MusicSet> callback);
-        void upload(Fi file, Cons<MusicInfo> callback);
+    public abstract static class MusicApi{
+        public String name;
+        public byte thisId;
+        public boolean canSearch;
+        public boolean canUpload;
+        public abstract void getMusicInfo(String id, Cons<MusicInfo> callback);
+        public abstract void getMusicInfo(String id, Cons<MusicInfo> callback, boolean noTip);
+        public void search(String name, int page, Cons<MusicSet> callback){
+
+        }
+        public void upload(Fi file, Cons<MusicInfo> callback){
+
+        }
     }
-    private class Squirrel implements MusicApi{//松鼠站
-        byte num = 1;
-        public String getName() {
-            return "松鼠站";
-        }
-        public byte getId() {
-            return num;
-        }
-        public boolean canSearch() {
-            return false;
-        }
-        public boolean canUpload() {
-            return true;
+    private static class Squirrel extends MusicApi{//松鼠站
+        {
+            name = "松鼠站";
+            canSearch = false;
+            canUpload = true;
+            thisId = 1;
         }
         public void getMusicInfo(String id, Cons<MusicInfo> callback) {
             getMusicInfo(id, callback, false);
         }
         public void getMusicInfo(String rid, Cons<MusicInfo> callback, boolean noTip) {
             callback.get(new MusicInfo() {{
-                src = num;
+                src = thisId;
                 url = "http://squirrel.gq/api/get?id=" + rid;
                 id = rid;
             }});
         }
-        public void search(String name, int page, Cons<MusicSet> callback) {
-
-        }
+        @Override
         public void upload(Fi file, Cons<MusicInfo> callback) {
             Http.HttpRequest post = Http.post("http://squirrel.gq/api/upload");
             post.contentStream=file.read();
@@ -392,25 +521,18 @@ public class MusicDialog extends BaseDialog{
             post.submit(r -> {
                 Core.app.post(() -> ui.announce("上传成功"));
                 callback.get(new MusicInfo(){{
-                    src = num;
+                    src = thisId;
                     id = r.getResultAsString();
                 }});
             });
         }
     }
-    private class KuGouWeb implements MusicApi{//酷狗网页版api
-        byte num = 2;
-        public String getName() {
-            return "酷狗音乐";
-        }
-        public byte getId() {
-            return num;
-        }
-        public boolean canSearch(){
-            return true;
-        }
-        public boolean canUpload() {
-            return false;
+    private class KuGouWeb extends MusicApi{//酷狗网页版api
+        {
+            name = "酷狗网页版";
+            canSearch = true;
+            canUpload = false;
+            thisId = 2;
         }
         private final MessageDigest md5;
         public KuGouWeb() throws Exception{
@@ -438,8 +560,9 @@ public class MusicDialog extends BaseDialog{
                         url = data.getString("play_url");
                         img = data.getString("img");
                         id = data.getString("encode_album_audio_id");
-                        src = num;
+                        src = thisId;
                         length = data.getInt("timelength") / 1000;
+                        lrc = lrcParser.parse(data.getString("lyrics"));
                     }})));
                 } else {
                     callback.get(new MusicInfo() {{
@@ -448,12 +571,14 @@ public class MusicDialog extends BaseDialog{
                         url = data.getString("play_url");
                         img = data.getString("img");
                         id = data.getString("encode_album_audio_id");
-                        src = num;
+                        src = thisId;
                         length = data.getInt("timelength") / 1000;
+                        lrc = lrcParser.parse(data.getString("lyrics"));
                     }});
                 }
             });
         }
+        @Override
         public void search(String name, int page, Cons<MusicSet> callback) {
             try {
                 long timestamp = new Date().getTime();
@@ -481,7 +606,7 @@ public class MusicDialog extends BaseDialog{
                             name = thisMusic.getString("SongName");
                             author = thisMusic.getString("SingerName");
                             id = thisMusic.getString("EMixSongID");
-                            src = num;
+                            src = thisId;
                         }});
                     }
                     callback.get(set);
@@ -490,8 +615,244 @@ public class MusicDialog extends BaseDialog{
                 Core.app.post(() -> ui.showException("搜索出错!", e));
             }
         }
-        public void upload(Fi file, Cons<MusicInfo> callback) {
-
+    }
+    private class LRCTable extends Table {
+        public LRCTable() {
+            setColor(new Color(127, 127, 127, 255));
+            margin(0f);
+            touchable = Touchable.enabled;
+            table(Styles.black3, t -> {
+                t.color.set(new Color(127, 127, 127, 255));
+                t.addListener(new HandCursorListener());
+                t.margin(6f);
+                t.touchable = Touchable.enabled;
+                t.button(Icon.play, RStyles.clearLineNonei, MusicDialog.this::play).checked(false).margin(3f).padTop(6f).top().right();
+                t.button(Icon.pause, RStyles.clearLineNonei, MusicDialog.this::pause).checked(false).margin(3f).pad(2).padTop(6f).top().right();
+                t.button(Icon.downloadSmall, RStyles.clearLineNonei, () -> {
+                    if (nowMusic.url != null) {
+                        download(nowMusic);
+                    }
+                }).margin(3f).pad(2).padTop(6f).top().right();
+                t.label(() -> "音量:" + (byte) vol);
+                t.button(Icon.upSmall, RStyles.clearLineNonei, () -> {
+                    vol = Math.min(vol + 10, 100);
+                    player.setVolume(vol / 100);
+                }).margin(3f).pad(2).padTop(6f).top().right();
+                t.button(Icon.downSmall, RStyles.clearLineNonei, () -> {
+                    vol = Math.max(vol - 10, 0);
+                    player.setVolume(vol / 100);
+                }).margin(3f).pad(2).padTop(6f).top().right();
+                t.button(Icon.refreshSmall, RStyles.clearLineNoneTogglei, () -> {
+                    player.setLooping(!player.isLooping());
+                    ui.announce("单曲循环已" + (player.isLooping() ? "开启" : "关闭"), 1f);
+                }).margin(3f).pad(2).padTop(6f).top().right().checked(b -> player.isLooping());
+                t.button(Icon.linkSmall, RStyles.clearLineNonei, () -> {
+                    if (nowMusic.url != null) {
+                        share(nowMusic);
+                    }
+                }).margin(3f).pad(2).pad(6).top().right();
+                t.button(Icon.homeSmall, RStyles.clearLineNonei, MusicDialog.this::show).margin(3f).padTop(6f).top().right();
+                t.add().growX();
+                translation.set(Core.settings.getFloat("lrcX", 200f), Core.settings.getFloat("lrcY", 200f));
+                t.addListener(new InputListener() {
+                    float lastx, lasty;
+                    @Override
+                    public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
+                        Vec2 v = localToParentCoordinates(Tmp.v1.set(x, y));
+                        lastx = v.x;
+                        lasty = v.y;
+                        toFront();
+                        return true;
+                    }
+                    @Override
+                    public void touchDragged(InputEvent event, float x, float y, int pointer) {
+                        Vec2 v = localToParentCoordinates(Tmp.v1.set(x, y));
+                        translation.add(v.x - lastx, v.y - lasty);
+                        Core.settings.put("lrcX", translation.x);
+                        Core.settings.put("lrcY", translation.y);
+                        lastx = v.x;
+                        lasty = v.y;
+                    }
+                });
+                t.row();
+                t.label(() -> "").update(l -> {
+                    l.setFontScale(fontScale);
+                    l.setText(lrcColor + lrcLine1);
+                });
+                t.row();
+                t.label(() -> "").update(l -> {
+                    l.setFontScale(fontScale);
+                    l.setText(nextLrcColor + lrcLine2);
+                });
+            });
+        }
+    }
+    private static class LRCParser {
+        String raw;
+        double sum;
+        public LRC parse(String input){
+            raw = input;
+            String[] lrcs = input.split("\\r\\n");
+            LRC output = new LRC();
+            if(!input.contains("[00:")) {
+                output.add(0, "暂无歌词");
+                return output;
+            }
+            for(String now : lrcs){
+                try {
+                    output.add(parseTime(now), now.substring(10));
+                } catch (Exception ignored) {}
+            }
+            return output;
+        }
+        private double parseTime(String raw){
+            sum = 60 * Math.floor(Double.parseDouble(raw.substring(1, 3))) * 1000;
+            sum += 1000 * Math.floor(Double.parseDouble(raw.substring(4, 6)));
+            sum += 10 * Math.floor(Double.parseDouble(raw.substring(7, 9)));
+            if(Double.isNaN(sum)) sum = 0d;
+            return sum;
+        }
+    }
+    public static class LRC {
+        ArrayList<Double> timeList;
+        ArrayList<String> lrcList;
+        int size;
+        public LRC(){
+            timeList = new ArrayList<>();
+            lrcList = new ArrayList<>();
+        }
+        public void add(double time, String line){
+            timeList.add(time);
+            lrcList.add(line);
+            size++;
+        }
+        public void get(double now, Cons2<String, String> callback){
+            for(int i = 0; i < size; i++) {
+                if(now > timeList.get(i)) {
+                    callback.get(lrcList.get(i), i + 1 == size ? "" : lrcList.get(i + 1));
+                }
+            }
+        }
+    }
+    private class SettingsDialog extends BaseDialog{
+        public SettingsDialog() {
+            super("松鼠音乐设置");
+            CheckBox box = new CheckBox("显示歌词");
+            box.update(() -> box.setChecked(Core.settings.getBool("showLRC")));
+            box.changed(() -> {
+                Core.settings.put("showLRC", !Core.settings.getBool("showLRC"));
+                buildLRC();
+            });
+            cont.add(box).row();
+            cont.add("歌词颜色（正在播放）");
+            cont.row();
+            cont.field(Core.settings.getString("lrcColor","blue"), s -> {
+                Core.settings.put("lrcColor", s);
+                lrcColor = "[" + s + "]";
+            }).size(128,32);
+            cont.row();
+            cont.add("歌词颜色（下一行）");
+            cont.row();
+            cont.field(Core.settings.getString("nextLrcColor","white"), s -> {
+                Core.settings.put("nextLrcColor", s);
+                nextLrcColor = "[" + s + "]";
+            }).size(128,32);
+            cont.row();
+            cont.add("歌词字号：");
+            cont.slider(0.4f, 4, 0.2f, 1, fs -> {
+                fontScale = fs;
+                Core.settings.put("lrcFontScale", fs);
+            }).size(512, 40);
+            cont.label(() -> String.valueOf(fontScale));
+            cont.row();
+            cont.table(tt -> {
+                tt.add("预览效果：");
+                tt.row();
+                tt.label(() -> "").update(l -> {
+                    l.setFontScale(fontScale);
+                    l.setText(lrcColor + lrcLine1);
+                });
+                tt.row();
+                tt.label(() -> "").update(l -> {
+                    l.setFontScale(fontScale);
+                    l.setText(nextLrcColor + lrcLine2);
+                });
+            });
+            cont.row();
+            cont.button("重置歌词位置", () -> {
+                Core.settings.put("lrcX", 200f);
+                Core.settings.put("lrcY", 200f);
+                buildLRC();
+            }).size(128, 32);
+            cont.row();
+            addCloseButton();
+        }
+    }
+    public static class MusicList{
+        public byte api;
+        public int current = 0;
+        public MusicInfo currentMusic = new MusicInfo();
+        public final ArrayList<MusicInfo> list = new ArrayList<>();
+        public MusicList(byte api){
+            this.api = api;
+        }
+        public void add(MusicInfo info){
+            if(indexOf(info) == -1) list.add(info);
+        }
+        public boolean remove(int id){
+            list.remove(id);
+            if(id < current) {
+                current--;
+            }
+            return id == current;
+        }
+        public boolean remove(MusicInfo info){
+            return remove(indexOf(info));
+        }
+        public int size(){
+            return list.size();
+        }
+        public static void parse(String input, Cons<MusicList> cb){
+            try {
+                String[] all = input.split("\\$");
+                MusicList list = new MusicList(Byte.parseByte(all[0]));
+                MusicApi api = apis[list.api];
+                api.getMusicInfo(all[1], info -> {
+                    list.add(info);
+                    for (int i = 2; i < all.length; i++) api.getMusicInfo(all[i], list::add, true);
+                    cb.get(list);
+                }, true);
+            } catch (Exception e) {
+                ui.showException(e);
+            }
+        }
+        public String build(){
+            StringBuilder sb = new StringBuilder();
+            sb.append(api).append("$");
+            for (MusicInfo musicInfo : list) {
+                sb.append(musicInfo.id).append("$");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            return sb.toString();
+        }
+        public MusicInfo get(int id){
+            return list.get(id);
+        }
+        public MusicInfo getNext(){
+            if(++current >= list.size()) return null;
+            currentMusic = list.get(current);
+            return list.get(current);
+        }
+        public void set(int id){
+            if(id >= list.size()) return;
+            current = id;
+            currentMusic = list.get(current);
+        }
+        public int indexOf(MusicInfo info){
+            for(int i = 0; i < list.size(); i++) {
+                if(Objects.equals(list.get(i).id, info.id)) return i;
+            }
+            return -1;
         }
     }
 }

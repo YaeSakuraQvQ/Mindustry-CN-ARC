@@ -75,8 +75,8 @@ public class Stat implements Comparable<Stat>{
     instructions = new Stat("instructions", StatCat.crafting),
 
     buildSpeed = new Stat("buildSpeed", StatCat.support),
-    uniMineTier = new Stat("uniMineTier", StatCat.support),
     mineSpeed = new Stat("mineSpeed", StatCat.support),
+    mineLevel = new Stat("mineLevel", StatCat.support),
     mineTier = new Stat("mineTier", StatCat.support),
     unitItemCapacity = new Stat("unitItemCapacity", StatCat.support),
     payloadCapacity = new Stat("payloadCapacity", StatCat.support),

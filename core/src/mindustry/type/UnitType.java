@@ -704,12 +704,15 @@ public class UnitType extends UnlockableContent{
         }
 
         if(mineTier >= 1){
+            stats.add(Stat.mineLevel, "@级", mineTier);
             stats.addPercent(Stat.mineSpeed, mineSpeed);
-            stats.add(Stat.mineTier, StatValues.drillables(mineSpeed, 1f, 1, null, b ->
-                b.itemDrop != null &&
-                (b instanceof Floor f && (((f.wallOre && mineWalls) || (!f.wallOre && mineFloor))) ||
-                (!(b instanceof Floor) && mineWalls)) &&
-                b.itemDrop.hardness <= mineTier && (!b.playerUnmineable || Core.settings.getBool("doubletapmine"))));
+            Boolf<Block> filter = b ->
+                                  b.itemDrop != null &&
+                                  (b instanceof Floor f && (((f.wallOre && mineWalls) || (!f.wallOre && mineFloor))) ||
+                                  (!(b instanceof Floor) && mineWalls)) &&
+                                  b.itemDrop.hardness <= mineTier && (!b.playerUnmineable || Core.settings.getBool("doubletapmine"));
+            if (mineHardnessScaling) stats.add(Stat.mineTier, StatValues.drillables(50f,  15f, mineSpeed, null, filter));
+            else stats.add(Stat.mineTier, StatValues.drillables(50f + 15f,  0f, mineSpeed, null, filter));
         }
         if(buildSpeed > 0){
             stats.addPercent(Stat.buildSpeed, buildSpeed);

@@ -7,8 +7,6 @@ import arc.scene.event.*;
 import arc.scene.ui.layout.*;
 import mindustry.arcModule.*;
 import mindustry.arcModule.Marker.*;
-import mindustry.arcModule.ui.*;
-import mindustry.gen.*;
 import mindustry.input.*;
 import mindustry.ui.*;
 
@@ -76,7 +74,7 @@ public class AuxilliaryTable extends Table {
         clear();
 
         table(Styles.black3, buttons -> {
-            buttons.button("[acid]辅助器", clearLineNoneTogglet, this::toggle).size(80f, 40f).tooltip("关闭辅助器");
+            buttons.button("[acid]辅助器", clearLineNoneTogglet, this::toggle).size(80f, 40f).tooltip((show ? "关闭" : "开启") + "辅助器");
 
             if (show) {
                 for (BaseToolsTable table : toolsTables) {
@@ -109,7 +107,7 @@ public class AuxilliaryTable extends Table {
                             t.button(type.tinyName(), clearLineNoneTogglet, () -> markType = type)
                                     .checked(b -> markType == type).size(40).tooltip(type.describe);
                         }
-                        t.button("D", clearLineNoneTogglet, () -> District.unitSpawnMenu())
+                        t.button("D", clearLineNoneTogglet, District::unitSpawnMenu)
                                 .checked(b -> false).size(40).tooltip("区域规划器");
                         t.button("T", clearLineNoneTogglet, () -> teamMark = !teamMark)
                                 .checked(b -> teamMark).size(40).tooltip("前缀添加/t");
