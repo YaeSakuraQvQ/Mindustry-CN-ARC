@@ -25,11 +25,10 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.SettingsMenuDialog.SettingsTable.Setting;
 
 import java.io.*;
 import java.util.zip.*;
-
-import javax.swing.Icon;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -755,7 +754,7 @@ public class SettingsMenuDialog extends BaseDialog{
             specmode.sliderPref("editorBrush", 4, 3, 12, i -> i + "");
 
             specmode.addCategory("personalized");
-            specmode.checkPref("coignolorizedContent", false);
+            specmode.checkPref("colorizedContent", false);
             specmode.sliderPref("fontSet", 0, 0, 2, 1, s -> {
                 if (s == 0) {
                     return "原版字体";
