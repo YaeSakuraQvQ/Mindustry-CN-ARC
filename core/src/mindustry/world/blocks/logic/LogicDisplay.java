@@ -59,8 +59,6 @@ public class LogicDisplay extends Block{
 
         @Override
         public void draw(){
-            super.draw();
-
             //don't even bother processing anything when displays are off.
             if(!Vars.renderer.drawDisplays) return;
 
@@ -116,11 +114,11 @@ public class LogicDisplay extends Block{
                     }
                 });
                 Draw.blend();
-            }
-            else {
+            } else {
+                super.draw();
 
                 Draw.draw(Draw.z(), () -> {
-                    if (buffer == null) {
+                    if(buffer == null){
                         buffer = new FrameBuffer(displaySize, displaySize);
                         //clear the buffer - some OSs leave garbage in it
                         buffer.begin(Pal.darkerMetal);

@@ -12,14 +12,14 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.arcModule.ui.dialogs.TeamSelectDialog;
 import mindustry.game.Team;
-import mindustry.game.Teams;
 import mindustry.input.*;
+import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.net.*;
 import mindustry.net.Packets.*;
 import mindustry.ui.*;
-import mindustry.world.meta.Stat;
+import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
 import static mindustry.arcModule.RFuncs.getPrefix;
@@ -206,11 +206,11 @@ public class PlayerListFragment{
                         }).size(buttonSize);
 
                 if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
-                    button.button("[gold]" + Iconc.zoom, Styles.cleart, () -> Call.adminRequest(user, AdminAction.trace)).size(buttonSize);
+                    button.button("[gold]" + Iconc.zoom, Styles.cleart, () -> Call.adminRequest(user, AdminAction.trace, null)).size(buttonSize);
                     button.button("[gold]" + Iconc.cancel, Styles.cleart,
-                            () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick",  user.name()), () -> Call.adminRequest(user, AdminAction.kick))).size(buttonSize);
+                            () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick",  user.name()), () -> Call.adminRequest(user, AdminAction.kick, null))).size(buttonSize);
                     button.button("[gold]" + Iconc.hammer, Styles.cleart,
-                            () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban",  user.name()), () -> Call.adminRequest(user, AdminAction.ban))).size(buttonSize);
+                            () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban",  user.name()), () -> Call.adminRequest(user, AdminAction.ban, null))).size(buttonSize);
                 }
                 if (teamMode) {
                     state.teams.getActive().each(teamData -> {
@@ -225,58 +225,115 @@ public class PlayerListFragment{
 
             }
             //原版模式
-            else{
+            else {
                 button.add(iconTable).size(h);
-                button.labelWrap("[#" + user.color().toString().toUpperCase() + "]" + user.name()).width(170f).pad(10);
+                button.labelWrap("[#" + user.color().toString().toUpperCase() + "]" + user.name()).style(Styles.outlineLabel).width(170f).pad(10);
                 button.add().grow();
+
+                button.background(Tex.underline);
 
                 button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).padRight(5).get().updateVisibility();
 
-                if((net.server() || player.admin) && !user.isLocal() && (!user.admin || net.server())){
+                if(net.server() || (player.admin && (!user.admin || user == player))){
                     button.add().growY();
 
-                    button.table(t -> {
-                        t.defaults().size(bs);
+                    button.button(Icon.menu, ustyle, () -> {
+                        var dialog = new BaseDialog(user.coloredName());
 
-                    t.button(Icon.hammerSmall, ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban",  user.name()), () -> Call.adminRequest(user, AdminAction.ban)));
-                    t.button(Icon.cancelSmall, ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmkick",  user.name()), () -> Call.adminRequest(user, AdminAction.kick)));
+                        dialog.title.setColor(Color.white);
+                        dialog.titleTable.remove();
 
-                    t.row();
+                        dialog.closeOnBack();
 
-                    t.button(Icon.adminSmall, style, () -> {
-                        if(net.client()) return;
+                        var bstyle = Styles.defaultt;
 
-                            String id = user.uuid();
+                        dialog.cont.add(user.coloredName()).row();
+                        dialog.cont.image(Tex.whiteui, Pal.accent).fillX().height(3f).pad(4f).row();
 
-                            if(user.admin){
-                                ui.showConfirm("@confirm", Core.bundle.format("confirmunadmin",  user.name()), () -> {
-                                    netServer.admins.unAdminPlayer(id);
-                                    user.admin = false;
-                                });
-                            }else{
-                                ui.showConfirm("@confirm", Core.bundle.format("confirmadmin",  user.name()), () -> {
-                                    netServer.admins.adminPlayer(id, user.usid());
-                                    user.admin = true;
-                                });
+                        dialog.cont.pane(t -> {
+                            t.defaults().size(220f, 55f).pad(3f);
+
+                            if(user != player){
+                                t.button("@player.ban", Icon.hammer, bstyle, () -> {
+                                    ui.showConfirm("@confirm", Core.bundle.format("confirmban",  user.name()), () -> Call.adminRequest(user, AdminAction.ban, null));
+                                    dialog.hide();
+                                }).row();
+
+                                t.button("@player.kick", Icon.cancel, bstyle, () -> {
+                                    ui.showConfirm("@confirm", Core.bundle.format("confirmkick",  user.name()), () -> Call.adminRequest(user, AdminAction.kick, null));
+                                    dialog.hide();
+                                }).row();
                             }
-                        }).update(b -> b.setChecked(user.admin))
-                            .disabled(b -> net.client())
-                            .touchable(() -> net.client() ? Touchable.disabled : Touchable.enabled)
-                            .checked(user.admin);
 
-                    t.button(Icon.zoomSmall, ustyle, () -> Call.adminRequest(user, AdminAction.trace));
+                            if(!user.isLocal()){
+                                t.button("@player.trace", Icon.zoom, bstyle, () -> {
+                                    Call.adminRequest(user, AdminAction.trace, null);
+                                    dialog.hide();
+                                }).row();
+                            }
 
-                    }).padRight(12).size(bs + 10f, bs);
+                            t.button("@player.team", Icon.redo, bstyle, () -> {
+                                var teamSelect = new BaseDialog(Core.bundle.get("player.team") + ": " + user.name);
+                                teamSelect.setFillParent(false);
+
+                                var group = new ButtonGroup<>();
+
+                                int i = 0;
+
+                                for(Team team : Team.baseTeams){
+                                    var b = new ImageButton(Tex.whiteui, Styles.clearNoneTogglei);
+                                    b.margin(4f);
+                                    b.getImageCell().grow();
+                                    b.getStyle().imageUpColor = team.color;
+                                    b.clicked(() -> {
+                                        Call.adminRequest(user, AdminAction.switchTeam, team);
+                                        teamSelect.hide();
+                                    });
+                                    teamSelect.cont.add(b).size(50f).checked(a -> user.team() == team).group(group);
+
+                                    if(i++ % 3 == 2) teamSelect.cont.row();
+                                }
+
+                                teamSelect.addCloseButton();
+                                teamSelect.show();
+
+                                dialog.hide();
+                            }).row();
+
+                            if(!net.client() && !user.isLocal()){
+                                t.button("@player.admin", Icon.admin, Styles.togglet, () -> {
+                                    dialog.hide();
+                                    String id = user.uuid();
+
+                                    if(user.admin){
+                                        ui.showConfirm("@confirm", Core.bundle.format("confirmunadmin",  user.name()), () -> {
+                                            netServer.admins.unAdminPlayer(id);
+                                            user.admin = false;
+                                        });
+                                    }else{
+                                        ui.showConfirm("@confirm", Core.bundle.format("confirmadmin",  user.name()), () -> {
+                                            netServer.admins.adminPlayer(id, user.usid());
+                                            user.admin = true;
+                                        });
+                                    }
+                                }).checked(b -> user.admin).row();
+                            }
+                        }).row();
+
+                        dialog.cont.button("@back", Icon.left, dialog::hide).padTop(-1f).size(220f, 55f);
+
+                        dialog.show();
+                    }).size(h);
+
                 }else if(!user.isLocal() && !user.admin && net.client() && Groups.player.size() >= 3 && player.team() == user.team()){ //votekick
                     button.add().growY();
 
-                button.button(Icon.hammer, ustyle,
-                    () -> ui.showConfirm("@confirm", Core.bundle.format("confirmvotekick",  user.name()),
-                    () -> Call.sendChatMessage("/votekick #" + user.id)))
-                .size(h);
+                    button.button(Icon.hammer, ustyle,
+                        () -> ui.showTextInput("@votekick.reason", Core.bundle.format("votekick.reason.message", user.name()), "",
+                        reason -> Call.sendChatMessage("/votekick #" + user.id + " " + reason)))
+                    .size(h);
                 }
+
             }
             content.add(button).padBottom(-6).width(700f).maxHeight(h + 14);
             content.row();

@@ -640,13 +640,12 @@ public class LogicBlock extends Block{
         }
 
         @Override
-        public void buildConfiguration(Table table) {
+        public boolean shouldShowConfigure(Player player){
+            return accessible();
+        }
 
-            if (!accessible()) {
-                //go away
-                deselect();
-                return;
-            }
+        @Override
+        public void buildConfiguration(Table table){
             if (Core.settings.getBool("logicSupport")){
                 table.table(t -> {
                     t.button(Icon.pencil, Styles.cleari, () -> {

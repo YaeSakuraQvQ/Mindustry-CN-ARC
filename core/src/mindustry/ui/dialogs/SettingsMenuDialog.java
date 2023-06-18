@@ -24,9 +24,12 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.input.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.SettingsMenuDialog.SettingsTable.Setting;
 
 import java.io.*;
 import java.util.zip.*;
+
+import javax.swing.Icon;
 
 import static arc.Core.*;
 import static mindustry.Vars.*;
@@ -314,35 +317,34 @@ public class SettingsMenuDialog extends BaseDialog{
 
     void addSettings(){
         game.checkPref("uuidShow", true);
+            sound.sliderPref("musicvol", 100, 0, 100, 1, i -> i + "%");
+            sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> i + "%");
+            sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> i + "%");
 
-        sound.sliderPref("musicvol", 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("sfxvol", 100, 0, 100, 1, i -> i + "%");
-        sound.sliderPref("ambientvol", 100, 0, 100, 1, i -> i + "%");
+            game.addCategory("arcCSave");
+            game.checkPref("savecreate", true);
+            game.checkPref("save_more_map", false);
+            game.sliderPref("saveinterval", 60, 10, 5 * 120, 10, i -> Core.bundle.format("setting.seconds", i));
 
-        game.addCategory("arcCSave");
-        game.checkPref("savecreate", true);
-        game.checkPref("save_more_map", false);
-        game.sliderPref("saveinterval", 60, 10, 5 * 120, 10, i -> Core.bundle.format("setting.seconds", i));
-
-        game.addCategory("arcCAssist");
-        game.checkPref("autotarget", true);
-        if(mobile){
-            if(!ios){
-                game.checkPref("keyboard", false, val -> {
-                    control.setInput(val ? new DesktopInput() : new MobileInput());
-                    input.setUseKeyboard(val);
-                });
-                if(Core.settings.getBool("keyboard")){
-                    control.setInput(new DesktopInput());
-                    input.setUseKeyboard(true);
+            game.addCategory("arcCAssist");
+            game.checkPref("autotarget", true);
+            if (mobile) {
+                if (!ios) {
+                    game.checkPref("keyboard", false, val -> {
+                        control.setInput(val ? new DesktopInput() : new MobileInput());
+                        input.setUseKeyboard(val);
+                    });
+                    if (Core.settings.getBool("keyboard")) {
+                        control.setInput(new DesktopInput());
+                        input.setUseKeyboard(true);
+                    }
+                } else {
+                    Core.settings.put("keyboard", false);
                 }
-            }else{
-                Core.settings.put("keyboard", false);
             }
-        }
-        //the issue with touchscreen support on desktop is that:
-        //1) I can't test it
-        //2) the SDL backend doesn't support multitouch
+            //the issue with touchscreen support on desktop is that:
+            //1) I can't test it
+            //2) the SDL backend doesn't support multitouch
         /*else{
             game.checkPref("touchscreen", false, val -> control.setInput(!val ? new DesktopInput() : new MobileInput()));
             if(Core.settings.getBool("touchscreen")){
@@ -350,43 +352,15 @@ public class SettingsMenuDialog extends BaseDialog{
             }
         }*/
 
-        if(!mobile){
-            game.checkPref("crashreport", true);
-        }
-
-        game.sliderPref("maxSchematicSize",32,32,500,1, String::valueOf);
-        game.checkPref("savecreate", true);
-        game.checkPref("blockreplace", true);
-        game.checkPref("conveyorpathfinding", true);
-        game.checkPref("shiftCopyIcon",true);
-
-        game.checkPref("backgroundpause", true);
-        game.checkPref("buildautopause", false);
-
-        game.checkPref("doubletapmine", false);
-        game.checkPref("commandmodehold", true);
-
-        if(!ios){
-            game.checkPref("modcrashdisable", true);
-        }
-
-        if(steam){
-            game.sliderPref("playerlimit", 16, 2, 32, i -> {
-                platform.updateLobby();
-                return i + "";
-            });
-
-            if(!Version.modifier.contains("beta")){
-                game.checkPref("steampublichost", false, i -> {
-                    platform.updateLobby();
-                });
+            if (!mobile) {
+                game.checkPref("crashreport", true);
             }
-        }
 
-        game.addCategory("arcCHint");
-        game.checkPref("hints", true);
-        game.checkPref("logichints", true);
-        game.checkPref("console", false);
+            game.sliderPref("maxSchematicSize", 32, 32, 500, 1, String::valueOf);
+            game.checkPref("savecreate", true);
+            game.checkPref("blockreplace", true);
+            game.checkPref("conveyorpathfinding", true);
+            game.checkPref("shiftCopyIcon", true);
 
         graphics.sliderPref("menuPic", 1, 1, 5, 1, s -> {
             if(s==1){return "klp-1";}
@@ -397,337 +371,427 @@ public class SettingsMenuDialog extends BaseDialog{
         });
 
         graphics.addCategory("arcCOverview");
+            game.checkPref("backgroundpause", true);
+            game.checkPref("buildautopause", false);
 
-        graphics.sliderPref("fpscap", 240, 10, 245, 5, s -> (s > 240 ? Core.bundle.get("setting.fpscap.none") : Core.bundle.format("setting.fpscap.text", s)));
-        int[] lastUiScale = {settings.getInt("uiscale", 100)};
+            game.checkPref("doubletapmine", false);
+            game.checkPref("commandmodehold", true);
 
-        graphics.sliderPref("uiscale", 100, 25, 300, 5, s -> {
-            //if the user changed their UI scale, but then put it back, don't consider it 'changed'
-            Core.settings.put("uiscalechanged", s != lastUiScale[0]);
-            return s + "%";
-        });
+            if (!ios) {
+                game.checkPref("modcrashdisable", true);
+            }
 
-        graphics.sliderPref("chatopacity", 100, 0, 100, 5, s -> s + "%");
+            if (steam) {
+                game.sliderPref("playerlimit", 16, 2, 32, i -> {
+                    platform.updateLobby();
+                    return i + "";
+                });
 
-        if(!mobile){
-            graphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
-            graphics.checkPref("fullscreen", false, b -> {
-                if(b && settings.getBool("borderlesswindow")){
-                    Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
-                    settings.put("borderlesswindow", false);
-                    graphics.rebuild();
+                if (!Version.modifier.contains("beta")) {
+                    game.checkPref("steampublichost", false, i -> {
+                        platform.updateLobby();
+                    });
+                }
+            }
+
+            game.addCategory("arcCHint");
+            game.checkPref("hints", true);
+            game.checkPref("logichints", true);
+            game.checkPref("console", false);
+
+            graphics.addCategory("arcCOverview");
+
+            graphics.sliderPref("fpscap", 240, 10, 245, 5, s -> (s > 240 ? Core.bundle.get("setting.fpscap.none") : Core.bundle.format("setting.fpscap.text", s)));
+            int[] lastUiScale = {settings.getInt("uiscale", 100)};
+
+            graphics.sliderPref("uiscale", 100, 25, 300, 5, s -> {
+                //if the user changed their UI scale, but then put it back, don't consider it 'changed'
+                Core.settings.put("uiscalechanged", s != lastUiScale[0]);
+                return s + "%";
+            });
+
+            graphics.sliderPref("chatopacity", 100, 0, 100, 5, s -> s + "%");
+
+            if (!mobile) {
+                graphics.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
+                graphics.checkPref("fullscreen", false, b -> {
+                    if (b && settings.getBool("borderlesswindow")) {
+                        Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
+                        settings.put("borderlesswindow", false);
+                        graphics.rebuild();
+                    }
+
+                    if (b) {
+                        Core.graphics.setFullscreen();
+                    } else {
+                        Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
+                    }
+                });
+
+                graphics.checkPref("borderlesswindow", false, b -> {
+                    if (b && settings.getBool("fullscreen")) {
+                        Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
+                        settings.put("fullscreen", false);
+                        graphics.rebuild();
+                    }
+                    Core.graphics.setBorderless(b);
+                });
+
+                Core.graphics.setVSync(Core.settings.getBool("vsync"));
+
+                if (Core.settings.getBool("fullscreen")) {
+                    Core.app.post(() -> Core.graphics.setFullscreen());
                 }
 
-                if(b){
-                    Core.graphics.setFullscreen();
-                }else{
-                    Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
+                if (Core.settings.getBool("borderlesswindow")) {
+                    Core.app.post(() -> Core.graphics.setBorderless(true));
+                }
+            } else if (!ios) {
+                graphics.checkPref("landscape", false, b -> {
+                    if (b) {
+                        platform.beginForceLandscape();
+                    } else {
+                        platform.endForceLandscape();
+                    }
+                });
+
+                if (Core.settings.getBool("landscape")) {
+                    platform.beginForceLandscape();
+                }
+            }
+
+            graphics.addCategory("arcCgamewindow");
+            graphics.checkPref("fps", false);
+            graphics.checkPref("override_boss_shown", false);
+
+            graphics.checkPref("minimap", !mobile);
+            graphics.sliderPref("minimapSize", 140, 40, 400, 10, i -> i + "");
+            graphics.checkPref("minimapTools", !mobile);
+            graphics.checkPref("position", false);
+            graphics.checkPref("mouseposition", false);
+            graphics.sliderPref("chatopacity", 100, 0, 100, 5, i -> i > 0 ? i + "%" : "关闭");
+
+            graphics.addCategory("arcCgameview");
+            graphics.checkPref("blockstatus", false);
+            graphics.checkPref("playerchat", true);
+            graphics.checkPref("alwaysshowdropzone", false);
+            graphics.checkPref("showFlyerSpawn", false);
+            graphics.checkPref("showFlyerSpawnLine", false);
+            graphics.sliderPref("lasersopacity", 100, 0, 100, 5, s -> {
+                if (ui.settings != null) {
+                    Core.settings.put("preferredlaseropacity", s);
+                }
+                return s + "%";
+            });
+            graphics.sliderPref("bridgeopacity", 100, 0, 100, 5, i -> i > 0 ? i + "%" : "关闭");
+            graphics.sliderPref("HiddleItemTransparency", 0, 0, 100, 2, i -> i > 0 ? i + "%" : "关闭");
+            graphics.checkPref("playerindicators", true);
+            graphics.checkPref("indicators", true);
+
+            graphics.addCategory("arcCGraphicsOther");
+            graphics.checkPref("smoothcamera", true);
+            graphics.sliderPref("screenshake", 4, 0, 8, i -> (i / 4f) + "x");
+            graphics.checkPref("skipcoreanimation", false);
+            if (!mobile) {
+                Core.settings.put("swapdiagonal", false);
+            }
+
+            arc.addCategory("arcHudToolbox");
+            arc.sliderPref("AuxiliaryTable", 0, 0, 3, 1, s -> {
+                if (s == 0) {
+                    return "关闭";
+                } else if (s == 1) {
+                    return "左上-右";
+                } else if (s == 2) {
+                    return "左上-下";
+                } else if (s == 3) {
+                    return "右上-下";
+                } else {
+                    return "";
+                }
+            });
+            arc.checkPref("showAdvanceToolTable", false);
+            arc.checkPref("arcSpecificTable", true);
+            arc.checkPref("logicSupport", true);
+            arc.checkPref("powerStatistic", true);
+            arc.sliderPref("arccoreitems", 3, 0, 3, 1, s -> {
+                if (s == 0) {
+                    return "不显示";
+                } else if (s == 1) {
+                    return "资源状态";
+                } else if (s == 2) {
+                    return "兵种状态";
+                } else {
+                    return "显示资源和兵种";
+                }
+            });
+            arc.sliderPref("arcCoreItemsCol", 5, 4, 15, 1, i -> i + "列");
+            arc.checkPref("showFloatingSettings", false);
+            arc.sliderPref("arcDetailInfo", 1, 0, 1, 1, s -> {
+                if (s == 0) {
+                    return "详细模式";
+                } else if (s == 1) {
+                    return "简略模式";
+                } else {
+                    return s + "";
                 }
             });
 
-            graphics.checkPref("borderlesswindow", false, b -> {
-                if(b && settings.getBool("fullscreen")){
-                    Core.graphics.setWindowedMode(Core.graphics.getWidth(), Core.graphics.getHeight());
-                    settings.put("fullscreen", false);
-                    graphics.rebuild();
+            arc.addCategory("arcAddBlockInfo");
+            arc.sliderPref("overdrive_zone", 0, 0, 100, 2, i -> i > 0 ? i + "%" : "关闭");
+            arc.sliderPref("mend_zone", 0, 0, 100, 2, i -> i > 0 ? i + "%" : "关闭");
+            arc.checkPref("blockdisabled", false);
+            arc.checkPref("blockBars", false);
+            arc.sliderPref("blockbarminhealth", 0, 0, 4000, 50, i -> i + "[red]HP");
+            arc.checkPref("blockBars_mend", false);
+            arc.checkPref("arcdrillmode", false);
+            arc.checkPref("arcDrillProgress", false);
+            arc.checkPref("arcchoiceuiIcon", false);
+            arc.checkPref("hidedisplays", false);
+            arc.checkPref("arclogicbordershow", true);
+            arc.checkPref("arcPlacementEffect", false);
+
+            arc.addCategory("arcMassDriverInfo");
+            arc.sliderPref("mass_driver_line_alpha", 100, 0, 100, 1, i -> i > 0 ? i + "%" : "关闭");
+            arc.sliderPref("mass_driver_line_interval", 40, 8, 400, 4, i -> i / 8f + "格");
+            arc.stringInput("mass_driver_line_color", "ff8c66");
+
+            arc.addCategory("arcAddTurretInfo");
+            arc.checkPref("showTurretAmmo", false);
+            arc.checkPref("showTurretAmmoAmount", false);
+            arc.checkPref("arcTurretPlacementItem", false);
+            arc.checkPref("arcTurretPlaceCheck", false);
+            arc.sliderPref("turretShowRange", 0, 0, 3, 1, s -> {
+                if (s == 0) {
+                    return "关闭";
+                } else if (s == 1) {
+                    return "仅对地";
+                } else if (s == 2) {
+                    return "仅对空";
+                } else if (s == 3) {
+                    return "全部";
+                } else {
+                    return "";
                 }
-                Core.graphics.setBorderless(b);
+            });
+            arc.checkPref("ignoreNoAmmo", true);
+            arc.sliderPref("turretAlertRange", 0, 0, 30, 1, i -> i > 0 ? i + "格" : "关闭");
+            arc.checkPref("blockWeaponTargetLine", false);
+            arc.checkPref("blockWeaponTargetLineWhenIdle", false);
+
+            arc.addCategory("arcAddUnitInfo");
+            arc.sliderPref("unitweapon_range", 0, 0, 100, 1, i -> i > 0 ? i + "%" : "关闭");
+            arc.sliderPref("unitAlertRange", 0, 0, 30, 1, s -> {
+                if (s == 0) {
+                    return "关闭";
+                } else if (s == 30) {
+                    return "一直开启";
+                } else {
+                    return s + "格";
+                }
+            });
+            arc.checkPref("unitWeaponTargetLine", false);
+
+            arc.checkPref("unitItemCarried", false);
+            arc.checkPref("unithitbox", false);
+
+
+            arc.checkPref("unitLogicMoveLine", false);
+            arc.checkPref("unitLogicTimerBars", false);
+
+            arc.addCategory("arcRTSSupporter");
+            arc.checkPref("arcCommandTable", true);
+            arc.checkPref("alwaysShowUnitRTSAi", false);
+            arc.sliderPref("rtsWoundUnit", 0, 0, 100, 2, s -> s + "%");
+
+            arc.addCategory("arcShareinfo");
+            arc.sliderPref("chatValidType", 0, 0, 3, 1, s -> {
+                if (s == 0) {
+                    return "原版模式";
+                } else if (s == 1) {
+                    return "纯净聊天";
+                } else if (s == 2) {
+                    return "服务器记录";
+                } else if (s == 3) {
+                    return "全部记录";
+                } else {
+                    return s + "";
+                }
+            });
+            arc.checkPref("arcWayzerServerMode", true);
+            arc.checkPref("ShowInfoPopup", true);
+            arc.checkPref("arcShareWaveInfo", false);
+            arc.checkPref("arcAlwaysTeamColor", false);
+            arc.checkPref("arcAutoGG", false);
+
+            arc.addCategory("arcPlayerEffect");
+            arc.stringInput("playerEffectColor", "ffd37f");
+            arc.sliderPref("unitTargetType", 0, 0, 5, 1, s -> {
+                if (s == 0) {
+                    return "关闭";
+                } else if (s == 1) {
+                    return "虚圆";
+                } else if (s == 2) {
+                    return "攻击";
+                } else if (s == 3) {
+                    return "攻击去边框";
+                } else if (s == 4) {
+                    return "圆十字";
+                } else if (s == 5) {
+                    return "十字";
+                } else {
+                    return s + "";
+                }
+            });
+            arc.sliderPref("superUnitEffect", 0, 0, 2, 1, s -> {
+                if (s == 0) {
+                    return "关闭";
+                } else if (s == 1) {
+                    return "独一无二";
+                } else if (s == 2) {
+                    return "全部玩家";
+                } else {
+                    return s + "";
+                }
+            });
+            arc.sliderPref("playerEffectCurStroke", 0, 1, 30, 1, i -> (float) i / 10f + "Pixel(s)");
+
+            arc.addCategoryS("雷达扫描设置 [lightgray](PC按键，手机辅助器)");
+            arc.sliderPref("radarMode", 0, 0, 30, 1, s -> {
+                if (s == 0) return "关闭";
+                else if (s == 30) return "一键开关";
+                else {
+                    return "[lightgray]x[white]" + Strings.autoFixed(s * 0.2f, 1) + "倍搜索";
+                }
+            });
+            arc.sliderPref("radarSize", 0, 0, 50, 1, s -> {
+                if (s == 0) return "固定大小";
+                else {
+                    return "[lightgray]x[white]" + Strings.autoFixed(s * 0.1f, 1) + "倍";
+                }
             });
 
+            arc.addCategory("developerMode");
+            arc.checkPref("arcDisableModWarning", false);
+            arc.sliderPref("menuFlyersCount", 0, -15, 50, 5, i -> i + "");
+            arc.checkPref("menuFlyersRange", false);
+            arc.checkPref("menuFlyersFollower", false);
+
+            //////////forcehide
+            forcehide.addCategory("arcCDisplayBlock");
+            forcehide.sliderPref("blockRenderLevel", 2, 0, 2, 1, s -> {
+                if (s == 0) {
+                    return "隐藏全部建筑";
+                } else if (s == 1) {
+                    return "只显示建筑状态";
+                } else if (s == 2) {
+                    return "全部显示";
+                } else {
+                    return s + "";
+                }
+            });
+            forcehide.checkPref("displayblock", true);
+            forcehide.addCategory("arcCDisplayUnit");
+            forcehide.checkPref("unitHealthBar", false);
+            forcehide.checkPref("alwaysShowPlayerUnit", false);
+            forcehide.checkPref("showminebeam", true);
+            forcehide.sliderPref("unitTransparency", 100, 0, 100, 5, i -> i > 0 ? i + "%" : "关闭");
+            forcehide.sliderPref("minhealth_unitshown", 0, 0, 2500, 50, i -> i + "[red]HP");
+            forcehide.sliderPref("minhealth_unithealthbarshown", 0, 0, 2500, 100, i -> i + "[red]HP");
+            forcehide.addCategory("arcCDisplayEffect");
+            forcehide.checkPref("bulletShow", true);
+            forcehide.checkPref("effects", true);
+            forcehide.checkPref("bloom", true, val -> renderer.toggleBloom(val));
+            forcehide.sliderPref("bloomintensity", 6, 0, 16, i -> (int) (i / 4f * 100f) + "%");
+            forcehide.sliderPref("bloomblur", 2, 1, 16, i -> i + "x");
+            forcehide.checkPref("forceEnableDarkness", true);
+            forcehide.checkPref("destroyedblocks", true);
+            forcehide.checkPref("showweather", true);
+            forcehide.checkPref("animatedwater", true);
+
+            if (Shaders.shield != null) {
+                forcehide.checkPref("animatedshields", !mobile);
+                forcehide.checkPref("staticShieldsBorder", false);
+            }
+
+            forcehide.checkPref("atmosphere", !mobile);
+
+            if (!mobile) {
+                forcehide.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
+            }
             Core.graphics.setVSync(Core.settings.getBool("vsync"));
 
-            if(Core.settings.getBool("fullscreen")){
-                Core.app.post(() -> Core.graphics.setFullscreen());
+            //iOS (and possibly Android) devices do not support linear filtering well, so disable it
+            if (!ios) {
+                graphics.checkPref("linear", !mobile, b -> {
+                    for (Texture tex : Core.atlas.getTextures()) {
+                        TextureFilter filter = b ? TextureFilter.linear : TextureFilter.nearest;
+                        tex.setFilter(filter, filter);
+                    }
+                });
+            } else {
+                settings.put("linear", false);
             }
 
-            if(Core.settings.getBool("borderlesswindow")){
-                Core.app.post(() -> Core.graphics.setBorderless(true));
-            }
-        }else if(!ios){
-            graphics.checkPref("landscape", false, b -> {
-                if(b){
-                    platform.beginForceLandscape();
-                }else{
-                    platform.endForceLandscape();
-                }
-            });
-
-            if(Core.settings.getBool("landscape")){
-                platform.beginForceLandscape();
-            }
-        }
-
-        graphics.addCategory("arcCgamewindow");
-        graphics.checkPref("fps", false);
-        graphics.checkPref("override_boss_shown", false);
-
-        graphics.checkPref("minimap", !mobile);
-        graphics.sliderPref("minimapSize", 140, 40, 400, 10, i -> i + "");
-        graphics.checkPref("minimapTools",!mobile);
-        graphics.checkPref("position", false);
-        graphics.checkPref("mouseposition",false);
-        graphics.sliderPref("chatopacity", 100, 0, 100, 5, i -> i > 0 ? i + "%" : "关闭");
-
-        graphics.addCategory("arcCgameview");
-        graphics.checkPref("blockstatus", false);
-        graphics.checkPref("playerchat", true);
-        graphics.checkPref("alwaysshowdropzone", false);
-        graphics.checkPref("showFlyerSpawn", false);
-        graphics.checkPref("showFlyerSpawnLine", false);
-        graphics.sliderPref("lasersopacity", 100, 0, 100, 5, s -> {
-            if(ui.settings != null){
-                Core.settings.put("preferredlaseropacity", s);
-            }
-            return s + "%";
-        });
-        graphics.sliderPref("bridgeopacity", 100, 0, 100, 5, i -> i > 0 ? i + "%" : "关闭");
-        graphics.sliderPref("HiddleItemTransparency",0,0,100,2, i -> i > 0 ? i + "%" : "关闭");
-        graphics.checkPref("playerindicators", true);
-        graphics.checkPref("indicators", true);
-
-        graphics.addCategory("arcCGraphicsOther");
-        graphics.checkPref("smoothcamera", true);
-        graphics.sliderPref("screenshake", 4, 0, 8, i -> (i / 4f) + "x");
-        graphics.checkPref("skipcoreanimation", false);
-        if(!mobile){
-            Core.settings.put("swapdiagonal", false);
-        }
-
-        arc.addCategory("arcHudToolbox");
-        arc.sliderPref("AuxiliaryTable", 0, 0, 3, 1, s -> {
-            if(s==0){return "关闭";}
-            else if(s==1){return "左上-右";}
-            else if(s==2){return "左上-下";}
-            else if(s==3){return "右上-下";}
-            else{return "";}
-        });
-        arc.checkPref("showAdvanceToolTable",false);
-        arc.checkPref("arcSpecificTable",true);
-        arc.checkPref("logicSupport",true);
-        arc.checkPref("powerStatistic", true);
-        arc.sliderPref("arccoreitems", 3, 0, 4, 1, s -> {
-            if(s==0){return "不显示";}
-            else if(s==1){return "资源状态";}
-            else if(s==2){return "兵种状态";}
-            else if(s==3){return "显示资源和兵种";}
-            else{return "空白占位";}
-        });
-        arc.sliderPref("arcCoreItemsCol",5,4,15,1, i -> i + "列");
-        arc.checkPref("showFloatingSettings",false);
-        arc.sliderPref("arcDetailInfo", 1, 0, 1, 1, s -> {
-            if(s==0){return "详细模式";}
-            else if(s==1){return "简略模式";}
-            else{return s+"";}
-        });
-
-        arc.addCategory("arcAddBlockInfo");
-        arc.sliderPref("overdrive_zone",0,0,100,2, i -> i > 0 ? i + "%" : "关闭");
-        arc.sliderPref("mend_zone",0,0,100,2, i -> i > 0 ? i + "%" : "关闭");
-        arc.checkPref("blockdisabled", false);
-        arc.checkPref("blockBars", false);
-        arc.sliderPref("blockbarminhealth",0,0,4000,50, i -> i + "[red]HP");
-        arc.checkPref("blockBars_mend", false);
-        arc.checkPref("arcdrillmode", false);
-        arc.checkPref("arcDrillProgress",false);
-        arc.checkPref("arcchoiceuiIcon", false);
-        arc.checkPref("hidedisplays",false);
-        arc.checkPref("arclogicbordershow", true);
-        arc.checkPref("arcPlacementEffect",false);
-
-        arc.addCategory("arcMassDriverInfo");
-        arc.sliderPref("mass_driver_line_alpha",100,0,100,1, i -> i > 0 ? i + "%" : "关闭");
-        arc.sliderPref("mass_driver_line_interval", 40, 8, 400, 4, i -> i/8f + "格");
-        arc.stringInput("mass_driver_line_color", "ff8c66");
-
-        arc.addCategory("arcAddTurretInfo");
-        arc.checkPref("showTurretAmmo", false);
-        arc.checkPref("showTurretAmmoAmount", false);
-        arc.checkPref("arcTurretPlacementItem", false);
-        arc.checkPref("arcTurretPlaceCheck",false);
-        arc.sliderPref("turretShowRange", 0, 0, 3, 1, s -> {
-            if(s==0){return "关闭";}
-            else if(s==1){return "仅对地";}
-            else if(s==2){return "仅对空";}
-            else if(s==3){return "全部";}
-            else{return "";}
-        });
-        arc.checkPref("ignoreNoAmmo", true);
-        arc.sliderPref("turretAlertRange",0,0,30,1, i -> i > 0 ? i + "格" : "关闭");
-        arc.checkPref("blockWeaponTargetLine", false);
-        arc.checkPref("blockWeaponTargetLineWhenIdle", false);
-
-        arc.addCategory("arcAddUnitInfo");
-        arc.sliderPref("unitweapon_range", 0, 0, 100, 1, i -> i > 0 ? i + "%" : "关闭");
-        arc.sliderPref("unitAlertRange",0, 0, 30, 1, s -> {
-            if(s==0){return "关闭";}
-            else if(s==30){return "一直开启";}
-            else{return s+"格";}
-        });
-        arc.checkPref("unitWeaponTargetLine", false);
-
-        arc.checkPref("unitItemCarried",false);
-        arc.checkPref("unithitbox", false);
-
-
-        arc.checkPref("unitLogicMoveLine", false);
-        arc.checkPref("unitLogicTimerBars", false);
-
-        arc.addCategory("arcRTSSupporter");
-        arc.checkPref("arcCommandTable",true);
-        arc.checkPref("alwaysShowUnitRTSAi",false);
-        arc.sliderPref("rtsWoundUnit",0, 0, 100, 2, s -> s+ "%");
-
-        arc.addCategory("arcShareinfo");
-        arc.sliderPref("chatValidType", 0, 0, 3, 1, s -> {
-            if(s==0){return "原版模式";}
-            else if(s==1){return "纯净聊天";}
-            else if(s==2){return "服务器记录";}
-            else if(s==3){return "全部记录";}
-            else{return s+"";}
-        });
-        arc.checkPref("arcWayzerServerMode",true);
-        arc.checkPref("ShowInfoPopup",true);
-        arc.checkPref("arcShareWaveInfo", false);
-        arc.checkPref("arcAlwaysTeamColor",false);
-        arc.checkPref("arcAutoGG",false);
-
-        arc.addCategory("arcPlayerEffect");
-        arc.stringInput("playerEffectColor", "ffd37f");
-        arc.sliderPref("unitTargetType", 0, 0, 5, 1, s -> {
-            if(s==0){return "关闭";}
-            else if(s==1){return "虚圆";}
-            else if(s==2){return "攻击";}
-            else if(s==3){return "攻击去边框";}
-            else if(s==4){return "圆十字";}
-            else if(s==5){return "十字";}
-            else{return s+"";}
-        });
-        arc.sliderPref("superUnitEffect", 0, 0, 2, 1, s -> {
-            if(s==0){return "关闭";}
-            else if(s==1){return "独一无二";}
-            else if(s==2){return "全部玩家";}
-            else{return s+"";}
-        });
-        arc.sliderPref("playerEffectCurStroke", 0, 1, 30, 1, i -> (float)i/10f + "Pixel(s)");
-
-        arc.addCategoryS("雷达扫描设置 [lightgray](PC按键，手机辅助器)");
-        arc.sliderPref("radarMode",0, 0, 30, 1, s -> {
-            if(s==0)    return "关闭";
-            else if(s==30)  return "一键开关";
-            else{return "[lightgray]x[white]" + Strings.autoFixed(s * 0.2f,1) +"倍搜索";}
-        });
-        arc.sliderPref("radarSize",0, 0, 50, 1, s -> {
-            if(s==0)    return "固定大小";
-            else{return "[lightgray]x[white]" + Strings.autoFixed(s * 0.1f,1) +"倍";}
-        });
-
-        arc.addCategory("developerMode");
-        arc.checkPref("arcDisableModWarning",false);
-        arc.sliderPref("menuFlyersCount", 0, -15, 50, 5, i -> i + "");
-        arc.checkPref("menuFlyersRange",false);
-        arc.checkPref("menuFlyersFollower",false);
-
-        //////////forcehide
-        forcehide.addCategory("arcCDisplayBlock");
-        forcehide.sliderPref("blockRenderLevel", 2, 0, 2, 1, s -> {
-            if(s==0){return "隐藏全部建筑";}
-            else if(s==1){return "只显示建筑状态";}
-            else if(s==2){return "全部显示";}
-            else{return s+"";}
-        });
-        forcehide.checkPref("displayblock", true);
-        forcehide.addCategory("arcCDisplayUnit");
-        forcehide.checkPref("unitHealthBar", false);
-        forcehide.checkPref("alwaysShowPlayerUnit", false);
-        forcehide.checkPref("showminebeam", true);
-        forcehide.sliderPref("unitTransparency",100,0,100,5, i -> i > 0 ? i + "%" : "关闭");
-        forcehide.sliderPref("minhealth_unitshown", 0, 0, 2500, 50, i -> i + "[red]HP");
-        forcehide.sliderPref("minhealth_unithealthbarshown", 0, 0, 2500, 100, i -> i + "[red]HP");
-        forcehide.addCategory("arcCDisplayEffect");
-        forcehide.checkPref("bulletShow", true);
-        forcehide.checkPref("effects", true);
-        forcehide.checkPref("bloom", true, val -> renderer.toggleBloom(val));
-        forcehide.sliderPref("bloomintensity", 6, 0, 16, i -> (int)(i/4f * 100f) + "%");
-        forcehide.sliderPref("bloomblur", 2, 1, 16, i -> i + "x");
-        forcehide.checkPref("forceEnableDarkness", true);
-        forcehide.checkPref("destroyedblocks", true);
-        forcehide.checkPref("showweather", true);
-        forcehide.checkPref("animatedwater", true);
-
-        if(Shaders.shield != null){
-            forcehide.checkPref("animatedshields", !mobile);
-            forcehide.checkPref("staticShieldsBorder", false);
-        }
-
-        forcehide.checkPref("atmosphere", !mobile);
-
-        if (!mobile){
-            forcehide.checkPref("vsync", true, b -> Core.graphics.setVSync(b));
-        }
-        Core.graphics.setVSync(Core.settings.getBool("vsync"));
-
-        //iOS (and possibly Android) devices do not support linear filtering well, so disable it
-        if(!ios){
-            graphics.checkPref("linear", !mobile, b -> {
-                for(Texture tex : Core.atlas.getTextures()){
-                    TextureFilter filter = b ? TextureFilter.linear : TextureFilter.nearest;
+            if (Core.settings.getBool("linear")) {
+                for (Texture tex : Core.atlas.getTextures()) {
+                    TextureFilter filter = TextureFilter.linear;
                     tex.setFilter(filter, filter);
                 }
+            }
+
+            forcehide.checkPref("pixelate", false, val -> {
+                if (val) {
+                    Events.fire(Trigger.enablePixelation);
+                }
             });
-        }else{
-            settings.put("linear", false);
-        }
 
-        if(Core.settings.getBool("linear")){
-            for(Texture tex : Core.atlas.getTextures()){
-                TextureFilter filter = TextureFilter.linear;
-                tex.setFilter(filter, filter);
+            //////////specmode
+            specmode.addCategory("moreContent");
+            specmode.checkPref("modMode", false);
+            specmode.sliderPref("itemSelectionHeight", 4, 4, 12, i -> i + "行");
+            specmode.sliderPref("itemSelectionWidth", 4, 4, 12, i -> i + "列");
+            specmode.sliderPref("blockInventoryWidth", 3, 3, 16, i -> i + "");
+            specmode.sliderPref("editorBrush", 4, 3, 12, i -> i + "");
+
+            specmode.addCategory("personalized");
+            specmode.checkPref("colorizedContent", false);
+            specmode.sliderPref("fontSet", 0, 0, 2, 1, s -> {
+                if (s == 0) {
+                    return "原版字体";
+                } else if (s == 1) return "[violet]LC[white]の[cyan]萌化字体包";
+                else if (s == 2) return "[violet]9527[white]の[cyan]楷体包";
+                else {
+                    return s + "";
+                }
+            });
+            specmode.sliderPref("fontSize", 10, 5, 25, 1, i -> "x " + Strings.fixed(i * 0.1f, 1));
+            specmode.stringInput("themeColor", "ffd37f");
+            specmode.addCategory("specGameMode");
+            specmode.checkPref("autoSelSchematic", false);
+            specmode.checkPref("researchViewer", false);
+            specmode.checkPref("developMode", false);
+            //////////cheating
+            cheating.addCategory("arcWeakCheat");
+            cheating.checkPref("forceIgnoreAttack", false);
+            cheating.checkPref("allBlocksReveal", false);
+            cheating.checkPref("worldCreator", false);
+            cheating.checkPref("overrideSkipWave", false);
+            cheating.checkPref("forceConfigInventory", false);
+            cheating.addCategory("arcStrongCheat");
+            cheating.checkPref("showOtherTeamResource", false);
+            cheating.checkPref("showOtherTeamState", false);
+            cheating.checkPref("selectTeam", false);
+            cheating.checkPref("playerNeedShooting", false);
+            cheating.checkPref("otherCheat", false);
+            if (OS.isMac) {
+                graphics.checkPref("macnotch", false);
             }
-        }
 
-        forcehide.checkPref("pixelate", false, val -> {
-            if(val){
-                Events.fire(Trigger.enablePixelation);
+            if (!mobile) {
+                Core.settings.put("swapdiagonal", false);
             }
-        });
-
-        //////////specmode
-        specmode.addCategory("moreContent");
-        specmode.checkPref("modMode", false);
-        specmode.sliderPref("itemSelectionHeight",4,4,12, i->i + "行");
-        specmode.sliderPref("itemSelectionWidth",4,4,12, i->i + "列");
-        specmode.sliderPref("blockInventoryWidth",3,3,16, i->i + "");
-        specmode.sliderPref("editorBrush",4,3,12,i->i+"");
-
-        specmode.addCategory("personalized");
-        specmode.checkPref("colorizedContent",false);
-        specmode.sliderPref("fontSet", 0, 0, 2, 1, s -> {
-            if(s==0){return "原版字体";}
-            else if(s==1) return "[violet]LC[white]の[cyan]萌化字体包";
-            else if(s==2) return "[violet]9527[white]の[cyan]楷体包";
-            else{return s+"";}
-        });
-        specmode.sliderPref("fontSize",10,5,25,1,i->"x " + Strings.fixed(i * 0.1f,1));
-        specmode.stringInput("themeColor", "ffd37f");
-        specmode.addCategory("specGameMode");
-        specmode.checkPref("autoSelSchematic",false);
-        specmode.checkPref("researchViewer",false);
-        specmode.checkPref("developMode", false);
-        //////////cheating
-        cheating.addCategory("arcWeakCheat");
-        cheating.checkPref("forceIgnoreAttack",false);
-        cheating.checkPref("allBlocksReveal",false);
-        cheating.checkPref("worldCreator",false);
-        cheating.checkPref("overrideSkipWave", false);
-        cheating.checkPref("forceConfigInventory", false);
-        cheating.checkPref("alwaysPickup", false);
-        cheating.addCategory("arcStrongCheat");
-        cheating.checkPref("showOtherTeamResource", false);
-        cheating.checkPref("showOtherTeamState", false);
-        cheating.checkPref("selectTeam",false);
-        cheating.checkPref("playerNeedShooting", false);
-        cheating.checkPref("otherCheat",false);
-        }
+    }
 
     public void exportData(Fi file) throws IOException{
         Seq<Fi> files = new Seq<>();

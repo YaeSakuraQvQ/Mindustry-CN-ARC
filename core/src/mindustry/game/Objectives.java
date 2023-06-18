@@ -26,7 +26,8 @@ public class Objectives{
         public String display(){
             return Core.bundle.format("requirement.research",
                 //TODO broken for multi tech nodes.
-                    Core.settings.getBool("researchViewer") || (content.techNode == null || content.techNode.parent == null || content.techNode.parent.content.unlocked()) && !(content instanceof Item) ?
+                Core.settings.getBool("researchViewer") ||
+                (content.techNode == null || content.techNode.parent == null || content.techNode.parent.content.unlocked()) ?
                     (content.emoji() + " " + content.localizedName) : "???");
         }
     }

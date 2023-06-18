@@ -566,9 +566,17 @@ public class UnitType extends UnlockableContent{
             t.left();
             t.add(new Image(uiIcon)).size(iconMed).scaling(Scaling.fit);
             if(unit.team.id < 6){
-                t.labelWrap("[#" + unit.team.color + "]" + localizedName).left().width(190f).padLeft(5);
+                if (unit.isPlayer()) {
+                    t.labelWrap(unit.getPlayer().coloredName() + "\n[#" + unit.team.color + "]" + localizedName).left().width(190f).padLeft(5);
+                } else {
+                    t.labelWrap("[#" + unit.team.color + "]" + localizedName).left().width(190f).padLeft(5);
+                }
             }else{
-                t.labelWrap("[#" + unit.team.color + "]" + localizedName + "[" + unit.team.id + "]").left().width(190f).padLeft(5);
+                if (unit.isPlayer()) {
+                    t.labelWrap(unit.getPlayer().coloredName() + "\n[#" + unit.team.color + "]" + localizedName + "[" + unit.team.id + "]").left().width(190f).padLeft(5);
+                } else {
+                    t.labelWrap("[#" + unit.team.color + "]" + localizedName + "[" + unit.team.id + "]").left().width(190f).padLeft(5);
+                }
             }
         }).growX().left();
         table.row();

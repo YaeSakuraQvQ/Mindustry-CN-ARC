@@ -1,3 +1,19 @@
+[cyan]------------------------[v145-6/18]---------------------------
+Fixed logic icons for certain content being squished
+Fixed a freeze caused by stack routers
+Fixed Base AI not working sometimes
+Fixed mods not being able to override UI images
+Fixed map flags added in objectives not syncing
+Fixed a crash related to editing canvases
+Added votekick reason option, made votekicks cancel-able by admins (contributed by @frieda666)
+Added button for admins to switch player teams
+Added past player names / IPs to player trace info
+Added fill erase mode to editor
+Added option to adapt UI to Macbook notches (contributed by @alxgsv)
+Made Serpulo attack sectors not invade nearby sectors while you are attacking them
+Various improvements to the schematics UI (Contributed by @JniTrRny)
+Starting unit command can now be selected in reconstructors
+Units now retain their last command when controlled and un-controlled by players
 [cyan]------------------------[v144.3-5/23]---------------------------
 Fixed various crashes related to mods
 Fixed hail using incorrect heat sprite
