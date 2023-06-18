@@ -12,12 +12,13 @@ public class TeamSelectDialog extends BaseDialog {
     public TeamSelectDialog(Cons<Team> cons, Team selectedTeam) {
         this(cons, team -> team == selectedTeam, true);
     }
+
     public TeamSelectDialog(Cons<Team> cons, Boolf<Team> checked, boolean autoHide) {
         super("队伍选择器");
 
         cont.pane(td -> {
-            for(Team team : Team.all){
-                if(team.id % 10 == 6){
+            for (Team team : Team.all) {
+                if (team.id % 10 == 6) {
                     td.row();
                     td.add("队伍：" + team.id + "~" + (team.id + 9));
                 }

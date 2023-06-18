@@ -10,27 +10,27 @@ import mindustry.ui.*;
 import static mindustry.gen.Tex.underlineWhite;
 import static mindustry.ui.Styles.*;
 
-public class RStyles{
+public class RStyles {
     public static TextureRegionDrawable whiteuir;
     public static Drawable black1;
 
     public static TextButtonStyle
-    flatt,
-    clearLineNonet,
-    clearLineNoneTogglet;
+            flatt,
+            clearLineNonet,
+            clearLineNoneTogglet;
 
     public static ImageButtonStyle
-    clearAccentNonei,
-    clearAccentNoneTogglei,
-    clearLineNonei,
-    clearLineNoneTogglei;
+            clearAccentNonei,
+            clearAccentNoneTogglei,
+            clearLineNonei,
+            clearLineNoneTogglei;
 
-    public static void load(){
-        whiteuir = (TextureRegionDrawable)Tex.whiteui;
+    public static void load() {
+        whiteuir = (TextureRegionDrawable) Tex.whiteui;
 
         black1 = whiteuir.tint(0f, 0f, 0f, 0.1f);
 
-        flatt = new TextButtonStyle(){{
+        flatt = new TextButtonStyle() {{
             font = Fonts.def;
             fontColor = Color.white;
             down = flatOver;
@@ -40,13 +40,13 @@ public class RStyles{
             disabledFontColor = Color.gray;
         }};
 
-        clearLineNonet = new TextButtonStyle(flatt){{
+        clearLineNonet = new TextButtonStyle(flatt) {{
             up = none;
             over = accentDrawable;
             down = underlineWhite;
         }};
 
-        clearLineNoneTogglet = new TextButtonStyle(fullTogglet){{
+        clearLineNoneTogglet = new TextButtonStyle(fullTogglet) {{
             up = none;
             over = accentDrawable;
             down = underlineWhite;
@@ -54,23 +54,23 @@ public class RStyles{
             disabledFontColor = Color.white;
         }};
 
-        clearAccentNonei = new ImageButtonStyle(clearNonei){{
+        clearAccentNonei = new ImageButtonStyle(clearNonei) {{
             up = none;
             over = flatOver;
             down = none;
         }};
 
-        clearAccentNoneTogglei = new ImageButtonStyle(clearAccentNonei){{
+        clearAccentNoneTogglei = new ImageButtonStyle(clearAccentNonei) {{
             checked = accentDrawable;
         }};
 
-        clearLineNonei = new ImageButtonStyle(clearNonei){{
+        clearLineNonei = new ImageButtonStyle(clearNonei) {{
             up = none;
             over = accentDrawable;
             down = none;
         }};
 
-        clearLineNoneTogglei = new ImageButtonStyle(clearLineNonei){{
+        clearLineNoneTogglei = new ImageButtonStyle(clearLineNonei) {{
             checked = underlineWhite;
         }};
     }

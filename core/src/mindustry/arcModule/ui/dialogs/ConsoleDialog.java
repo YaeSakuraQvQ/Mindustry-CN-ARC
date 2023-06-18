@@ -20,12 +20,13 @@ public class ConsoleDialog extends BaseDialog {
     ArrayList<Cell<?>> needsUpdate = new ArrayList<>();
     ArrayList<String> temp = new ArrayList<>();
     boolean loaded = false;
-    public ConsoleDialog(){
+
+    public ConsoleDialog() {
         super("控制台");
         build();
         Events.on(EventType.ClientLoadEvent.class, e -> {
             loaded = true;
-            for(String str : temp) {
+            for (String str : temp) {
                 pane.add(str).left().top();
             }
         });
@@ -34,13 +35,15 @@ public class ConsoleDialog extends BaseDialog {
         onResize(this::rebuild);
         shown(this::rebuild);
     }
-    private void rebuild(){
+
+    private void rebuild() {
         float w = Core.graphics.getWidth() / Scl.scl() * 0.9f;
-        for(Cell<?> c : needsUpdate) {
+        for (Cell<?> c : needsUpdate) {
             c.width(w);
         }
     }
-    private void build(){
+
+    private void build() {
         cont.clear();
         cont.table(t -> {
             needsUpdate.add(t.pane(tt -> pane = tt).growY());
@@ -58,8 +61,9 @@ public class ConsoleDialog extends BaseDialog {
             t.button(Icon.trash, () -> pane.clear());
         });
     }
-    public void addMessage(String str){
-        if(!loaded) {
+
+    public void addMessage(String str) {
+        if (!loaded) {
             temp.add(str);
             return;
         }

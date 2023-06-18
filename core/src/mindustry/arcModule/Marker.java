@@ -103,7 +103,7 @@ public class Marker {
 
                 Vec2 pos = Tmp.v1;
 
-                    pos.fromString(posStr);
+                pos.fromString(posStr);
 
                 mark(markType, pos.scl(tilesize), false);
                 ui.MessageDialog.addMsg(new MessageDialog.advanceMsg(MessageDialog.arcMsgType.markLoc, text, pos));

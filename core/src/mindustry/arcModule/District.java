@@ -139,9 +139,9 @@ public class District {
             t.add("规划区设置").color(getThemeColor()).colspan(4).pad(10).padTop(15).padBottom(4).row();
             t.image().color(getThemeColor()).fillX().height(3).colspan(4).padTop(0).padBottom(10).row();
             t.button("发布规划区!", () -> {
-                if (!Core.settings.getBool("cheating_mode") && (voidDistrict.districtA.x - voidDistrict.districtB.x > 100f || voidDistrict.districtA.y - voidDistrict.districtB.y > 100f)){
+                if (!Core.settings.getBool("cheating_mode") && (voidDistrict.districtA.x - voidDistrict.districtB.x > 100f || voidDistrict.districtA.y - voidDistrict.districtB.y > 100f)) {
                     ui.arcInfo("请勿发布无意义巨大规划区");
-                }else Call.sendChatMessage(voidDistrict.toString());
+                } else Call.sendChatMessage(voidDistrict.toString());
             }).fillX();
         });
 

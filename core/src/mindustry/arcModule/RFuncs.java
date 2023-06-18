@@ -27,15 +27,15 @@ public class RFuncs {
 
     static boolean colorized = false;
 
-    public static void colorizeContent(){
+    public static void colorizeContent() {
         colorized = Core.settings.getBool("colorizedContent");
-        content.items().each(c -> c.localizedName = colorized(c.color,c.localizedName));
-        content.liquids().each(c -> c.localizedName = colorized(c.color,c.localizedName));
-        content.statusEffects().each(c -> c.localizedName = colorized(c.color,c.localizedName));
-        content.planets().each(c -> c.localizedName = colorized(c.atmosphereColor,c.localizedName));
+        content.items().each(c -> c.localizedName = colorized(c.color, c.localizedName));
+        content.liquids().each(c -> c.localizedName = colorized(c.color, c.localizedName));
+        content.statusEffects().each(c -> c.localizedName = colorized(c.color, c.localizedName));
+        content.planets().each(c -> c.localizedName = colorized(c.atmosphereColor, c.localizedName));
         content.blocks().each(c -> {
-            if (c.hasColor) c.localizedName = colorized(blockColor(c),c.localizedName);
-            else if(c.itemDrop != null) c.localizedName = colorized(c.itemDrop.color,c.localizedName);
+            if (c.hasColor) c.localizedName = colorized(blockColor(c), c.localizedName);
+            else if (c.itemDrop != null) c.localizedName = colorized(c.itemDrop.color, c.localizedName);
         });
         //content.getBy(ContentType.weather).each(  c ->  ((Weather)c).localizedName = "[#" + c..color + "]" + ((Weather)c).localizedName);
         //content.sectors().each(c -> c.localizedName = "[#" + c.planet.atmosphereColor + "]" + c.localizedName);
@@ -43,27 +43,27 @@ public class RFuncs {
         //content.units().each(c -> c.localizedName = "[#" + c.outlineColor + "]" + c.localizedName);
     }
 
-    private static String colorized(Color color, String name){
-        if (colorized) return  "[#" + color + "]" + name + "[]";
+    private static String colorized(Color color, String name) {
+        if (colorized) return "[#" + color + "]" + name + "[]";
         else return name;
     }
 
-    private static Color blockColor(Block block){
+    private static Color blockColor(Block block) {
         Color bc = new Color(0, 0, 0, 1);
         Color bestColor = new Color(0, 0, 0, 1);
         int highestS = 0;
-        if(!block.synthetic()){
+        if (!block.synthetic()) {
             PixmapRegion image = Core.atlas.getPixmap(block.fullIcon);
-            for (int x=0; x<image.width;x++)
-                for(int y=0;y<image.height;y++){
+            for (int x = 0; x < image.width; x++)
+                for (int y = 0; y < image.height; y++) {
                     bc.set(image.get(x, y));
                     int s = RGBtoHSV(bc)[1] * RGBtoHSV(bc)[1] + RGBtoHSV(bc)[2] + RGBtoHSV(bc)[2];
-                    if (s > highestS){
+                    if (s > highestS) {
                         highestS = s;
                         bestColor = bc;
                     }
                 }
-        }else{
+        } else {
             return block.mapColor.cpy().mul(1.2f);
         }
         return bestColor;
@@ -87,19 +87,19 @@ public class RFuncs {
         return builder.toString();
     }
 
-    public static String calWaveTimer(){
+    public static String calWaveTimer() {
         StringBuilder waveTimer = new StringBuilder();
         waveTimer.append("[orange]");
-        int m = ((int)state.wavetime / 60) / 60;
-        int s = ((int)state.wavetime / 60) % 60;
-        int ms = (int)state.wavetime % 60;
-        if(m > 0){
+        int m = ((int) state.wavetime / 60) / 60;
+        int s = ((int) state.wavetime / 60) % 60;
+        int ms = (int) state.wavetime % 60;
+        if (m > 0) {
             waveTimer.append(m).append("[white]: [orange]");
-            if(s < 10){
+            if (s < 10) {
                 waveTimer.append("0");
             }
             waveTimer.append(s).append("[white]min");
-        }else{
+        } else {
             waveTimer.append(s).append("[white].[orange]").append(ms).append("[white]s");
         }
         return waveTimer.toString();
@@ -131,9 +131,10 @@ public class RFuncs {
     public static String fixedColorTime(int timer) {
         return fixedColorTime(timer, true);
     }
+
     public static String fixedColorTime(int timer, boolean units) {
         StringBuilder str = new StringBuilder();
-        str.append(timer > 0 ? "[orange]":"[acid]");
+        str.append(timer > 0 ? "[orange]" : "[acid]");
         timer = Math.abs(timer);
         int m = timer / 60 / 60;
         int s = timer / 60 % 60;
@@ -191,7 +192,7 @@ public class RFuncs {
         return prefix;
     }
 
-    public static String abilitysFormat(String format, Object... values){
+    public static String abilitysFormat(String format, Object... values) {
         for (int i = 0; i < values.length; i++) {
             values[i] = values[i] instanceof Number n ? "[stat]" + Strings.autoFixed(n.floatValue(), 1) + "[]" : "[white]" + values[i] + "[]";
         }

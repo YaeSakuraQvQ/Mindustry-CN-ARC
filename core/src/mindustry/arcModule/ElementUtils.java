@@ -9,13 +9,13 @@ import arc.scene.ui.Tooltip.*;
 import arc.scene.ui.layout.*;
 import mindustry.ui.Styles;
 
-public class ElementUtils{
+public class ElementUtils {
 
-    public static <T extends Element> T tooltip(T element, String text){
+    public static <T extends Element> T tooltip(T element, String text) {
         return tooltip(element, text, true);
     }
 
-    public static <T extends Element> T tooltip(T element, String text, boolean allowMobile){
+    public static <T extends Element> T tooltip(T element, String text, boolean allowMobile) {
         Tooltip tooltip = Tooltips.getInstance().create(text);
         tooltip.allowMobile = allowMobile;
 
@@ -23,11 +23,11 @@ public class ElementUtils{
         return element;
     }
 
-    public static <T extends Element> T tooltip(T element, Cons<Table> builder){
+    public static <T extends Element> T tooltip(T element, Cons<Table> builder) {
         return tooltip(element, builder, true);
     }
 
-    public static <T extends Element> T tooltip(T element, Cons<Table> builder, boolean allowMobile){
+    public static <T extends Element> T tooltip(T element, Cons<Table> builder, boolean allowMobile) {
         Tooltip tooltip = new Tooltip(builder);
         tooltip.allowMobile = allowMobile;
 
@@ -83,11 +83,11 @@ public class ElementUtils{
         return table;
     }
 
-    public interface StringProFloat{
+    public interface StringProFloat {
         String get(float i);
     }
 
-    public interface StringProInt{
+    public interface StringProInt {
         String get(int i);
     }
 

@@ -25,7 +25,7 @@ public class AboutCN_ARCDialog extends BaseDialog {
 
     }
 
-    void setup(){
+    void setup() {
         cont.clear();
         buttons.clear();
 
@@ -40,37 +40,37 @@ public class AboutCN_ARCDialog extends BaseDialog {
         cont.add("v3制作团队：[violet]Lucky_Clover[white]、blac8、[blue]xkldklp[white]、[yellow]miner");
         cont.row();
         cont.add("主负责人：[violet]Lucky_Clover").row();
-        cont.add("公开发行版本："+arcVersion).row();
+        cont.add("公开发行版本：" + arcVersion).row();
         cont.add("提议更新或反馈bug，请加入[yellow]猫猫的数据库[white]").row();
         cont.add("讨论学术端更新|提议源码|共同编辑，请加入[yellow]mindustry PVP交流群[white]:931790051[orange]不欢迎萌新，仅限大佬加入").row();
         cont.row();
-        cont.table(t->{
+        cont.table(t -> {
             t.add("相关链接").height(30f);
-            t.button("[cyan]更新日志",cleart,()->{
-                if(!Core.app.openURI("https://github.com/CN-ARC/Mindustry-CN-ARC")){
+            t.button("[cyan]更新日志", cleart, () -> {
+                if (!Core.app.openURI("https://github.com/CN-ARC/Mindustry-CN-ARC")) {
                     ui.showErrorMessage("@linkfail");
                     Core.app.setClipboardText("https://github.com/CN-ARC/Mindustry-CN-ARC");
                 }
             }).width(100f).height(30f);
-            t.button("[cyan]数据库1群",cleart,()->{
-                if(!Core.app.openURI("https://jq.qq.com/?_wv=1027&k=SIlwZafb")){
+            t.button("[cyan]数据库1群", cleart, () -> {
+                if (!Core.app.openURI("https://jq.qq.com/?_wv=1027&k=SIlwZafb")) {
                     ui.showErrorMessage("@linkfail");
                     Core.app.setClipboardText("https://jq.qq.com/?_wv=1027&k=SIlwZafb");
                 }
             }).width(100f).height(30f);
-            t.button("[cyan]数据库2群",cleart,()->{
-                if(!Core.app.openURI("https://jq.qq.com/?_wv=1027&k=OTtencaZ")){
+            t.button("[cyan]数据库2群", cleart, () -> {
+                if (!Core.app.openURI("https://jq.qq.com/?_wv=1027&k=OTtencaZ")) {
                     ui.showErrorMessage("@linkfail");
                     Core.app.setClipboardText("https://jq.qq.com/?_wv=1027&k=OTtencaZ");
                 }
             }).width(100f).height(30f);
         });
         cont.row();
-        cont.table(t->{
+        cont.table(t -> {
             t.add("共同编辑").height(30f);
-            t.button("[cyan]成就翻译",cleart,()->{
+            t.button("[cyan]成就翻译", cleart, () -> {
                 String link = "https://docs.qq.com/doc/DVHBUd3d4eWdNQWpo";
-                if(!Core.app.openURI(link)){
+                if (!Core.app.openURI(link)) {
                     ui.showErrorMessage("@linkfail");
                     Core.app.setClipboardText(link);
                 }
@@ -78,11 +78,11 @@ public class AboutCN_ARCDialog extends BaseDialog {
         });
 
         cont.row();
-        for(String log : changelogs){
-            if(!log.startsWith("[cyan]请仔细阅读学术端")){
+        for (String log : changelogs) {
+            if (!log.startsWith("[cyan]请仔细阅读学术端")) {
                 about.add(log).left();
-            }else{
-                about.add(log+changeLogRead).left();
+            } else {
+                about.add(log + changeLogRead).left();
             }
             about.row();
         }

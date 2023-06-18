@@ -55,9 +55,10 @@ public class MusicDialog extends BaseDialog {
     public static final String version = "1.2.1";
     public static final String ShareType = "[pink]<Music>";
     private static final String E = "UTF-8";
+    private static final ArrayList<MusicApi> apis = new ArrayList<>();
+    private final ArrayList<MusicList> lists = new ArrayList<>();
     private Table lrcTable;
     private MusicApi api;
-    private static final ArrayList<MusicApi> apis = new ArrayList<>();
     private Music player;
     private Runnable loadStatus;
     private float progress, vol;
@@ -71,7 +72,6 @@ public class MusicDialog extends BaseDialog {
     private Dialog settingsDialog;
     private ListDialog listDialog;
     private MusicList list;
-    private final ArrayList<MusicList> lists = new ArrayList<>();
     private MessageDigest md5;
 
     public MusicDialog() {
@@ -267,53 +267,6 @@ public class MusicDialog extends BaseDialog {
             }).width(width).height(100f);
         });
         loadStatus.run();
-    }
-
-    private class ListDialog extends BaseDialog {
-        public ListDialog() {
-            super("歌单列表");
-            buttons.button(Icon.trash, () -> ui.showConfirm("松鼠音乐", "是否清空歌单", () -> {
-                list = new MusicList((byte) 0);
-                build();
-            }));
-            build();
-            buttons.button(Icon.link, () -> apis.get(list.api).share(list)).disabled(b -> list.size() == 0);
-            buttons.button(Icon.download, () -> platform.showFileChooser(false, "保存歌单文件", "list", f -> f.writeString(api.buildList(list)))).disabled(b -> list.size() == 0);
-            buttons.button(Icon.upload, () -> platform.showFileChooser(true, "加载歌单文件", "list", f -> MusicList.parse(f.readString(), i -> Core.app.post(() -> MusicDialog.this.loadList(i)))));
-            addCloseButton();
-            onResize(this::build);
-            shown(this::build);
-        }
-
-        public void build() {
-            cont.clear();
-            float width = Core.graphics.getWidth() / Scl.scl() * 0.9f;
-            for (MusicInfo info : list.list) {
-                Button[] buttons = {null};
-                Button button = buttons[0] = cont.button(b -> {
-                }, RStyles.clearLineNonei, () -> {
-                    if (!buttons[0].childrenPressed()) {
-                        MusicDialog.this.play(info);
-                    }
-                }).width(width).pad(2f).get();
-                Table inner = new Table(Tex.whiteui);
-                inner.setColor(Color.black);
-                button.clearChildren();
-                button.add(inner).growX();
-                inner.add(info.author + " - " + info.name).left().padLeft(10f).wrap().style(Styles.outlineLabel).growX();
-                inner.button(Icon.trash, RStyles.clearLineNonei, () -> {
-                    if (list.remove(info)) {
-                        playNext();
-                    }
-                    build();
-                }).margin(3f).pad(2).padTop(6f).top().right();
-                inner.button(Icon.download, RStyles.clearLineNonei, () -> download(info)).margin(3f).pad(2).padTop(6f).top().right();
-                inner.button(Icon.link, RStyles.clearLineNonei, () -> apis.get(info.src).share(info)).margin(3f).pad(2).pad(6).top().right();
-                button.row();
-                button.update(() -> button.setChecked(Objects.equals(list.currentMusic.id, nowMusic.id)));
-                cont.row();
-            }
-        }
     }
 
     private void updateLRC(double pos) {
@@ -581,6 +534,192 @@ public class MusicDialog extends BaseDialog {
         }
     }
 
+    private static class LRCParser {
+        public static LRC parse(String input) {
+            String[] lrcs = input.replace("\r", "").split("\\n");
+            LRC output = new LRC();
+            if (!input.contains("[00:")) {
+                output.add(0, "暂无歌词");
+                return output;
+            }
+            for (String now : lrcs) {
+                try {
+                    output.add(parseTime(now), now.substring(10));
+                } catch (Exception ignored) {
+                }
+            }
+            return output;
+        }
+
+        private static double parseTime(String raw) {
+            double sum = 60 * Math.floor(Double.parseDouble(raw.substring(1, 3))) * 1000;
+            sum += 1000 * Math.floor(Double.parseDouble(raw.substring(4, 6)));
+            sum += 10 * Math.floor(Double.parseDouble(raw.substring(7, 9)));
+            if (Double.isNaN(sum)) sum = 0d;
+            return sum;
+        }
+    }
+
+    public static class LRC extends LYRIC {
+        ArrayList<Double> timeList;
+        ArrayList<String> lrcList;
+        int size;
+
+        public LRC() {
+            timeList = new ArrayList<>();
+            lrcList = new ArrayList<>();
+        }
+
+        public void add(double time, String line) {
+            timeList.add(time);
+            lrcList.add(line);
+            size++;
+        }
+
+        public void get(double now, Cons2<String, String> callback) {
+            for (int i = 0; i < size; i++) {
+                if (now > timeList.get(i)) {
+                    callback.get(lrcList.get(i), i + 1 == size ? "" : lrcList.get(i + 1));
+                }
+            }
+        }
+    }
+
+    public static class MusicList {
+        public final ArrayList<MusicInfo> list = new ArrayList<>();
+        public byte api;
+        public int current = 0;
+        public MusicInfo currentMusic = new MusicInfo();
+
+        public MusicList(byte api) {
+            this.api = api;
+        }
+
+        public static void parse(String input, Cons<MusicList> cb) {
+            try {
+                MusicApi api = apis.get(Byte.parseByte(input.substring(0, input.indexOf("$"))));
+                api.loadList(input.substring(input.indexOf("$") + 1), cb);
+            } catch (Exception e) {
+                ui.showException(e);
+            }
+        }
+
+        public void add(MusicInfo info) {
+            if (indexOf(info) == -1) list.add(info);
+        }
+
+        public boolean remove(int id) {
+            list.remove(id);
+            if (id < current) {
+                current--;
+            }
+            return id == current;
+        }
+
+        public boolean remove(MusicInfo info) {
+            return remove(indexOf(info));
+        }
+
+        public int size() {
+            return list.size();
+        }
+
+        public String build() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(api).append("$");
+            for (MusicInfo musicInfo : list) {
+                sb.append(musicInfo.id).append("$");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            return sb.toString();
+        }
+
+        public MusicInfo get(int id) {
+            return list.get(id);
+        }
+
+        public MusicInfo getNext() {
+            if (++current >= list.size()) return null;
+            current = Math.min(current, list.size() - 1);
+            return update();
+        }
+
+        public MusicInfo getPrev() {
+            current = Math.max(current - 1, 0);
+            return update();
+        }
+
+        public void set(int id) {
+            if (id >= list.size()) return;
+            current = id;
+            update();
+        }
+
+        private MusicInfo update() {
+            return currentMusic = current >= size() ? null : list.get(current);
+        }
+
+        public int indexOf(MusicInfo info) {
+            for (int i = 0; i < list.size(); i++) {
+                if (Objects.equals(list.get(i).id, info.id)) return i;
+            }
+            return -1;
+        }
+    }
+
+    public static abstract class LYRIC {
+        public abstract void add(double time, String line);
+
+        public abstract void get(double now, Cons2<String, String> callback);
+    }
+
+    private class ListDialog extends BaseDialog {
+        public ListDialog() {
+            super("歌单列表");
+            buttons.button(Icon.trash, () -> ui.showConfirm("松鼠音乐", "是否清空歌单", () -> {
+                list = new MusicList((byte) 0);
+                build();
+            }));
+            build();
+            buttons.button(Icon.link, () -> apis.get(list.api).share(list)).disabled(b -> list.size() == 0);
+            buttons.button(Icon.download, () -> platform.showFileChooser(false, "保存歌单文件", "list", f -> f.writeString(api.buildList(list)))).disabled(b -> list.size() == 0);
+            buttons.button(Icon.upload, () -> platform.showFileChooser(true, "加载歌单文件", "list", f -> MusicList.parse(f.readString(), i -> Core.app.post(() -> MusicDialog.this.loadList(i)))));
+            addCloseButton();
+            onResize(this::build);
+            shown(this::build);
+        }
+
+        public void build() {
+            cont.clear();
+            float width = Core.graphics.getWidth() / Scl.scl() * 0.9f;
+            for (MusicInfo info : list.list) {
+                Button[] buttons = {null};
+                Button button = buttons[0] = cont.button(b -> {
+                }, RStyles.clearLineNonei, () -> {
+                    if (!buttons[0].childrenPressed()) {
+                        MusicDialog.this.play(info);
+                    }
+                }).width(width).pad(2f).get();
+                Table inner = new Table(Tex.whiteui);
+                inner.setColor(Color.black);
+                button.clearChildren();
+                button.add(inner).growX();
+                inner.add(info.author + " - " + info.name).left().padLeft(10f).wrap().style(Styles.outlineLabel).growX();
+                inner.button(Icon.trash, RStyles.clearLineNonei, () -> {
+                    if (list.remove(info)) {
+                        playNext();
+                    }
+                    build();
+                }).margin(3f).pad(2).padTop(6f).top().right();
+                inner.button(Icon.download, RStyles.clearLineNonei, () -> download(info)).margin(3f).pad(2).padTop(6f).top().right();
+                inner.button(Icon.link, RStyles.clearLineNonei, () -> apis.get(info.src).share(info)).margin(3f).pad(2).pad(6).top().right();
+                button.row();
+                button.update(() -> button.setChecked(Objects.equals(list.currentMusic.id, nowMusic.id)));
+                cont.row();
+            }
+        }
+    }
+
     public abstract class NetApi extends MusicApi {
         int searchPage = 1, allPage = 1;
         Table menu;
@@ -811,7 +950,7 @@ public class MusicDialog extends BaseDialog {
                 encryptor.encryptRequest(lr, "{\"id\":" + data.getString("id") + ",\"lv\":-1,\"tv\":-1,\"csrf_token\":\"\"}");
                 lr.submit(rr -> {
                     JsonValue lrcData = new JsonReader().parse(rr.getResultAsString());
-                    if(lrcData.getInt("code") != 200 || !lrcData.get("lrc").has("lyric")) {
+                    if (lrcData.getInt("code") != 200 || !lrcData.get("lrc").has("lyric")) {
                         if (raw == null) callback.get(new MusicInfo() {{
                             name = data.getString("name");
                             url = data.getString("url");
@@ -853,7 +992,7 @@ public class MusicDialog extends BaseDialog {
         public void search(String name, int page, Cons<MusicSet> callback) {
             try {
                 Http.HttpRequest req = Http.post("https://music.163.com/weapi/cloudsearch/get/web?csrf_token=");
-                encryptor.encryptRequest(req, "{\"s\":\"" + name.replace("\\", "\\\\").replace("\"", "\\\"") + "\",\"type\":\"1\",\"offset\":\"" + page + "\",\"total\":\"true\",\"limit\":\"10\",\"csrf_token\":\"\"}");
+                encryptor.encryptRequest(req, "{\"s\":\"" + name.replace("\\", "\\\\").replace("\"", "\\\"") + "\",\"type\":\"1\",\"offset\":\"" + page * 10 + "\",\"total\":\"true\",\"limit\":\"10\",\"csrf_token\":\"\"}");
                 req.submit(res -> {
                     try {
                         JsonValue j = new JsonReader().parse(res.getResultAsString());
@@ -872,10 +1011,10 @@ public class MusicDialog extends BaseDialog {
                             StringBuilder sb = new StringBuilder();
                             int l = thisMusic.get("ar").size;
                             JsonValue ar = thisMusic.get("ar");
-                            for(int k = 0; k < l; k++){
+                            for (int k = 0; k < l; k++) {
                                 sb.append(ar.get(k).getString("name")).append("/");
                             }
-                            if(sb.length() != 0) sb.deleteCharAt(sb.length() - 1);
+                            if (sb.length() != 0) sb.deleteCharAt(sb.length() - 1);
                             set.add(new MusicInfo() {{
                                 name = thisMusic.getString("name");
                                 author = sb.toString();
@@ -992,10 +1131,6 @@ public class MusicDialog extends BaseDialog {
                     + "29258349130257685001248172188325316586707301643237607");
             BigInteger pk = new BigInteger("65537");
 
-            class NetMusicData {
-                public String params, encSecKey;
-            }
-
             public void encryptRequest(Http.HttpRequest req, String str) throws Exception {
                 req.header("content-type", "application/x-www-form-urlencoded");
                 NetMusicData data = encryptParams(str);
@@ -1038,6 +1173,10 @@ public class MusicDialog extends BaseDialog {
                     sb.append(keys.charAt((int) Math.floor(Math.random() * 62)));
                 }
                 return sb.toString();
+            }
+
+            class NetMusicData {
+                public String params, encSecKey;
             }
         }
     }
@@ -1119,57 +1258,6 @@ public class MusicDialog extends BaseDialog {
         }
     }
 
-    private static class LRCParser {
-        public static LRC parse(String input) {
-            String[] lrcs = input.replace("\r", "").split("\\n");
-            LRC output = new LRC();
-            if (!input.contains("[00:")) {
-                output.add(0, "暂无歌词");
-                return output;
-            }
-            for (String now : lrcs) {
-                try {
-                    output.add(parseTime(now), now.substring(10));
-                } catch (Exception ignored) {
-                }
-            }
-            return output;
-        }
-
-        private static double parseTime(String raw) {
-            double sum = 60 * Math.floor(Double.parseDouble(raw.substring(1, 3))) * 1000;
-            sum += 1000 * Math.floor(Double.parseDouble(raw.substring(4, 6)));
-            sum += 10 * Math.floor(Double.parseDouble(raw.substring(7, 9)));
-            if (Double.isNaN(sum)) sum = 0d;
-            return sum;
-        }
-    }
-
-    public static class LRC extends LYRIC {
-        ArrayList<Double> timeList;
-        ArrayList<String> lrcList;
-        int size;
-
-        public LRC() {
-            timeList = new ArrayList<>();
-            lrcList = new ArrayList<>();
-        }
-
-        public void add(double time, String line) {
-            timeList.add(time);
-            lrcList.add(line);
-            size++;
-        }
-
-        public void get(double now, Cons2<String, String> callback) {
-            for (int i = 0; i < size; i++) {
-                if (now > timeList.get(i)) {
-                    callback.get(lrcList.get(i), i + 1 == size ? "" : lrcList.get(i + 1));
-                }
-            }
-        }
-    }
-
     private class SettingsDialog extends BaseDialog {
         public SettingsDialog() {
             super("松鼠音乐设置");
@@ -1224,93 +1312,5 @@ public class MusicDialog extends BaseDialog {
             cont.add("[pink]松鼠音乐v" + version + "\n[gold]松鼠制作\n[cyan]松鼠站:squi2rel.tk");
             addCloseButton();
         }
-    }
-
-    public static class MusicList {
-        public byte api;
-        public int current = 0;
-        public MusicInfo currentMusic = new MusicInfo();
-        public final ArrayList<MusicInfo> list = new ArrayList<>();
-
-        public MusicList(byte api) {
-            this.api = api;
-        }
-
-        public void add(MusicInfo info) {
-            if (indexOf(info) == -1) list.add(info);
-        }
-
-        public boolean remove(int id) {
-            list.remove(id);
-            if (id < current) {
-                current--;
-            }
-            return id == current;
-        }
-
-        public boolean remove(MusicInfo info) {
-            return remove(indexOf(info));
-        }
-
-        public int size() {
-            return list.size();
-        }
-
-        public static void parse(String input, Cons<MusicList> cb) {
-            try {
-                MusicApi api = apis.get(Byte.parseByte(input.substring(0, input.indexOf("$"))));
-                api.loadList(input.substring(input.indexOf("$") + 1), cb);
-            } catch (Exception e) {
-                ui.showException(e);
-            }
-        }
-
-        public String build() {
-            StringBuilder sb = new StringBuilder();
-            sb.append(api).append("$");
-            for (MusicInfo musicInfo : list) {
-                sb.append(musicInfo.id).append("$");
-            }
-            sb.deleteCharAt(sb.length() - 1);
-            return sb.toString();
-        }
-
-        public MusicInfo get(int id) {
-            return list.get(id);
-        }
-
-        public MusicInfo getNext() {
-            if (++current >= list.size()) return null;
-            current = Math.min(current, list.size() - 1);
-            return update();
-        }
-
-        public MusicInfo getPrev() {
-            current = Math.max(current - 1, 0);
-            return update();
-        }
-
-        public void set(int id) {
-            if (id >= list.size()) return;
-            current = id;
-            update();
-        }
-
-        private MusicInfo update() {
-            return currentMusic = current >= size() ? null : list.get(current);
-        }
-
-        public int indexOf(MusicInfo info) {
-            for (int i = 0; i < list.size(); i++) {
-                if (Objects.equals(list.get(i).id, info.id)) return i;
-            }
-            return -1;
-        }
-    }
-
-    public static abstract class LYRIC {
-        public abstract void add(double time, String line);
-
-        public abstract void get(double now, Cons2<String, String> callback);
     }
 }

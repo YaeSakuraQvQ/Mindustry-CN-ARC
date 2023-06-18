@@ -40,7 +40,7 @@ public class OtherCoreItemDisplay extends Table {
 
     public OtherCoreItemDisplay() {
 
-        textStyle = new TextButton.TextButtonStyle(){{
+        textStyle = new TextButton.TextButtonStyle() {{
             down = flatOver;
             up = pane;
             over = flatDownBase;
@@ -54,58 +54,58 @@ public class OtherCoreItemDisplay extends Table {
         rebuild();
     }
 
-    void rebuild(){
+    void rebuild() {
         clear();
-        if(!show){
-        button("[red]+",textStyle, () -> {
-            show = !show;
-            rebuild();
-        }).left().width(40f).fillY().get().left();}
-        else{
+        if (!show) {
+            button("[red]+", textStyle, () -> {
+                show = !show;
+                rebuild();
+            }).left().width(40f).fillY().get().left();
+        } else {
             table(t -> {
                 t.table(buttons -> {
-                    buttons.button("[red]×",textStyle, () -> {
+                    buttons.button("[red]×", textStyle, () -> {
                         show = !show;
                         rebuild();
                     }).size(40f).row();
 
-                    buttons.button("T",textStyle, () -> {
+                    buttons.button("T", textStyle, () -> {
                         new TeamSelectDialog(team -> {
-                            if(teams.contains(team.data())) teams.remove(team.data());
+                            if (teams.contains(team.data())) teams.remove(team.data());
                             else teams.add(team.data());
                             teamsRebuild();
                         }, team -> teams.contains(team.data()), false).show();
-                    }).checked(gg->false).size(40f).row();
+                    }).checked(gg -> false).size(40f).row();
 
-                    buttons.button(Blocks.worldProcessor.emoji(),textStyle, () -> {
+                    buttons.button(Blocks.worldProcessor.emoji(), textStyle, () -> {
                         showStat = !showStat;
                         teamsRebuild();
-                    }).checked(a->showStat).size(40f).row();
+                    }).checked(a -> showStat).size(40f).row();
 
-                    buttons.button(content.items().get(0).emoji(),textStyle, () -> {
+                    buttons.button(content.items().get(0).emoji(), textStyle, () -> {
                         showItem = !showItem;
                         teamsRebuild();
-                    }).checked(a->showItem).size(40f).row();
-    
-                    buttons.button(UnitTypes.mono.emoji(),textStyle, () -> {
+                    }).checked(a -> showItem).size(40f).row();
+
+                    buttons.button(UnitTypes.mono.emoji(), textStyle, () -> {
                         showUnit = !showUnit;
                         teamsRebuild();
-                    }).checked(a->showUnit).size(40f);
+                    }).checked(a -> showUnit).size(40f);
                 }).left();
-        
+
                 teamsRebuild();
-    
+
                 t.add(teamsTable).left();
-    
+
             }).left();
         }
     }
 
-    private void teamsRebuild(){
+    private void teamsRebuild() {
         teamsTable.clear();
         teamsTable.background(Styles.black6);
         teamsTable.update(() -> {
-            if (Time.time - lastUpd > 120f){
+            if (Time.time - lastUpd > 120f) {
                 lastUpd = Time.time;
                 teamsRebuild();
                 return;
@@ -116,8 +116,10 @@ public class OtherCoreItemDisplay extends Table {
         /**name + cores + units */
         teamsTable.label(() -> "").get().setFontScale(fontScl);
         for (Teams.TeamData team : teams) {
-            if(team.team.id>6) teamsTable.label(() -> "[#" + team.team.color + "]#" + team.team.id).get().setFontScale(fontScl);
-            else teamsTable.label(() -> "[#" + team.team.color + "]" + team.team.localized()).get().setFontScale(fontScl);
+            if (team.team.id > 6)
+                teamsTable.label(() -> "[#" + team.team.color + "]#" + team.team.id).get().setFontScale(fontScl);
+            else
+                teamsTable.label(() -> "[#" + team.team.color + "]" + team.team.localized()).get().setFontScale(fontScl);
         }
         teamsTable.row();
         teamsTable.label(() -> Blocks.coreNucleus.emoji()).get().setFontScale(fontScl);
@@ -136,55 +138,56 @@ public class OtherCoreItemDisplay extends Table {
         }
         teamsTable.row();
 
-        if(showStat){
+        if (showStat) {
             teamsTable.image().color(getThemeColor()).fillX().height(1).colspan(999).padTop(3).padBottom(3).row();
-            teamsTable.image(Blocks.siliconSmelter.uiIcon).size(15,15).left().get();
-            for(Teams.TeamData team : teams){
-                teamsTable.label(() -> "[#" + team.team.color + "]" + (state.rules.teams.get(team.team).cheat? "[green]+":"[red]×")).get().setFontScale(fontScl);
+            teamsTable.image(Blocks.siliconSmelter.uiIcon).size(15, 15).left().get();
+            for (Teams.TeamData team : teams) {
+                teamsTable.label(() -> "[#" + team.team.color + "]" + (state.rules.teams.get(team.team).cheat ? "[green]+" : "[red]×")).get().setFontScale(fontScl);
             }
             teamsTable.row();
-            teamsTable.image(Blocks.arc.uiIcon).size(15,15).left().get();
-            for(Teams.TeamData team : teams){
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.blockDamage(team.team),2)).get().setFontScale(fontScl);
+            teamsTable.image(Blocks.arc.uiIcon).size(15, 15).left().get();
+            for (Teams.TeamData team : teams) {
+                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.blockDamage(team.team), 2)).get().setFontScale(fontScl);
             }
             teamsTable.row();
-            teamsTable.image(Blocks.titaniumWall.uiIcon).size(15,15).left().get();
-            for(Teams.TeamData team : teams){
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.blockHealth(team.team),2)).get().setFontScale(fontScl);
+            teamsTable.image(Blocks.titaniumWall.uiIcon).size(15, 15).left().get();
+            for (Teams.TeamData team : teams) {
+                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.blockHealth(team.team), 2)).get().setFontScale(fontScl);
             }
             teamsTable.row();
-            teamsTable.image(UnitTypes.corvus.uiIcon).size(15,15).left().get();
-            for(Teams.TeamData team : teams){
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.unitDamage(team.team),2)).get().setFontScale(fontScl);
+            teamsTable.image(UnitTypes.corvus.uiIcon).size(15, 15).left().get();
+            for (Teams.TeamData team : teams) {
+                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.unitDamage(team.team), 2)).get().setFontScale(fontScl);
             }
             teamsTable.row();
-            teamsTable.image(UnitTypes.poly.uiIcon).size(15,15).left().get();
-            for(Teams.TeamData team : teams){
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.buildSpeed(team.team),2)).get().setFontScale(fontScl);
+            teamsTable.image(UnitTypes.poly.uiIcon).size(15, 15).left().get();
+            for (Teams.TeamData team : teams) {
+                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.buildSpeed(team.team), 2)).get().setFontScale(fontScl);
             }
             teamsTable.row();
-            teamsTable.image(Blocks.tetrativeReconstructor.uiIcon).size(15,15).left().get();
-            for(Teams.TeamData team : teams){
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.unitBuildSpeed(team.team),2)).get().setFontScale(fontScl);
+            teamsTable.image(Blocks.tetrativeReconstructor.uiIcon).size(15, 15).left().get();
+            for (Teams.TeamData team : teams) {
+                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.unitBuildSpeed(team.team), 2)).get().setFontScale(fontScl);
             }
             teamsTable.row();
         }
 
-        if(showItem){
+        if (showItem) {
             teamsTable.image().color(getThemeColor()).fillX().height(1).colspan(999).padTop(3).padBottom(3).row();
             boolean[] dispItems = new boolean[content.items().size];
-            for(Item item : content.items()){            
-                for(Teams.TeamData team : teams){
-                    if(team.hasCore() && team.core().items.get(item) > 0) dispItems[content.items().indexOf(item)] = true;
+            for (Item item : content.items()) {
+                for (Teams.TeamData team : teams) {
+                    if (team.hasCore() && team.core().items.get(item) > 0)
+                        dispItems[content.items().indexOf(item)] = true;
                 }
             }
 
-            for(Item item : content.items()){            
-                if(dispItems[content.items().indexOf(item)]){
+            for (Item item : content.items()) {
+                if (dispItems[content.items().indexOf(item)]) {
 
                     //teamsTable.label(() -> item.emoji()).padRight(5f).left().get().setFontScale(fontScl);
-                    teamsTable.image(item.uiIcon).size(15,15).left().get(); 
-                    for(Teams.TeamData team : teams){
+                    teamsTable.image(item.uiIcon).size(15, 15).left().get();
+                    for (Teams.TeamData team : teams) {
                         teamsTable.label(() -> "[#" + team.team.color + "]" + ((team.hasCore() && team.core().items.get(item) > 0) ? UI.formatAmount(team.core().items.get(item)) : "-")).get().setFontScale(fontScl);
                     }
                     teamsTable.row();
@@ -193,21 +196,21 @@ public class OtherCoreItemDisplay extends Table {
             }
         }
 
-        if(showUnit){
+        if (showUnit) {
             teamsTable.image().color(getThemeColor()).fillX().height(1).colspan(999).padTop(3).padBottom(3).row();
             boolean[] dispUnits = new boolean[content.units().size];
-            for(UnitType unit : content.units()){            
-                for(Teams.TeamData team : teams){
-                    if(team.countType(unit) > 0) dispUnits[content.units().indexOf(unit)] = true;
+            for (UnitType unit : content.units()) {
+                for (Teams.TeamData team : teams) {
+                    if (team.countType(unit) > 0) dispUnits[content.units().indexOf(unit)] = true;
                 }
             }
 
-            for(UnitType unit : content.units()){            
-                if(dispUnits[content.units().indexOf(unit)]){
+            for (UnitType unit : content.units()) {
+                if (dispUnits[content.units().indexOf(unit)]) {
 
                     //teamsTable.label(() -> unit.emoji()).padRight(5f).left().get().setFontScale(fontScl);
-                    teamsTable.image(unit.uiIcon).size(15,15).left().get(); 
-                    for(Teams.TeamData team : teams){
+                    teamsTable.image(unit.uiIcon).size(15, 15).left().get();
+                    for (Teams.TeamData team : teams) {
                         teamsTable.label(() -> "[#" + team.team.color + "]" + (team.countType(unit) > 0 ? team.countType(unit) : "-")).get().setFontScale(fontScl);
                     }
                     teamsTable.row();
