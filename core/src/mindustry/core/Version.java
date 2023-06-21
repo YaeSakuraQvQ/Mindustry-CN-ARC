@@ -19,7 +19,7 @@ public class Version{
     public static int build = 145;
     /** Revision number. Used for hotfixes. Does not affect server compatibility. */
 
-    public static int revision = 0;
+    public static int revision = 1;
 
     /** Whether version loading is enabled. */
     public static boolean enabled = true;

@@ -220,9 +220,15 @@ public class PlayerListFragment{
                     button.button("[violet]+",Styles.cleart,()->{
                         new TeamSelectDialog(team -> Call.sendChatMessage("/js Groups.player.find(e=>e.name== \"" + user.name + "\").team(Team.get(" + team.id + "))"), user.team()).show();
                     }).size(buttonSize);
+                } else if (net.server() || (player.admin && (!user.admin || user == player))) {
+                    state.teams.getActive().each(teamData -> {
+                        button.button("[#" + teamData.team.color + "]" + teamData.team.localized(), Styles.cleart,
+                                () -> Call.adminRequest(user, AdminAction.switchTeam, teamData.team)).size(buttonSize);
+                    });
+                    button.button("[violet]+",Styles.cleart,()->{
+                        new TeamSelectDialog(team -> Call.adminRequest(user, AdminAction.switchTeam, team), user.team()).show();
+                    }).size(buttonSize);
                 }
-
-
             }
             //原版模式
             else {

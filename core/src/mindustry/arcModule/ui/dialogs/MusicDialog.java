@@ -52,7 +52,7 @@ import static mindustry.Vars.*;
 import static mindustry.arcModule.RFuncs.getPrefix;
 
 public class MusicDialog extends BaseDialog {
-    public static final String version = "1.2.1";
+    public static final String version = "1.2.2";
     public static final String ShareType = "[pink]<Music>";
     private static final String E = "UTF-8";
     private static final ArrayList<MusicApi> apis = new ArrayList<>();
@@ -992,7 +992,7 @@ public class MusicDialog extends BaseDialog {
         public void search(String name, int page, Cons<MusicSet> callback) {
             try {
                 Http.HttpRequest req = Http.post("https://music.163.com/weapi/cloudsearch/get/web?csrf_token=");
-                encryptor.encryptRequest(req, "{\"s\":\"" + name.replace("\\", "\\\\").replace("\"", "\\\"") + "\",\"type\":\"1\",\"offset\":\"" + page * 10 + "\",\"total\":\"true\",\"limit\":\"10\",\"csrf_token\":\"\"}");
+                encryptor.encryptRequest(req, "{\"s\":\"" + name.replace("\\", "\\\\").replace("\"", "\\\"") + "\",\"type\":\"1\",\"offset\":\"0\",\"total\":\"true\",\"limit\":\"30\",\"csrf_token\":\"\"}");
                 req.submit(res -> {
                     try {
                         JsonValue j = new JsonReader().parse(res.getResultAsString());
@@ -1001,9 +1001,9 @@ public class MusicDialog extends BaseDialog {
                             return;
                         }
                         JsonValue lists = j.get("result").get("songs");
-                        allPage = j.get("result").getInt("songCount") / 10 + 1;
-                        MusicSet set = new MusicSet((byte) 10);
-                        for (byte i = 0; i < 10; i++) {
+                        allPage = 1;
+                        MusicSet set = new MusicSet((byte) 30);
+                        for (byte i = 0; i < 30; i++) {
                             JsonValue thisMusic = lists.get(i);
                             if (thisMusic == null) {
                                 break;
