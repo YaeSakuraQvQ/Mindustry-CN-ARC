@@ -5,7 +5,7 @@
 
 The automation tower defense RTS, written in Java.
 
-## Based on Mindustry-CN-ARC-klpVersion, self-use version, **DO NOT SPREAD**, plz
+## Based on Mindustry-CN-ARC-klpVersion, only self-use, **DO NOT SPREAD**, plz
 
 _[Trello Board](https://trello.com/b/aE2tcUwF/mindustry-40-plans)_  
 _[Wiki](https://mindustrygame.github.io/wiki)_  
