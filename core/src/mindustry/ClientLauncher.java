@@ -259,6 +259,9 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
                 if (mod.enabled()) enabled++;
             }
         }
+        if(settings.getBool("bossKeyPressing", false)) {
+            return "计算器";
+        }
         long time = (Time.millis() - startPlayTime) / 1000;
         return "Mindustry-CN-ARC-YZH | VERSION " + (Version.arcBuild <= 0 ? "Dev" : Version.arcBuild) + " | " + enabled + "/" + (mods == null ? 0 : mods.mods.size) + " Mods Enable |" +
                 (Core.graphics != null ? Core.graphics.getWidth() + "x" + Core.graphics.getHeight() + " | " : "") +

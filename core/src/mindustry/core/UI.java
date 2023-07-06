@@ -22,6 +22,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.arcModule.ui.*;
 import mindustry.arcModule.ui.dialogs.*;
+import mindustry.arcModule.ui.window.*;
 import mindustry.editor.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
@@ -91,9 +92,8 @@ public class UI implements ApplicationListener, Loadable{
     public mindustry.arcModule.ui.dialogs.MessageDialog MessageDialog;
 
     public mindustry.arcModule.ui.dialogs.MusicDialog MusicDialog;
-
     public mindustry.arcModule.ui.dialogs.ConsoleDialog ConsoleDialog;
-
+    public mindustry.arcModule.ui.window.WindowManager WindowManager;
     private @Nullable Element lastAnnouncement;
 
     private @Nullable Element lastArcAnnouncement;
@@ -244,6 +244,7 @@ public class UI implements ApplicationListener, Loadable{
         campaignComplete = new CampaignCompleteDialog();
         MusicDialog = new MusicDialog();
         followUpMenus = new IntMap<>();
+        WindowManager = new WindowManager();
 
         Group group = Core.scene.root;
 

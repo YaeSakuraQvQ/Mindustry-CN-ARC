@@ -52,16 +52,17 @@ import static mindustry.Vars.*;
 import static mindustry.arcModule.RFuncs.getPrefix;
 
 public class MusicDialog extends BaseDialog {
-    public static final String version = "1.2.2";
+    public static final String version = "1.2.3";
     public static final String ShareType = "[pink]<Music>";
+    public float vol;
+    public Music player;
     private static final String E = "UTF-8";
     private static final ArrayList<MusicApi> apis = new ArrayList<>();
     private final ArrayList<MusicList> lists = new ArrayList<>();
     private Table lrcTable;
     private MusicApi api;
-    private Music player;
     private Runnable loadStatus;
-    private float progress, vol;
+    private float progress;
     private Slider progressBar;
     private MusicInfo nowMusic;
     private boolean loaded, updating, paused, playing;
@@ -73,6 +74,7 @@ public class MusicDialog extends BaseDialog {
     private ListDialog listDialog;
     private MusicList list;
     private MessageDigest md5;
+    private Fi tmpDir;
 
     public MusicDialog() {
         super("松鼠音乐");
@@ -104,7 +106,7 @@ public class MusicDialog extends BaseDialog {
             });
             player = new Music();
             player.setVolume(2);
-            vol = 100;
+            vol = Core.settings.getFloat("musicVolume", 100f);;
             loaded = true;
             setup();
             switchDialog = new BaseDialog("切换api");
@@ -166,15 +168,15 @@ public class MusicDialog extends BaseDialog {
         list.add(info);
         list.set(list.indexOf(info));
         try {
-            if (info.lrc != null) lyric = info.lrc;
+            if (info.lrc != null) lyric = info.lrc; else lyric = null;
             Http.get(info.url, r -> {
-                Fi tmp = new Fi(tmpDirectory.child("music") + "/squirrel.mp3");
+                Fi tmp = tmpDir.child("squirrel.mp3");
                 tmp.writeBytes(r.getResult());
                 player.stop();
                 player.pause(false);
                 player.load(tmp);
                 player.play();
-                Timer.schedule(() -> playing = true, 1f);//badly
+                Timer.schedule(() -> playing = true, 0.5f);//badly
                 loadStatus.run();
             });
         } catch (Exception e) {
@@ -194,7 +196,7 @@ public class MusicDialog extends BaseDialog {
 
     private void setup() {
         if (!loaded) return;
-        Fi tmpDir = tmpDirectory.child("music");
+        tmpDir = tmpDirectory.child("music");
         tmpDir.mkdirs();
         tmpDir.emptyDirectory();
         cont.top();
@@ -236,10 +238,12 @@ public class MusicDialog extends BaseDialog {
                         ttt.label(() -> "音量:" + (byte) vol);
                         ttt.button(Icon.upSmall, RStyles.clearLineNonei, () -> {
                             vol = Math.min(vol + 10, 100);
+                            Core.settings.put("musicVolume", vol);
                             player.setVolume(vol / 100 * 2);
                         }).margin(3f).pad(2).padTop(6f).top().right().size(32);
                         ttt.button(Icon.downSmall, RStyles.clearLineNonei, () -> {
                             vol = Math.max(vol - 10, 0);
+                            Core.settings.put("musicVolume", vol);
                             player.setVolume(vol / 100 * 2);
                         }).margin(3f).pad(2).padTop(6f).top().right().size(32);
                         ttt.button(Icon.refreshSmall, RStyles.clearLineNoneTogglei, () -> {
@@ -270,7 +274,10 @@ public class MusicDialog extends BaseDialog {
     }
 
     private void updateLRC(double pos) {
-        if (lyric == null) return;
+        if (lyric == null) {
+            lrcLine1 = lrcLine2 = "松鼠音乐";
+            return;
+        }
         lyric.get(pos, (s1, s2) -> {
             lrcLine1 = s1;
             lrcLine2 = s2;
@@ -285,7 +292,7 @@ public class MusicDialog extends BaseDialog {
                 playing = true;
             } else {
                 if (nowMusic.url != null) {
-                    Fi f = new Fi(tmpDirectory + "/squirrel.mp3");
+                    Fi f = tmpDir.child("squirrel.mp3");
                     if (f.exists()) {
                         try {
                             playing = false;
@@ -391,7 +398,7 @@ public class MusicDialog extends BaseDialog {
             } else {
                 byte src = Byte.parseByte(mark);
                 String id = msg.substring(split + 1);
-                if (src > apis.size() || apis.get(src) == null && src != 0) {
+                if (src < 0 || src > apis.size() || apis.get(src) == null && src != 0) {
                     Core.app.post(() -> ui.arcInfo("[red]无法找到api!\n可能是学术版本太旧"));
                 }
                 MusicApi current = apis.get(src);
@@ -1115,11 +1122,13 @@ public class MusicDialog extends BaseDialog {
         @Override
         public void getMusicInfo(String str, Cons<MusicInfo> callback) {
             String[] n = str.split("\uf6aa");
-            getMusicInfo(n[0], info -> {
-                info.name = n[1];
-                info.author = n[2];
-                callback.get(info);
-            }, null);
+            try {
+                getMusicInfo(n[0], callback, new MusicInfo() {{
+                    name = URLDecoder.decode(n[1], E);
+                    author = URLDecoder.decode(n[2], E);
+                }});
+            } catch (Exception ignored) {
+            }
         }
 
         class NetEastEncryptor {
@@ -1204,10 +1213,12 @@ public class MusicDialog extends BaseDialog {
                 t.label(() -> "音量:" + (byte) vol);
                 t.button(Icon.upSmall, RStyles.clearLineNonei, () -> {
                     vol = Math.min(vol + 10, 100);
+                    Core.settings.put("musicVolume", vol);
                     player.setVolume(vol / 100 * 2);
                 }).margin(3f).pad(2).padTop(6f).top().right().size(32);
                 t.button(Icon.downSmall, RStyles.clearLineNonei, () -> {
                     vol = Math.max(vol - 10, 0);
+                    Core.settings.put("musicVolume", vol);
                     player.setVolume(vol / 100 * 2);
                 }).margin(3f).pad(2).padTop(6f).top().right().size(32);
                 t.button(Icon.refreshSmall, RStyles.clearLineNoneTogglei, () -> {

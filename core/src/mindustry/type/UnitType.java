@@ -1904,6 +1904,7 @@ public class UnitType extends UnlockableContent{
         }
 
         public void draw(Unit unit){
+            if(unitTrans == 0) return;
             UnitType type = unit.type;
             float scale = type.useEngineElevation ? unit.elevation : 1f;
 

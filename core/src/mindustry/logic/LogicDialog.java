@@ -1,27 +1,34 @@
 package mindustry.logic;
 
-import arc.*;
-import arc.func.*;
-import arc.graphics.*;
-import arc.scene.actions.*;
+import arc.Core;
+import arc.func.Cons;
+import arc.func.Prov;
+import arc.graphics.Color;
+import arc.scene.actions.Actions;
 import arc.scene.event.Touchable;
-import arc.scene.ui.*;
-import arc.scene.ui.TextButton.*;
-import arc.scene.ui.layout.*;
-import arc.struct.Seq;
-import arc.util.*;
-import mindustry.core.GameState.*;
-import mindustry.ctype.*;
-import mindustry.game.*;
+import arc.scene.ui.Image;
+import arc.scene.ui.Label;
+import arc.scene.ui.TextButton.TextButtonStyle;
+import arc.scene.ui.TextField;
+import arc.scene.ui.layout.Table;
+import arc.util.Log;
+import arc.util.Nullable;
+import arc.util.Strings;
+import arc.util.Time;
+import mindustry.core.GameState.State;
+import mindustry.ctype.Content;
+import mindustry.game.Team;
 import mindustry.gen.*;
-import mindustry.graphics.*;
-import mindustry.logic.LExecutor.*;
-import mindustry.logic.LStatements.*;
-import mindustry.ui.*;
-import mindustry.ui.dialogs.*;
+import mindustry.graphics.Pal;
+import mindustry.logic.LExecutor.PrintI;
+import mindustry.logic.LExecutor.Var;
+import mindustry.logic.LStatements.InvalidStatement;
+import mindustry.ui.Fonts;
+import mindustry.ui.Styles;
+import mindustry.ui.dialogs.BaseDialog;
 
 import static mindustry.Vars.*;
-import static mindustry.logic.LCanvas.*;
+import static mindustry.logic.LCanvas.tooltip;
 
 public class LogicDialog extends BaseDialog{
     public LCanvas canvas;
@@ -262,6 +269,14 @@ public class LogicDialog extends BaseDialog{
                     t.row();
                     t.button("[orange]清空",Icon.trash,style,()-> canvas.clearAll()).marginLeft(12f);
                     t.row();
+                    t.button("丢弃更改", Icon.cancel,style, () -> {
+                        ui.showConfirm("确认丢弃?", () -> {
+                            dispose = true;
+                            dialog.hide();
+                            hide();
+                        });
+                    }).marginLeft(12f);
+                    t.row();
                     t.button("[orange]逻辑辅助器",Icon.settings,style,()-> {
                         Core.settings.put("logicSupport",!Core.settings.getBool("logicSupport"));
                         rebuildMain();
@@ -386,13 +401,6 @@ public class LogicDialog extends BaseDialog{
             dialog.addCloseButton();
             dialog.show();
         }).disabled(t -> canvas.statements.getChildren().size >= LExecutor.maxInstructions);
-
-        buttons.button("丢弃更改", Icon.cancel, () -> {
-            ui.showConfirm("确认丢弃?", () -> {
-                dispose = true;
-                hide();
-            });
-        });
     }
 
     public void show(String code, LExecutor executor, boolean privileged, Cons<String> modified){

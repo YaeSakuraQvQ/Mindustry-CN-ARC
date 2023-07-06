@@ -75,6 +75,13 @@ public class AboutCN_ARCDialog extends BaseDialog {
                     Core.app.setClipboardText(link);
                 }
             }).width(100f).height(30f);
+            t.button("[cyan]功能建议", cleart, () -> {
+                String link = "https://docs.qq.com/form/page/DTllxbXlCc0lJb1ps";
+                if (!Core.app.openURI(link)) {
+                    ui.showErrorMessage("@linkfail");
+                    Core.app.setClipboardText(link);
+                }
+            }).width(100f).height(30f);
         });
 
         cont.row();
