@@ -42,6 +42,7 @@ public class BeControl{
     private int updateBuild;
     public static String gitDownloadURL = "https://gh.tinylake.tk//";
 
+    private String patronURL = "https://afdian.net/a/Mindustry-CN-ARC";
     private String directDesktopURL,directMobileURL,directSteamURL;
 
     private Table beTable,upTable;
@@ -59,6 +60,7 @@ public class BeControl{
             if(u && Core.settings.getBool("showUpdateDialog", true)) {
                 Events.on(EventType.ClientLoadEvent.class, e -> {
                     ui.showConfirm("检测到新版学术!\n打开更新列表?", this::BeControlTable);
+                    Timer.schedule(() -> ui.LabelController.start("[violet]检测到新版学术!"), 5);
                 });
             }
         });
@@ -103,10 +105,39 @@ public class BeControl{
 
         buildTable();
 
+        beDialog.cont.row();
+        beDialog.cont.button("支持作者",()->donateDialog()).padTop(10f).width(200f);
+
         beDialog.addCloseButton();
 
         beDialog.show();
         if(!mobile || Core.graphics.isPortrait())  getCommits();
+    }
+
+    private void donateDialog(){
+        Dialog dl = new BaseDialog("学术支持板");
+        dl.cont.table(t->{
+            t.labelWrap("开发和运营我们的mdt社区需要资金，如果觉得对你有帮助的话，欢迎[orange]提供赞助[]啊~~\n\uE805 提供的赞助将作为[orange]学术端公共资金[] \uE805").width(400f).padBottom(10f).row();
+            t.add("[violet]用途说明").padTop(10f).width(500f).row();
+            t.image().color(Color.violet).width(500f).padTop(10f).padBottom(10f).row();
+            t.labelWrap("\uE829 [acid]部分开发使用的商业软件及服务[]PS.如语音、字体包等，如atri包因为音质不好放弃了，需要更换较好的音质来源\n" +
+                    "\uE829 [acid]pvp联赛策划及奖品[]PS.好吧我承认了，之前联赛因为赞助不够所以一直没啥实际奖品。如果赞助够的话会补发前两届的！款式我已经大概确定了，为定制的mdt周边\n" +
+                    "\uE829 [acid]小型活动所需[]PS.如果有剩余的话，会举办赏金地图杯等小联赛\n" +
+                    "\uE829 [acid]其他[]\nPS.如果金额较大会在群里说明\n\n" +
+                    "如果赞助的金额较大也可获得mdt周边哦~").width(400f).left();
+            t.row();
+            t.add("[violet]支持说明").padTop(10f).width(500f).row();
+            t.image().color(Color.violet).width(500f).padTop(10f).padBottom(10f).row();
+            t.labelWrap(patronURL).width(400f).left();
+            t.button("♐", () -> {
+                if (!Core.app.openURI(patronURL)) {
+                    ui.showErrorMessage("打开失败，网址已复制到粘贴板\n请自行在阅览器打开");
+                    Core.app.setClipboardText(patronURL);
+                }
+            }).width(50f);
+        }).width(400f);
+        dl.addCloseButton();
+        dl.show();
     }
 
     private void buildTable(){
@@ -434,4 +465,3 @@ public class BeControl{
         });
     }
 }
-//.

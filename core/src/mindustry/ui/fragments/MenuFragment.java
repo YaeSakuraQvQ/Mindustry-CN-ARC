@@ -1,32 +1,48 @@
 package mindustry.ui.fragments;
 
-import arc.*;
-import arc.graphics.*;
-import arc.graphics.g2d.*;
-import arc.math.*;
-import arc.scene.*;
-import arc.scene.actions.*;
-import arc.scene.event.*;
-import arc.scene.style.*;
-import arc.scene.ui.*;
-import arc.scene.ui.ImageButton.*;
-import arc.scene.ui.TextButton.*;
-import arc.scene.ui.layout.*;
+import arc.Core;
+import arc.Events;
+import arc.graphics.Color;
+import arc.graphics.g2d.Draw;
+import arc.graphics.g2d.TextureRegion;
+import arc.math.Interp;
+import arc.math.Mathf;
+import arc.math.Rand;
+import arc.scene.Group;
+import arc.scene.actions.Actions;
+import arc.scene.event.Touchable;
+import arc.scene.style.Drawable;
+import arc.scene.ui.Button;
+import arc.scene.ui.ImageButton.ImageButtonStyle;
+import arc.scene.ui.Label;
+import arc.scene.ui.layout.Scl;
+import arc.scene.ui.layout.Table;
+import arc.scene.ui.layout.WidgetGroup;
+import arc.struct.Seq;
 import arc.util.*;
-import mindustry.core.*;
-import mindustry.game.EventType.*;
-import mindustry.gen.*;
-import mindustry.graphics.*;
+import mindustry.core.Version;
+import mindustry.game.EventType.ResizeEvent;
+import mindustry.gen.Icon;
+import mindustry.graphics.MenuRenderer;
+import mindustry.graphics.Pal;
 import mindustry.service.GameService;
-import mindustry.ui.*;
+import mindustry.ui.Fonts;
+import mindustry.ui.MobileButton;
+import mindustry.ui.Styles;
 
 import static mindustry.Vars.*;
-import static mindustry.gen.Tex.*;
+import static mindustry.gen.Tex.discordBanner;
 
 public class MenuFragment{
     private Table container, submenu;
     private Button currentMenu;
     private MenuRenderer renderer;
+    private Seq<MenuButton> customButtons = new Seq<>();
+    Label textLabel;
+    float tx, ty, base;
+    String[] labels = { "学术端!" };
+    float period = 23.5f;
+    float varSize = 1f;
 
     public void build(Group parent){
         renderer = new MenuRenderer();
@@ -35,31 +51,35 @@ public class MenuFragment{
             ui.aboutcn_arc.show();
         }
         Core.settings.put("locale", "zh_CN");
-        /*
-        if(Core.settings.getString("locale") != "zh_ARC"){
-            ui.showConfirm("语言包警告","检测到语言包并未支持学术端，可能导致大部分内容无法正常显示。\n是否切换成学术语言包？",()->{Core.settings.put("locale", "zh_ARC");Core.app.exit();});
-        }*/
 
         Group group = new WidgetGroup();
         group.setFillParent(true);
         group.visible(() -> !ui.editor.isShown());
         parent.addChild(group);
 
+        WidgetGroup textGroup = new WidgetGroup();
+        parent.addChild(textGroup);
+
         parent = group;
 
         parent.fill((x, y, w, h) -> renderer.render());
 
         parent.fill(c -> {
-            container = c;
-            c.name = "menu container";
+            c.pane(Styles.noBarPane, cont -> {
+                container = cont;
+                cont.name = "menu container";
 
-            if(!mobile){
-                buildDesktop();
-                Events.on(ResizeEvent.class, event -> buildDesktop());
-            }else{
-                buildMobile();
-                Events.on(ResizeEvent.class, event -> buildMobile());
-            }
+                if(!mobile){
+                    c.left();
+                    buildDesktop();
+                    Events.on(ResizeEvent.class, event -> buildDesktop());
+                }else{
+                    buildMobile();
+                    Events.on(ResizeEvent.class, event -> buildMobile());
+                }
+            }).with(pane -> {
+                pane.setOverscroll(false, false);
+            }).grow();
         });
 
         parent.fill(c -> c.bottom().right().button(Icon.discord, new ImageButtonStyle(){{
@@ -70,6 +90,7 @@ public class MenuFragment{
             ui.loadfrag.show();
             becontrol.checkUpdate(result -> {
                 ui.loadfrag.hide();
+                becontrol.BeControlTable();
             });
         }).size(200, 60).name("检查更新").update(t -> {
             t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white);
@@ -81,7 +102,7 @@ public class MenuFragment{
         parent.fill((x, y, w, h) -> {
             TextureRegion logo = Core.atlas.find("logo");
             float width = Core.graphics.getWidth(), height = Core.graphics.getHeight() - Core.scene.marginTop;
-            float logoscl = Scl.scl(1);
+            float logoscl = Scl.scl(1) * logo.scale;
             float logow = Math.min(logo.width * logoscl, Core.graphics.getWidth() - Scl.scl(20));
             float logoh = logow * (float)logo.height / logo.width;
 
@@ -91,14 +112,45 @@ public class MenuFragment{
                 fy -= Scl.scl(macNotchHeight);
             }
 
-            Draw.color();
-            Draw.rect(logo, fx, fy, logow, logoh, 1f);
+            tx = width / 2f + logow * 0.35f;
+            ty = fy - logoh / 2f - Scl.scl(2f) + logoh * 0.15f;
+            base = logoh * 0.02f;
 
-            //Fonts.outline.draw("test", fx + logow / 2, fy - logoh/2f - Scl.scl(2f), Color.gold, 2, false, Align.center);
+            Draw.color();
+            Draw.rect(logo, fx, fy, logow, logoh);
 
             Fonts.outline.setColor(Color.white);
             Fonts.outline.draw(versionText+arcversionText, fx, fy - logoh/2f - Scl.scl(2f), Align.center);
         }).touchable = Touchable.disabled;
+
+        textGroup.setTransform(true);//这个文字旋转要了我3天时间 臭猫的arc库不是标准libgdx 网上一堆教程都用不了
+        //最后还是搜libgdx旋转文字方法 在 https://www.cnblogs.com/keanuyaoo/p/3320223.html 找到了setRotation不起作用的原因
+        textGroup.setRotation(15);
+        textGroup.addChild(textLabel = new Label("[yellow]学术端!"));
+        textLabel.setAlignment(Align.center);
+        textGroup.update(() -> {
+            textGroup.x = tx;
+            textGroup.y = ty;
+            textLabel.setFontScale((base == 0 ? 1f : base) * Math.abs(Time.time % period / period - 0.5f) * varSize + 1);
+        });
+        loadLabels();
+    }
+
+    private void loadLabels(){
+        Http.get(userContentURL + "/CN-ARC/Mindustry-CN-ARC/master/core/assets/labels")
+                .error(e -> {
+                    Log.err("获取最新主页标语失败!加载本地标语", e);
+                    labels = Core.files.internal("labels").readString("UTF-8").replace("\r", "").replace("\\n", "\n").replace("/n", "\n").split("\n");
+                    randomLabel();
+                })
+                .submit(result -> {
+                    labels = result.getResultAsString().replace("\r", "").replace("\\n", "\n").replace("/n", "\n").split("\n");
+                    randomLabel();
+                });
+    }
+
+    private void randomLabel(){
+        Timer.schedule(() -> textLabel.setText("[yellow]" + labels[new Rand().random(0, labels.length - 1)]), 0.11f);
     }
 
     private void buildMobile(){
@@ -121,37 +173,53 @@ public class MenuFragment{
             mods = new MobileButton(Icon.book, "@mods", ui.mods::show),
             exit = new MobileButton(Icon.exit, "@quit", () -> Core.app.exit()),
             cn_arc = new MobileButton(Icon.info,"@aboutcn_arc.button",  ui.aboutcn_arc::show),
-            klpMenu = new MobileButton(Icon.info,"klp菜单",  ui.klpMenu::show),
             //mindustrywiki = new MobileButton(Icon.book, "@mindustrywiki.button", ui.mindustrywiki::show),
             updatedialog = new MobileButton(Icon.info,"@updatedialog.button",  ui.updatedialog::show),
             database = new MobileButton(Icon.book, "@database",  ui.database::show),
             achievements = new MobileButton(Icon.star, "@achievements",  ui.achievements::show);
 
+        play.clicked(this::randomLabel);
+        custom.clicked(this::randomLabel);
+        maps.clicked(this::randomLabel);
+        join.clicked(this::randomLabel);
+        editor.clicked(this::randomLabel);
+        tools.clicked(this::randomLabel);
+        mods.clicked(this::randomLabel);
+        cn_arc.clicked(this::randomLabel);
+        updatedialog.clicked(this::randomLabel);
+        database.clicked(this::randomLabel);
+        achievements.clicked(this::randomLabel);
+
+        Seq<MobileButton> customs = customButtons.map(b -> new MobileButton(b.icon, b.text, b.runnable == null ? () -> {} : b.runnable));
 
         if(!Core.graphics.isPortrait()){
             container.marginTop(60f);
-            container.add(play);
-            container.add(join);
-            container.add(custom);
-            container.add(maps);
-            container.row();
-
-            container.table(table -> {
-                table.defaults().set(container.defaults());
-
-                table.add(editor);
-                table.add(tools);
-
-                table.add(mods);
-                if(!ios) table.add(exit);
-            }).colspan(4);
-            container.row();
+            if(Core.settings.getInt("changelogreaded") == changeLogRead){
+                container.add(play);
+                container.add(join);
+                container.add(custom);
+                container.add(maps);
+                // add odd custom buttons
+                for(int i = 1; i < customs.size; i += 2){
+                    customs.get(i).clicked(this::randomLabel);
+                    container.add(customs.get(i));
+                }
+                container.row();
+                container.add(editor);
+            }
+            container.add(tools);
+            container.add(mods);
             container.add(achievements);
+            // add even custom buttons (before the exit button)
+            for(int i = 0; i < customs.size; i += 2){
+                customs.get(i).clicked(this::randomLabel);
+                container.add(customs.get(i));
+            }
+            container.row();
             container.add(cn_arc);
-            container.add(klpMenu);
             container.add(updatedialog);
             container.add(database);
-            //container.add(mindustrywiki);
+            if(!ios) container.add(exit);
         }else{
             container.marginTop(0f);
             if(Core.settings.getInt("changelogreaded") == changeLogRead){
@@ -165,21 +233,20 @@ public class MenuFragment{
             }
             container.add(tools);
             container.row();
-
-            container.table(table -> {
-                table.defaults().set(container.defaults());
-
-                table.add(mods);
-                if(!ios) table.add(exit);
-            }).colspan(2);
+            container.add(mods);
+            // add custom buttons
+            for(int i = 0; i < customs.size; i++){
+                customs.get(i).clicked(this::randomLabel);
+                container.add(customs.get(i));
+                if(i % 2 == 0) container.row();
+            }
+            if(!ios) container.add(exit);
             container.row();
             container.add(cn_arc);
-            container.add(klpMenu);
             container.add(database);
             container.row();
             container.add(achievements);
             container.add(updatedialog);
-            //container.add(mindustrywiki);
         }
     }
 
@@ -227,31 +294,42 @@ public class MenuFragment{
             t.defaults().width(width).height(70f);
             t.name = "buttons";
 
-            buttons(t,
-                new Buttoni("@play", Icon.play,
-                    new Buttoni("@campaign", Icon.play, () -> checkPlay(ui.planet::show)),
-                    new Buttoni("@joingame", Icon.add, () -> checkPlay(ui.join::show)),
-                    new Buttoni("@customgame", Icon.terrain, () -> checkPlay(ui.custom::show)),
-                    new Buttoni("@loadgame", Icon.download, () -> checkPlay(ui.load::show)),
-                    new Buttoni("@editor", Icon.terrain, () -> checkPlay(ui.maps::show)), steam ? new Buttoni("@workshop", Icon.steam, platform::openWorkshop) : null
-                ),
-                new Buttoni("@database.button", Icon.menu,
-                    new Buttoni("@schematics", Icon.paste, ui.schematics::show),
-                    new Buttoni("@database", Icon.book, ui.database::show),
-                    new Buttoni("@about.button", Icon.link, ui.about::show),
-                    new Buttoni("@updatedialog.button", Icon.distribution, ui.updatedialog::show)
-                    //new Buttoni("@mindustrywiki.button", Icon.info, ui.mindustrywiki::show)
-                ),
-                new Buttoni("@achievements", Icon.star, ui.achievements::show),
-                new Buttoni("@mods", Icon.book, ui.mods::show),
-                new Buttoni("@settings", Icon.settings,
-                        new Buttoni("@settings", Icon.settings, ui.settings::show),
-                        new Buttoni("KlpMenu", Icon.settings, ui.klpMenu::show)
-                        ),
-                new Buttoni("@aboutcn_arc.button", Icon.info, ui.aboutcn_arc::show),
-                new Buttoni("@quit", Icon.exit, Core.app::exit)
-            );
+            if(Core.settings.getInt("changelogreaded") != changeLogRead) {
+                buttons(t,
+                    new MenuButton("@database.button", Icon.menu,
+                            new MenuButton("@schematics", Icon.paste, ui.schematics::show),
+                            new MenuButton("@database", Icon.book, ui.database::show),
+                            new MenuButton("@about.button", Icon.info, ui.about::show),
+                            new MenuButton("@updatedialog.button", Icon.distribution, ui.updatedialog::show)
+                    ),
+                    new MenuButton("@settings", Icon.settings, ui.settings::show),
+                    new MenuButton("@aboutcn_arc.button", Icon.info, ui.aboutcn_arc::show)
+                );
+            } else {
+                buttons(t,
+                    new MenuButton("@play", Icon.play,
+                        new MenuButton("@campaign", Icon.play, () -> checkPlay(ui.planet::show)),
+                        new MenuButton("@joingame", Icon.add, () -> checkPlay(ui.join::show)),
+                        new MenuButton("@customgame", Icon.terrain, () -> checkPlay(ui.custom::show)),
+                        new MenuButton("@loadgame", Icon.download, () -> checkPlay(ui.load::show)),
+                        new MenuButton("@editor", Icon.terrain, () -> checkPlay(ui.maps::show)), steam ? new MenuButton("@workshop", Icon.steam, platform::openWorkshop) : null
+                    ),
+                    new MenuButton("@database.button", Icon.menu,
+                        new MenuButton("@schematics", Icon.paste, ui.schematics::show),
+                        new MenuButton("@database", Icon.book, ui.database::show),
+                        new MenuButton("@about.button", Icon.info, ui.about::show),
+                        new MenuButton("@updatedialog.button", Icon.distribution, ui.updatedialog::show)
+                    ),
 
+                    new MenuButton("@achievements", Icon.star, ui.achievements::show),
+                    new MenuButton("@mods", Icon.book, ui.mods::show),
+                    new MenuButton("@settings", Icon.settings, ui.settings::show),
+                    new MenuButton("@aboutcn_arc.button", Icon.info, ui.aboutcn_arc::show)
+                );
+
+            }
+            buttons(t, customButtons.toArray(MenuButton.class));
+            buttons(t, new MenuButton("@quit", Icon.exit, Core.app::exit));
         }).width(width).growY();
 
         container.table(background, t -> {
@@ -266,7 +344,6 @@ public class MenuFragment{
     }
 
     private void checkPlay(Runnable run){
-
         if(!mods.hasContentErrors()){
             run.run();
         }else{
@@ -289,8 +366,8 @@ public class MenuFragment{
         submenu.actions(Actions.alpha(1f), Actions.alpha(0f, 0.2f, Interp.fade), Actions.run(() -> submenu.clearChildren()));
     }
 
-    private void buttons(Table t, Buttoni... buttons){
-        for(Buttoni b : buttons){
+    private void buttons(Table t, MenuButton... buttons){
+        for(MenuButton b : buttons){
             if(b == null) continue;
             Button[] out = {null};
             out[0] = t.button(b.text, b.icon, Styles.flatToggleMenut, () -> {
@@ -309,6 +386,7 @@ public class MenuFragment{
                     }else{
                         currentMenu = null;
                         fadeOutMenu();
+                        randomLabel();
                         b.runnable.run();
                     }
                 }
@@ -318,25 +396,56 @@ public class MenuFragment{
         }
     }
 
-    private static class Buttoni{
-        final Drawable icon;
-        final String text;
-        final Runnable runnable;
-        final Buttoni[] submenu;
+    /** Adds a custom button to the menu. */
+    public void addButton(String text, Drawable icon, Runnable callback){
+        addButton(new MenuButton(text, icon, callback));
+    }
 
-        public Buttoni(String text, Drawable icon, Runnable runnable){
+    /** Adds a custom button to the menu. */
+    public void addButton(String text, Runnable callback){
+        addButton(text, Styles.none, callback);
+    }
+
+    /**
+     * Adds a custom button to the menu.
+     * If {@link MenuButton#submenu} is null or the player is on mobile, {@link MenuButton#runnable} is invoked on click.
+     * Otherwise, {@link MenuButton#submenu} is shown.
+     */
+    public void addButton(MenuButton button){
+        customButtons.add(button);
+    }
+
+    /** Represents a menu button definition. */
+    public static class MenuButton{
+        public final Drawable icon;
+        public final String text;
+        /** Runnable ran when the button is clicked. Ignored on desktop if {@link #submenu} is not null. */
+        public final Runnable runnable;
+        /** Submenu shown when this button is clicked. Used instead of {@link #runnable} on desktop. */
+        public final @Nullable MenuButton[] submenu;
+
+        /** Constructs a simple menu button, which behaves the same way on desktop and mobile. */
+        public MenuButton(String text, Drawable icon, Runnable runnable){
             this.icon = icon;
             this.text = text;
             this.runnable = runnable;
             this.submenu = null;
         }
 
-        public Buttoni(String text, Drawable icon, Buttoni... buttons){
+        /** Constructs a button that runs the runnable when clicked on mobile or shows the submenu on desktop. */
+        public MenuButton(String text, Drawable icon, Runnable runnable, MenuButton... submenu){
+            this.icon = icon;
+            this.text = text;
+            this.runnable = runnable;
+            this.submenu = submenu;
+        }
+
+        /** Comstructs a desktop-only button; used internally. */
+        MenuButton(String text, Drawable icon, MenuButton... submenu){
             this.icon = icon;
             this.text = text;
             this.runnable = () -> {};
-            this.submenu = buttons;
+            this.submenu = submenu;
         }
     }
 }
-//.
