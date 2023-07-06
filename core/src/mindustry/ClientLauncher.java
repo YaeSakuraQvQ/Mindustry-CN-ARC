@@ -253,13 +253,21 @@ public abstract class ClientLauncher extends ApplicationCore implements Platform
     }
 
     private String getWindowTitle() throws NoSuchAlgorithmException {
+        int enabled = 0;
+        if (mods != null) {
+            for (Mods.LoadedMod mod : mods.mods) {
+                if (mod.enabled()) enabled++;
+            }
+        }
         if(settings.getBool("bossKeyPressing", false)) {
             return "计算器";
         }
-        int enabled = mods.mods.count(t->t.enabled());
         long time = (Time.millis() - startPlayTime) / 1000;
-        return "Mindustry-CN-ARC | 版本号 " + (Version.arcBuild <= 0 ? "dev" : Version.arcBuild) + " | mod启用" + enabled + "/" + (mods == null ? 0 : mods.mods.size) + " | " +
-                (Core.graphics != null ? Core.graphics.getWidth() + "x" + Core.graphics.getHeight() : "")
+        return "Mindustry-CN-ARC-YZH | VERSION " + (Version.arcBuild <= 0 ? "Dev" : Version.arcBuild) + " | " + enabled + "/" + (mods == null ? 0 : mods.mods.size) + " Mods Enable |" +
+                (Core.graphics != null ? Core.graphics.getWidth() + "x" + Core.graphics.getHeight() + " | " : "") +
+                (player != null ? player.name + " | " + (settings.getBool("uuidShow", true) ? getUUID() + " | ": "") : "") +
+                (lastServer != null ? lastServer + " | ": "") +
+                (" " + time / 1140 + " h " + time % 1140 / 60 + " min " + time % 1140 % 60 + " s")
                 ;
     }
 

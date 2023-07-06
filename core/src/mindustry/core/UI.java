@@ -62,6 +62,7 @@ public class UI implements ApplicationListener, Loadable{
     public HostDialog host;
     public PausedDialog paused;
     public SettingsMenuDialog settings;
+    public KlpMenuDialog klpMenu;
     public KeybindDialog controls;
     public MapEditorDialog editor;
     public LanguageDialog language;
@@ -93,7 +94,6 @@ public class UI implements ApplicationListener, Loadable{
     public mindustry.arcModule.ui.dialogs.MusicDialog MusicDialog;
     public mindustry.arcModule.ui.dialogs.ConsoleDialog ConsoleDialog;
     public mindustry.arcModule.ui.window.WindowManager WindowManager;
-    public LabelController LabelController;
     private @Nullable Element lastAnnouncement;
 
     private @Nullable Element lastArcAnnouncement;
@@ -220,6 +220,7 @@ public class UI implements ApplicationListener, Loadable{
         language = new LanguageDialog();
         database = new DatabaseDialog();
         settings = new SettingsMenuDialog();
+        klpMenu = new KlpMenuDialog();
         host = new HostDialog();
         paused = new PausedDialog();
         about = new AboutDialog();
@@ -243,7 +244,6 @@ public class UI implements ApplicationListener, Loadable{
         campaignComplete = new CampaignCompleteDialog();
         MusicDialog = new MusicDialog();
         followUpMenus = new IntMap<>();
-        LabelController = new LabelController();
         WindowManager = new WindowManager();
 
         Group group = Core.scene.root;
