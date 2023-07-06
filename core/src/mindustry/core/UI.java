@@ -883,3 +883,4 @@ public class UI implements ApplicationListener, Loadable{
         return simpleView(cur,total,1);
     }
 }
+//.
