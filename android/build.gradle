@@ -91,14 +91,6 @@ android{
             proguardFiles("proguard-rules.pro")
         }
     }
-
-    if(project.hasProperty("RELEASE_STORE_FILE") || System.getenv("CI") == "true"){
-        buildTypes{
-            release{
-                signingConfig signingConfigs.release
-            }
-        }
-    }
 }
 
 dependencies{
