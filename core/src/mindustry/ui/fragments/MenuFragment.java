@@ -27,7 +27,6 @@ public class MenuFragment{
     private Table container, submenu;
     private Button currentMenu;
     private MenuRenderer renderer;
-
     public void build(Group parent){
         renderer = new MenuRenderer();
 

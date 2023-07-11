@@ -70,7 +70,7 @@ public class PlayerListFragment{
                     menu.defaults().growX().height(50f).fillY();
                     menu.name = "menu";
 
-                    if (Core.settings.getBool("arcWayzerServerMode") && Core.settings.getBool("easyJS")) menu.button("快速换队",() -> teamMode = !teamMode);
+                    if (Core.settings.getBool("arcPlayerList") && Core.settings.getBool("easyJS")) menu.button("js换队",() -> teamMode = !teamMode).checked(t->teamMode);
                     menu.button("@server.bans", ui.bans::show).disabled(b -> net.client());
                     menu.button("@server.admins", ui.admins::show).disabled(b -> net.client());
                     menu.button("@close", this::toggle);
@@ -161,7 +161,7 @@ public class PlayerListFragment{
             iconTable.add(new Image(user.icon()).setScaling(Scaling.bounded)).grow();
             iconTable.name = user.name();
 
-            if (Core.settings.getBool("arcWayzerServerMode")){
+            if (Core.settings.getBool("arcPlayerList")){
                 button.add(iconTable).size(h);
                 button.image(Icon.admin).visible(() -> user.admin && !(!user.isLocal() && net.server())).size(bs).get().updateVisibility();
                 button.table(
@@ -213,21 +213,38 @@ public class PlayerListFragment{
                             () -> ui.showConfirm("@confirm", Core.bundle.format("confirmban",  user.name()), () -> Call.adminRequest(user, AdminAction.ban, null))).size(buttonSize);
                 }
                 if (teamMode) {
-                    state.teams.getActive().each(teamData -> {
-                        button.button("[#" + teamData.team.color + "]" + teamData.team.localized(), Styles.cleart,
-                                () -> Call.sendChatMessage("/js Groups.player.find(e=>e.name== \"" + user.name + "\").team(Team.get(" + teamData.team.id + "))")).size(buttonSize);
-                    });
+                    if (state.teams.getActive().size <= 5){
+                        state.teams.getActive().each(teamData -> button.button("[#" + teamData.team.color + "]" + teamData.team.localized(), Styles.cleart,
+                                () -> Call.sendChatMessage("/js Groups.player.find(e=>e.name== \"" + user.name + "\").team(Team.get(" + teamData.team.id + "))")).size(buttonSize));
+                    }
                     button.button("[violet]+",Styles.cleart,()->{
                         new TeamSelectDialog(team -> Call.sendChatMessage("/js Groups.player.find(e=>e.name== \"" + user.name + "\").team(Team.get(" + team.id + "))"), user.team()).show();
                     }).size(buttonSize);
                 } else if (net.server() || (player.admin && (!user.admin || user == player))) {
-                    state.teams.getActive().each(teamData -> {
-                        button.button("[#" + teamData.team.color + "]" + teamData.team.localized(), Styles.cleart,
-                                () -> Call.adminRequest(user, AdminAction.switchTeam, teamData.team)).size(buttonSize);
-                    });
+                    if (state.teams.getActive().size <= 5){
+                        state.teams.getActive().each(teamData -> button.button("[#" + teamData.team.color + "]" + teamData.team.localized(), Styles.cleart,
+                                () -> Call.adminRequest(user, AdminAction.switchTeam, teamData.team)).size(buttonSize));
+                    }
                     button.button("[violet]+",Styles.cleart,()->{
                         new TeamSelectDialog(team -> Call.adminRequest(user, AdminAction.switchTeam, team), user.team()).show();
                     }).size(buttonSize);
+                }
+                if((net.server() || (player.admin && (!user.admin || user == player))) && !net.client() && !user.isLocal()){
+                    button.button("" + Iconc.admin,Styles.cleart, () -> {
+                        String id = user.uuid();
+
+                        if(user.admin){
+                            ui.showConfirm("@confirm", Core.bundle.format("confirmunadmin",  user.name()), () -> {
+                                netServer.admins.unAdminPlayer(id);
+                                user.admin = false;
+                            });
+                        }else{
+                            ui.showConfirm("@confirm", Core.bundle.format("confirmadmin",  user.name()), () -> {
+                                netServer.admins.adminPlayer(id, user.usid());
+                                user.admin = true;
+                            });
+                        }
+                    }).checked(b -> user.admin).row();
                 }
             }
             //原版模式

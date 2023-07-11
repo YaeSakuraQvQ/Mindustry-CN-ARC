@@ -50,7 +50,7 @@ public class MapInfoDialog extends BaseDialog{
                 tags.put("description", text);
             }).size(400f, 140f).get();
 
-            if (Core.settings.getBool("arcWayzerServerMode")) {
+            if (Core.settings.getBool("arcPlayerList")) {
                 t.row();
                 t.add("[cyan]服务器标签").padRight(8).left();
                 t.button("编辑...", () -> {
