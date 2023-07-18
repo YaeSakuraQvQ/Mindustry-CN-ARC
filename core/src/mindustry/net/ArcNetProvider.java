@@ -203,6 +203,7 @@ public class ArcNetProvider implements NetProvider{
 
     @Override
     public void sendClient(Object object, boolean reliable){
+        if (replaying) return;
         try{
             if(reliable){
                 client.sendTCP(object);

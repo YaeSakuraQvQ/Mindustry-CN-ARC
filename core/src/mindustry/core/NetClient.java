@@ -109,6 +109,7 @@ public class NetClient implements ApplicationListener{
                 return;
             }
 
+            replayController.createReplay(packet.addressTCP);
             net.send(c, true);
 
         });
@@ -116,6 +117,7 @@ public class NetClient implements ApplicationListener{
         net.handleClient(Disconnect.class, packet -> {
             if(quietReset) return;
 
+            replayController.stop();
             connecting = false;
             logic.reset();
             platform.updateRPC();

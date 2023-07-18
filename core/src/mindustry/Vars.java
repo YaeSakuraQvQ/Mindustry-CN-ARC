@@ -44,7 +44,9 @@ public class Vars implements Loadable{
     public static String arcVersionPrefix = "<ARC~" + Version.arcBuild + ">";
     public static int changeLogRead = 18;
     public static Seq<District.advDistrict> districtList = new Seq<>();
-    public static String userContentURL = "https://raw.fastgit.org";
+    public static String userContentURL = "https://raw.kgithub.com";
+    public static boolean replaying = false;
+    public static ReplayController replayController;
 
     /** 开始游玩时间 */
     public static Long startPlayTime = Time.millis();
@@ -360,6 +362,8 @@ public class Vars implements Loadable{
     
         arcVersion = Version.arcBuild <= 0 ? "Dev" : String.valueOf(Version.arcBuild);
         arcVersionPrefix = "<ARC" + "[violet]" + "~" + arcVersion + ">";
+
+        replayController = new ReplayController();
     }
 
     /** Checks if a launch failure occurred.

@@ -399,26 +399,28 @@ public class HudFragment{
                 IntFormat mem = new IntFormat("memory");
                 IntFormat memnative = new IntFormat("memory2");
 
+                info.add("ARC~"+arcVersion).color(getThemeColor()).left();
+                info.row();
                 info.label(() -> fps.get(Core.graphics.getFramesPerSecond())).left().style(Styles.outlineLabel).name("fps");
                 info.row();
-                info.label(() -> {
-                    float speed = advanceToolTable.timeAcce;
-                    if (advanceToolTable.fpslock) {
-                        speed = Core.graphics.getFramesPerSecond() / advanceToolTable.targetfps;
-                    }
-                    return "倍速: " + String.format("%.2f", speed);
-                }).left().style(Styles.outlineLabel);
-                info.row();
+                if (!android){
+                    info.label(() -> {
+                        float speed = advanceToolTable.timeAcce;
+                        if (advanceToolTable.fpslock) {
+                            speed = Core.graphics.getFramesPerSecond() / advanceToolTable.targetfps;
+                        }
+                        return "倍速: " + String.format("%.2f", speed);
+                    }).left().style(Styles.outlineLabel);
+                    info.row();
+                    info.label(() -> "缩放: " + String.format("%.2f", renderer.getScale())).left().style(Styles.outlineLabel);
+                    info.row();
+                }
 
                 if(android){
                     info.label(() -> memnative.get((int)(Core.app.getJavaHeap() / 1024 / 1024), (int)(Core.app.getNativeHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory2");
                 }else{
                     info.label(() -> mem.get((int)(Core.app.getJavaHeap() / 1024 / 1024))).left().style(Styles.outlineLabel).name("memory");
                 }
-                info.row();
-                info.label(() -> "缩放: " + String.format("%.2f", renderer.getScale())).left().style(Styles.outlineLabel);
-                info.row();
-                info.add("ARC~"+arcVersion).color(getThemeColor()).left();
                 info.row();
 
                 info.label(() -> ping.get(netClient.getPing())).visible(net::client).left().style(Styles.outlineLabel).name("ping").row();

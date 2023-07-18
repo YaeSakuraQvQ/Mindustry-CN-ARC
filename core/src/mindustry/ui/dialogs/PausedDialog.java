@@ -121,6 +121,7 @@ public class PausedDialog extends BaseDialog{
     }
 
     public void runExitSave(){
+        replayController.stopPlay();
         wasClient = net.client();
         if(net.client()) netClient.disconnectQuietly();
 

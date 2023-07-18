@@ -5,6 +5,7 @@ import arc.func.*;
 import arc.net.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.net.Packets.*;
@@ -263,7 +264,12 @@ public class Net{
      * Call to handle a packet being received for the client.
      */
     public void handleClientReceived(Packet object){
-        object.handled();
+        try {
+            object.handled();
+            replayController.writePacket(object);
+        } catch (Exception ignored) {
+            return;
+        }
 
         if(object instanceof StreamBegin b){
             streams.put(b.id, currentStream = new StreamBuilder(b));

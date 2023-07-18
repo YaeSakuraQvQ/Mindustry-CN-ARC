@@ -165,6 +165,8 @@ public class MusicDialog extends BaseDialog {
     private void play(MusicInfo info) {
         stop();
         nowMusic = info;
+        api = apis.get(info.src);
+        list = lists.get(info.src);
         list.add(info);
         list.set(list.indexOf(info));
         try {
@@ -458,15 +460,19 @@ public class MusicDialog extends BaseDialog {
         public abstract void build(Table root);
 
         public void getInfoOrCall(MusicInfo info, Cons<MusicInfo> cb) {
+            getInfoOrCall(info, cb, false);
+        }
+
+        public void getInfoOrCall(MusicInfo info, Cons<MusicInfo> cb, boolean noTip) {
             if (info.url != null) {
                 cb.get(info);
                 return;
             }
-            getMusicInfo(info.id, cb, info);
+            getMusicInfo(info.id, cb, noTip, info);
         }
 
         public void share(MusicInfo info) {
-            Vars.ui.showConfirm("分享", "确认分享到聊天框?", () -> getInfoOrCall(info, fullInfo -> Call.sendChatMessage(getPrefix("pink", "Music") + " " + fullInfo.src + "M" + fullInfo.id)));
+            Vars.ui.showConfirm("分享", "确认分享到聊天框?", () -> getInfoOrCall(info, fullInfo -> Call.sendChatMessage(getPrefix("pink", "Music") + " " + fullInfo.src + "M" + fullInfo.id), true));
         }
 
         public void share(MusicList list) {
@@ -812,7 +818,7 @@ public class MusicDialog extends BaseDialog {
         }
     }
 
-    private class KuGouWeb extends NetApi {//酷狗网页版api
+    private class KuGouWeb extends NetApi {
         String uuid;
 
         {
@@ -952,6 +958,7 @@ public class MusicDialog extends BaseDialog {
                 JsonValue data = j.get("data").get(0);
                 if (data.getInt("code") != 200) {
                     Core.app.post(() -> ui.showInfo("此歌曲为vip专属 无法播放"));
+                    return;
                 }
                 Http.HttpRequest lr = Http.post("https://music.163.com/weapi/song/lyric?csrf_token=");
                 encryptor.encryptRequest(lr, "{\"id\":" + data.getString("id") + ",\"lv\":-1,\"tv\":-1,\"csrf_token\":\"\"}");
@@ -1200,37 +1207,39 @@ public class MusicDialog extends BaseDialog {
                 t.addListener(new HandCursorListener());
                 t.margin(6f);
                 t.touchable = Touchable.enabled;
-                t.label(() -> nowMusic.name == null ? "松鼠音乐" : (nowMusic.author + " - " + nowMusic.name));
-                t.button(Icon.leftSmall, RStyles.clearLineNonei, MusicDialog.this::prev).margin(3f).padTop(6f).top().right().size(32);
-                t.button(Icon.rightSmall, RStyles.clearLineNonei, MusicDialog.this::playNext).margin(3f).pad(2).padTop(6f).top().right().size(32);
-                t.button(Icon.play, RStyles.clearLineNonei, MusicDialog.this::play).margin(3f).pad(2).padTop(6f).top().right().size(32);
-                t.button(Icon.pause, RStyles.clearLineNonei, MusicDialog.this::pause).margin(3f).pad(2).padTop(6f).top().right().size(32);
-                t.button(Icon.downloadSmall, RStyles.clearLineNonei, () -> {
-                    if (nowMusic.url != null) {
-                        download(nowMusic);
-                    }
-                }).margin(3f).pad(2).padTop(6f).top().right().size(32);
-                t.label(() -> "音量:" + (byte) vol);
-                t.button(Icon.upSmall, RStyles.clearLineNonei, () -> {
-                    vol = Math.min(vol + 10, 100);
-                    Core.settings.put("musicVolume", vol);
-                    player.setVolume(vol / 100 * 2);
-                }).margin(3f).pad(2).padTop(6f).top().right().size(32);
-                t.button(Icon.downSmall, RStyles.clearLineNonei, () -> {
-                    vol = Math.max(vol - 10, 0);
-                    Core.settings.put("musicVolume", vol);
-                    player.setVolume(vol / 100 * 2);
-                }).margin(3f).pad(2).padTop(6f).top().right().size(32);
-                t.button(Icon.refreshSmall, RStyles.clearLineNoneTogglei, () -> {
-                    player.setLooping(!player.isLooping());
-                    ui.announce("单曲循环已" + (player.isLooping() ? "开启" : "关闭"), 1f);
-                }).margin(3f).pad(2).padTop(6f).top().right().checked(b -> player.isLooping()).size(32);
-                t.button(Icon.linkSmall, RStyles.clearLineNonei, () -> {
-                    if (nowMusic.url != null) {
-                        apis.get(nowMusic.src).share(nowMusic);
-                    }
-                }).margin(3f).pad(2).pad(6).top().right().size(32);
-                t.button(Icon.homeSmall, RStyles.clearLineNonei, MusicDialog.this::show).margin(3f).padTop(6f).top().right().size(32);
+                t.table(tt -> {
+                    tt.label(() -> nowMusic.name == null ? "松鼠音乐" : (nowMusic.author + " - " + nowMusic.name));
+                    tt.button(Icon.leftSmall, RStyles.clearLineNonei, MusicDialog.this::prev).margin(3f).padTop(6f).top().right().size(32);
+                    tt.button(Icon.rightSmall, RStyles.clearLineNonei, MusicDialog.this::playNext).margin(3f).pad(2).padTop(6f).top().right().size(32);
+                    tt.button(Icon.play, RStyles.clearLineNonei, MusicDialog.this::play).margin(3f).pad(2).padTop(6f).top().right().size(32);
+                    tt.button(Icon.pause, RStyles.clearLineNonei, MusicDialog.this::pause).margin(3f).pad(2).padTop(6f).top().right().size(32);
+                    tt.button(Icon.downloadSmall, RStyles.clearLineNonei, () -> {
+                        if (nowMusic.url != null) {
+                            download(nowMusic);
+                        }
+                    }).margin(3f).pad(2).padTop(6f).top().right().size(32);
+                    tt.label(() -> "音量:" + (byte) vol);
+                    tt.button(Icon.upSmall, RStyles.clearLineNonei, () -> {
+                        vol = Math.min(vol + 10, 100);
+                        Core.settings.put("musicVolume", vol);
+                        player.setVolume(vol / 100 * 2);
+                    }).margin(3f).pad(2).padTop(6f).top().right().size(32);
+                    tt.button(Icon.downSmall, RStyles.clearLineNonei, () -> {
+                        vol = Math.max(vol - 10, 0);
+                        Core.settings.put("musicVolume", vol);
+                        player.setVolume(vol / 100 * 2);
+                    }).margin(3f).pad(2).padTop(6f).top().right().size(32);
+                    tt.button(Icon.refreshSmall, RStyles.clearLineNoneTogglei, () -> {
+                        player.setLooping(!player.isLooping());
+                        ui.announce("单曲循环已" + (player.isLooping() ? "开启" : "关闭"), 1f);
+                    }).margin(3f).pad(2).padTop(6f).top().right().checked(b -> player.isLooping()).size(32);
+                    tt.button(Icon.linkSmall, RStyles.clearLineNonei, () -> {
+                        if (nowMusic.url != null) {
+                            apis.get(nowMusic.src).share(nowMusic);
+                        }
+                    }).margin(3f).pad(2).pad(6).top().right().size(32);
+                    tt.button(Icon.homeSmall, RStyles.clearLineNonei, MusicDialog.this::show).margin(3f).padTop(6f).top().right().size(32);
+                });
                 t.add().growX();
                 translation.set(Core.settings.getFloat("lrcX", 200f), Core.settings.getFloat("lrcY", 200f));
                 t.addListener(new InputListener() {
@@ -1256,15 +1265,17 @@ public class MusicDialog extends BaseDialog {
                     }
                 });
                 t.row();
-                t.label(() -> "").update(l -> {
-                    l.setFontScale(fontScale);
-                    l.setText(lrcColor + lrcLine1);
-                }).center();
-                t.row();
-                t.label(() -> "").update(l -> {
-                    l.setFontScale(fontScale);
-                    l.setText(nextLrcColor + lrcLine2);
-                }).center();
+                t.table(tt -> {
+                    t.label(() -> "").update(l -> {
+                        l.setFontScale(fontScale);
+                        l.setText(lrcColor + lrcLine1);
+                    }).center();
+                    t.row();
+                    t.label(() -> "").update(l -> {
+                        l.setFontScale(fontScale);
+                        l.setText(nextLrcColor + lrcLine2);
+                    }).center();
+                });
             });
         }
     }

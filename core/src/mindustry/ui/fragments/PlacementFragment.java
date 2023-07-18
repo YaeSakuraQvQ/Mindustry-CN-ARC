@@ -1,6 +1,7 @@
 package mindustry.ui.fragments;
 
 import arc.*;
+import arc.func.Boolf;
 import arc.graphics.*;
 import arc.input.*;
 import arc.math.geom.*;
@@ -570,32 +571,18 @@ public class PlacementFragment{
                                 if(control.input.selectedUnits.size > 0){
                                     u.row();
                                     u.table(sp -> {
-                                        float size = 40f;
                                         float wound = (float) Core.settings.getInt("rtsWoundUnit") / 100f;
                                         if (control.input.selectedUnits.contains(unit -> unit.health >= unit.maxHealth * wound) && control.input.selectedUnits.contains(unit -> unit.health < unit.maxHealth * wound)){
                                             sp.table(spp->{
-                                                spp.button("[green]\uE813", Styles.cleart, () -> {
-                                                    control.input.selectedUnits = control.input.selectedUnits.select(unit -> unit.health >= unit.maxHealth * wound);
-                                                    ui.arcInfo("[cyan]arc控制器\n[orange]选择高血量单位");
-                                                }).fill().size(size);
-                                                spp.button("[red]\uE80F", Styles.cleart, () -> {
-                                                    control.input.selectedUnits = control.input.selectedUnits.select(unit -> unit.health < unit.maxHealth * wound);
-                                                    ui.arcInfo("[cyan]arc控制器\n[orange]选择低血量单位");
-                                                }).size(size);
+                                                arcSelectUnits(spp,"[green]\uE813","高血量单位", unit -> unit.health >= unit.maxHealth * wound);
+                                                arcSelectUnits(spp,"[red]\uE80F","低血量单位", unit -> unit.health < unit.maxHealth * wound);
                                             });
-
                                         }
 
                                         if (control.input.selectedUnits.contains(unit -> unit.type.commands.length > 1) && control.input.selectedUnits.contains(unit -> unit.type.commands.length <= 1)){
                                             sp.table(spp->{
-                                                spp.button("\uE86E", Styles.cleart, () -> {
-                                                    control.input.selectedUnits = control.input.selectedUnits.select(unit -> unit.type.commands.length <= 1);
-                                                    ui.arcInfo("[cyan]arc控制器\n[orange]选择进攻性单位");
-                                                }).size(size);
-                                                spp.button("\uE86B", Styles.cleart, () -> {
-                                                    control.input.selectedUnits = control.input.selectedUnits.select(unit -> unit.type.commands.length > 1);
-                                                    ui.arcInfo("[cyan]arc控制器\n[orange]选择辅助性单位");
-                                                }).size(size);
+                                                arcSelectUnits(spp,"\uE86E","进攻性单位", unit -> unit.type.commands.length <= 1);
+                                                arcSelectUnits(spp,"\uE86B","辅助性单位", unit -> unit.type.commands.length > 1);
                                             });
                                         }
 
@@ -603,24 +590,11 @@ public class PlacementFragment{
                                         int hasLand = control.input.selectedUnits.contains(unit -> !unit.isFlying() && !unit.type.naval) ? 1 : 0;
                                         int hasNaval = control.input.selectedUnits.contains(unit -> unit.type.naval) ? 1 : 0;
                                         if (hasFlyer + hasLand + hasNaval >=2 ){
-                                            if (hasFlyer == 1){
-                                                sp.button(UnitTypes.flare.emoji(), Styles.cleart, () -> {
-                                                    control.input.selectedUnits = control.input.selectedUnits.select(Flyingc::isFlying);
-                                                    ui.arcInfo("[cyan]arc控制器\n[orange]飞行单位！");
-                                                }).color(Color.red).size(size);
-                                            }
-                                            if (hasLand == 1){
-                                                sp.button(UnitTypes.dagger.emoji(), Styles.cleart, () -> {
-                                                    control.input.selectedUnits = control.input.selectedUnits.select(unit -> !unit.isFlying() && !unit.type.naval);
-                                                    ui.arcInfo("[cyan]arc控制器\n[orange]陆军单位！");
-                                                }).color(Color.red).size(size);
-                                            }
-                                            if (hasNaval == 1){
-                                                sp.button(UnitTypes.retusa.emoji(), Styles.cleart, () -> {
-                                                    control.input.selectedUnits = control.input.selectedUnits.select(unit -> unit.type.naval);
-                                                    ui.arcInfo("[cyan]arc控制器\n[orange]海军单位！");
-                                                }).color(Color.red).size(size);
-                                            }
+                                            sp.table(spp->{
+                                                if (hasFlyer == 1) arcSelectUnits(spp,UnitTypes.flare.emoji(),"飞行单位", unit -> unit.isFlying());
+                                                if (hasLand == 1) arcSelectUnits(spp,UnitTypes.crawler.emoji(),"陆军单位", unit -> !unit.isFlying() && !unit.type.naval);
+                                                if (hasNaval == 1) arcSelectUnits(spp,UnitTypes.retusa.emoji(),"海军单位", unit -> unit.type.naval);
+                                            });
                                         }
                                     }).fillX().padTop(4f).left();
                                 }
@@ -950,4 +924,25 @@ public class PlacementFragment{
         return null;
     }
 
+    void arcSelectUnits(Table table, String icon, String info, Boolf<Unit> cons){
+        float size = 40f;
+
+        table.button(icon, Styles.cleart, () -> {}).tooltip(info).size(size).with(b->{
+            var listener = new ClickListener();
+            b.clicked(KeyCode.mouseLeft, () -> {
+                control.input.selectedUnits = control.input.selectedUnits.select(cons::get);
+                Events.fire(Trigger.unitCommandChange);
+                ui.arcInfo("[cyan]arc控制器\n[acid]选择" + info + "！");
+            });
+            //right click -> remove
+            b.clicked(KeyCode.mouseRight, () -> {
+                control.input.selectedUnits.removeAll(cons::get);
+                Events.fire(Trigger.unitCommandChange);
+                ui.arcInfo("[cyan]arc控制器\n[orange]移除" + info + "！");
+            });
+
+            b.addListener(listener);
+            b.addListener(new HandCursorListener());
+        });
+    }
 }
