@@ -45,6 +45,7 @@ public class Vars implements Loadable{
     public static String arcVersionPrefix = "<ARC~" + Version.arcBuild + ">";
     public static int changeLogRead = 18;
     public static Seq<District.advDistrict> districtList = new Seq<>();
+    public static Seq<hiddenMenu> menuLists = new Seq<>();
     public static String userContentURL = "https://raw.kgithub.com";
     public static boolean replaying = false;
     public static ReplayController replayController;
@@ -366,16 +367,6 @@ public class Vars implements Loadable{
 
         replayController = new ReplayController();
     }
-    public static Seq<hiddenMenu> menuLists = new Seq<>();
-    public static class hiddenMenu {
-        public Dialog menu;
-        public Long hiddenTime;
-
-        public hiddenMenu(Dialog dialog, long millis) {
-            this.menu = dialog;
-            this.hiddenTime = Long.valueOf(millis);
-        }
-    }
 
     /** Checks if a launch failure occurred.
      * If this is the case, failedToLaunch is set to true. */
@@ -555,4 +546,13 @@ public class Vars implements Loadable{
         return true;
     }
 
+}
+public static class hiddenMenu {
+    public Dialog menu;
+    public Long hiddenTime;
+
+    public hiddenMenu(Dialog dialog, long millis) {
+        this.menu = dialog;
+        this.hiddenTime = Long.valueOf(millis);
+    }
 }
