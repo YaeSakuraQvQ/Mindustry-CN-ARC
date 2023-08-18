@@ -130,6 +130,7 @@ public class HudSettingsTable extends Table {
                     t.button("[white]法", NCtextStyle, () -> {
                         ui.showConfirm("受不了，直接投降？", () -> Call.sendChatMessage("/vote gameover"));
                     }).size(30, 30).tooltip("法国军礼");
+                    t.button("[purple]唤", this.NCtextStyle, () -> {
                     Vars.hiddenMenu menu;
                     while (!Vars.menuLists.isEmpty() && (menu = Vars.menuLists.first()) != null) {
                         if (((float) (Time.millis() - menu.hiddenTime.longValue())) < Core.settings.getFloat("隐藏菜单保留时间", 60.0f) * 1000.0f) {
