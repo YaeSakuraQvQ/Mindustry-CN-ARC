@@ -132,16 +132,19 @@ public class HudSettingsTable extends Table {
                         ui.showConfirm("受不了，直接投降？", () -> Call.sendChatMessage("/vote gameover"));
                     }).size(30, 30).tooltip("法国军礼");
                     t.button("[purple]唤", this.NCtextStyle, () -> {
-                    Vars.hiddenMenu menu;
-                    while (!Vars.menuLists.isEmpty() && (menu = Vars.menuLists.first()) != null) {
-                        if (((float) (Time.millis() - menu.hiddenTime.longValue())) < Core.settings.getFloat("隐藏菜单保留时间", 60.0f) * 1000.0f) {
-                            menu.menu.show();
-                            Vars.menuLists.remove((Seq<Vars.hiddenMenu>) menu);
+                        while(!Vars.menuLists.isEmpty()) {
+                            Vars.hiddenMenu menu = (Vars.hiddenMenu)Vars.menuLists.first();
+                            if (menu != null) {
+                                if ((float)(Time.millis() - menu.hiddenTime) >= Core.settings.getFloat("隐藏菜单保留时间", 60.0F) * 1000.0F) {
+                                    Vars.menuLists.remove(menu);
+                                    continue;
+                                }
+                                menu.menu.show();
+                                Vars.menuLists.remove(menu);
+                            }
                             return;
                         }
-                        Vars.menuLists.remove((Seq<Vars.hiddenMenu>) menu);
-                    }
-                }).size(30.0f, 30.0f).tooltip("唤起被隐藏的菜单");
+                    }).size(30.0F, 30.0F).tooltip("唤起被隐藏的菜单");
                 }).left();
                 sp.row();
                 sp.table(t -> {

@@ -664,7 +664,7 @@ public class UI implements ApplicationListener, Loadable{
         return new Dialog(title){{
             setFillParent(true);
             this.cont.button("<KLP端>隐藏菜单", () -> {
-                Vars.menuLists.add((Seq<Vars.hiddenMenu>) new Vars.hiddenMenu(this, Time.millis()));
+                Vars.menuLists.add(new Vars.hiddenMenu(this, Time.millis()));;
                 hide();
             }).fillX().row();
             removeChild(titleTable);
