@@ -148,11 +148,11 @@ public class KlpMenuDialog extends BaseDialog{
                         connect(resaddress,resport);
                     }).tooltip(Vars.lastServer).width(128f).height(64f);
                 }).row();
+            }
             addSliderSetting("隐藏菜单保留时间", "隐藏菜单保留时间", Float.valueOf(0.0f), Float.valueOf(600.0f), 30, Float.valueOf(60.0f), "隐藏菜单后可被唤醒的时间(s)", playerPlayTable);
             addCheckSetting("[已强制开启]不发送ARC版本信息", "不发送ARC版本信息", "拒绝魔改端歧视,从开启功能做起", playerPlayTable);
             addCheckSetting("进服随机uuid与usid", "进服随机uuid与usid", "antiban!", playerPlayTable);
             addCheckSetting("模拟移动端", "模拟移动端", "让服务器认为你是手机版！", playerPlayTable);   
-            }
         }
         settings.add(playerPlayTable).row();
         cont.add(pane).center();
