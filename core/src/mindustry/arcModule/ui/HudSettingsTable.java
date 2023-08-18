@@ -15,6 +15,7 @@ import arc.scene.*;
 import arc.scene.ui.ImageButton.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.content.StatusEffects;
 import mindustry.game.EventType;
 import mindustry.input.*;

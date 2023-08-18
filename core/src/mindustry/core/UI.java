@@ -20,6 +20,7 @@ import arc.scene.ui.Tooltip.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.Vars;
 import mindustry.arcModule.ui.*;
 import mindustry.arcModule.ui.dialogs.*;
 import mindustry.arcModule.ui.window.*;
