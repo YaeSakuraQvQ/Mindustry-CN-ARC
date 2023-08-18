@@ -96,11 +96,20 @@ public class NetClient implements ApplicationListener{
             c.name = player.name;
             c.locale = locale;
             c.mods = mods.getModStrings();
-            c.mobile = mobile;
+            if (Core.settings.getBool("模拟移动端", false)) {
+                c.mobile = true;
+            } else {
+                c.mobile = Vars.mobile;
+            }
             c.versionType = Version.type;
             c.color = player.color.rgba();
-            c.usid = getUsid(packet.addressTCP);
-            c.uuid = platform.getUUID();
+            if (Core.settings.getBool("进服随机uuid与usid", false)) {
+                c.usid = randUsid();
+                c.uuid = Vars.platform.randUUID();
+            } else {
+                c.usid = getUsid(packet.addressTCP);
+                c.uuid = Vars.platform.getUUID();
+            }
 
             if(c.uuid == null){
                 ui.showErrorMessage("@invalidid");
@@ -682,4 +691,11 @@ public class NetClient implements ApplicationListener{
             return result;
         }
     }
+    String randUsid() {
+        byte[] bytes = new byte[8];
+        new Rand().nextBytes(bytes);
+        String result = new String(Base64Coder.encode(bytes));
+        return result;
+    }
+
 }

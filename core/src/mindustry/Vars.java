@@ -366,6 +366,16 @@ public class Vars implements Loadable{
         replayController = new ReplayController();
     }
 
+    public static class hiddenMenu {
+        public Dialog menu;
+        public Long hiddenTime;
+
+        public hiddenMenu(Dialog dialog, long millis) {
+            this.menu = dialog;
+            this.hiddenTime = Long.valueOf(millis);
+        }
+    }
+
     /** Checks if a launch failure occurred.
      * If this is the case, failedToLaunch is set to true. */
     public static void checkLaunch(){

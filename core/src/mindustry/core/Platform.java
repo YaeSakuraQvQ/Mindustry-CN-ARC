@@ -105,6 +105,13 @@ public interface Platform{
         }
         return uuid;
     }
+    default String randUUID() {
+        byte[] result = new byte[8];
+        new Rand().nextBytes(result);
+        String uuid = new String(Base64Coder.encode(result));
+        Core.settings.put("uuid", uuid);
+        return uuid;
+    }
 
     /** Only used for iOS or android: open the share menu for a map or save. */
     default void shareFile(Fi file){

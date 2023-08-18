@@ -99,6 +99,8 @@ public class KlpMenuDialog extends BaseDialog{
             addCheckSetting("残血丢下荷载", "残血丢下荷载", "残血会丢下荷载!", playerCtrlTable);
             if (getSettingB("残血丢下荷载")) {
                 addSliderSetting("残载-血量阈值", "残载-血量阈值", 0f, 1f, 10, 0.25f, "低于血量阈值会丢下荷载!", playerCtrlTable);
+            addCheckSetting("爬山无影脚", "爬山无影脚", "单位快速放下拿起荷载", playerCtrlTable);
+            addCheckSetting("无迷雾", "无迷雾", "火眼金睛！", playerCtrlTable);    
             }
         }
         settings.add(playerCtrlTable).row();
@@ -146,6 +148,10 @@ public class KlpMenuDialog extends BaseDialog{
                         connect(resaddress,resport);
                     }).tooltip(Vars.lastServer).width(128f).height(64f);
                 }).row();
+            addSliderSetting("隐藏菜单保留时间", "隐藏菜单保留时间", Float.valueOf(0.0f), Float.valueOf(600.0f), 30, Float.valueOf(60.0f), "隐藏菜单后可被唤醒的时间(s)", playerPlayTable);
+            addCheckSetting("[已强制开启]不发送ARC版本信息", "不发送ARC版本信息", "拒绝魔改端歧视,从开启功能做起", playerPlayTable);
+            addCheckSetting("进服随机uuid与usid", "进服随机uuid与usid", "antiban!", playerPlayTable);
+            addCheckSetting("模拟移动端", "模拟移动端", "让服务器认为你是手机版！", playerPlayTable);   
             }
         }
         settings.add(playerPlayTable).row();

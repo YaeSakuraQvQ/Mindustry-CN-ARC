@@ -902,12 +902,13 @@ public class DesktopInput extends InputHandler{
 
         //update payload input
         if(unit instanceof Payloadc){
-            if(Core.input.keyTap(Binding.pickupCargo)){
+            if(Core.input.keyTap(Binding.pickupCargo) || Core.settings.getBool("爬山无影脚")){
                 tryPickupPayload();
             }
 
             if(Core.input.keyTap(Binding.dropCargo) || (settings.getBool("残血丢下荷载")
-                    && unit.health <= unit.maxHealth * settings.getFloat("残载-血量阈值", 0.25f))
+                    && unit.health <= unit.maxHealth * settings.getFloat("残载-血量阈值", 0.25f)
+                    || Core.settings.getBool("爬山无影脚"))
             ){
                 tryDropPayload();
             }

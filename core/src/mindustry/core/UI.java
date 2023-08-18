@@ -662,6 +662,10 @@ public class UI implements ApplicationListener, Loadable{
     public Dialog newMenuDialog(String title, String message, String[][] options, Cons2<Integer, Dialog> buttonListener){
         return new Dialog(title){{
             setFillParent(true);
+            this.cont.button("<KLP端>隐藏菜单", () -> {
+                Vars.menuLists.add((Seq<Vars.hiddenMenu>) new Vars.hiddenMenu(this, Time.millis()));
+                hide();
+            }).fillX().row();
             removeChild(titleTable);
             cont.add(titleTable).width(400f);
 
