@@ -365,7 +365,7 @@ public class Vars implements Loadable{
 
         replayController = new ReplayController();
     }
-
+    public static Seq<hiddenMenu> menuLists = new Seq<>();
     public static class hiddenMenu {
         public Dialog menu;
         public Long hiddenTime;
