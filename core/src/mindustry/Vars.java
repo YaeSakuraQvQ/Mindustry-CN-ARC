@@ -5,6 +5,7 @@ import arc.assets.*;
 import arc.files.*;
 import arc.graphics.*;
 import arc.scene.ui.layout.*;
+import arc.scene.ui.Dialog;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.Log.*;
