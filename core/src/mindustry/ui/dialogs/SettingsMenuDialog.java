@@ -632,6 +632,7 @@ public class SettingsMenuDialog extends BaseDialog{
             });
             arc.checkPref("arcPlayerList", true);
             arc.checkPref("ShowInfoPopup", true);
+            arc.checkPref("arcAutoGG", false);
             arc.checkPref("arcShareWaveInfo", false);
             arc.checkPref("arcAlwaysTeamColor", false);
 

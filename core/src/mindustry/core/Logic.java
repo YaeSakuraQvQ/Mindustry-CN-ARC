@@ -371,6 +371,9 @@ public class Logic implements ApplicationListener{
         state.gameOver = true;
         if(!headless){
             state.won = player.team() == winner;
+            if(Core.settings.getBool("arcAutoGG") && net.client()){
+                Call.sendChatMessage("gg");
+            }
         }
     }
 
