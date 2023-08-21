@@ -96,7 +96,7 @@ public class MenuFragment{
             //Fonts.outline.draw("test", fx + logow / 2, fy - logoh/2f - Scl.scl(2f), Color.gold, 2, false, Align.center);
 
             Fonts.outline.setColor(Color.white);
-            Fonts.outline.draw(versionText+arcversionText, fx, fy - logoh/2f - Scl.scl(2f), Align.center);
+            Fonts.outline.draw(versionText/**+arcversionText*/, fx, fy - logoh/2f - Scl.scl(2f), Align.center);
         }).touchable = Touchable.disabled;
     }
 
