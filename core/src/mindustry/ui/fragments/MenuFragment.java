@@ -65,18 +65,18 @@ public class MenuFragment{
             up = discordBanner;
         }}, ui.discord::show).marginTop(9f).marginLeft(10f).tooltip("@discord").size(84, 45).name("discord"));
 
-        parent.fill(c -> c.bottom().right().button("检查更新", Icon.refresh, () -> {
+        parent.fill(c -> c.bottom().right().button("检查更新", Icon.refresh, () -> {/**
             ui.loadfrag.show();
             becontrol.checkUpdate(result -> {
                 ui.loadfrag.hide();
-            });
-        }).size(200, 60).name("检查更新").update(t -> {
+            }); */
+        }).size(200, 60).name("检查更新")/**.update(t -> {
             t.getLabel().setColor(becontrol.isUpdateAvailable() ? Tmp.c1.set(Color.white).lerp(Pal.accent, Mathf.absin(5f, 1f)) : Color.white);
-        }));
+        })*/);
 
 
         String versionText = ((Version.build == -1) ? "[#fc8140aa]" : "[cyan]") + Version.combined();
-        String arcversionText = "\n[cyan]ARC version:" + Version.arcBuild;
+        //String arcversionText = "\n[cyan]ARC version:" + Version.arcBuild;
         parent.fill((x, y, w, h) -> {
             TextureRegion logo = Core.atlas.find("logo");
             float width = Core.graphics.getWidth(), height = Core.graphics.getHeight() - Core.scene.marginTop;
