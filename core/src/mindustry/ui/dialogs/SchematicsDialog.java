@@ -1051,8 +1051,7 @@ public class SchematicsDialog extends BaseDialog{
                 cont.table(table -> {
                         table.add("[violet]快捷蓝图").row();
                         table.add("设置图标").row();
-                        TextField iconField = table.field("icon",null).size(400f,55f).get();
-                        table.row();
+                        TextField iconField = table.field("为这个蓝图输入一个你想要的图标吧~",null).size(400f,55f).get().row();
                         table.add("设置到快捷蓝图").row();
                         for (int i = 1; i <= 20; i++) {
                             int finalI = i;
