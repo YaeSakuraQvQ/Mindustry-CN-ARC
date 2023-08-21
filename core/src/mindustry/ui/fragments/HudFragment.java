@@ -181,7 +181,7 @@ public class HudFragment{
         });
 
         //quickschemUI
-        parent.fill(cons(t => {
+        parent.fill(t -> {
             let style = Styles.clearNonei;
             const width = 30*3/5;
             for(let h = 0;h<20;h++){
@@ -203,7 +203,7 @@ public class HudFragment{
                 imgbutton.get().resizeImage(width*0.8);
             }
             t.top().left().marginTop(271);
-        }));
+        });
 
         ui.hints.build(parent);
 
