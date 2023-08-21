@@ -182,25 +182,25 @@ public class HudFragment{
 
         //quickschemUI
         parent.fill(t -> {
-            let style = Styles.clearNonei;
-            int width = 30*3/5;
-            for(let h = 0;h<20;h++){
+            style = Styles.clearNonei;
+            int width = 30 * 3 / 5;
+            for (int h = 0; h < 20; h++) {
                 int i = h;
-                if(h > 1 && h % 5 == 0){
+                if (h > 1 && h % 5 == 0) {
                     t.row();
                 }
-                let icon = getIcon("iconSlot"+i);
-                let imgbutton = t.button(icon, style, run(()->{
-                    useSchematic(Core.settings.getString("quickschemSlot"+i), "quickschemSlot"+i);
-                }));
-    
-                imgbutton.update(b -> b.setDisabled(!Core.settings.getString("quickschemSlot"+i)))
-                .width(width).height(width).name("imgbuttonores")
-                .tooltip(Core.settings.getString("quickschemSlot"+i, "_"));
-                
-                imgbutton.get().getImage().setScaling(Scaling.stretch);
-                imgbutton.get().getImage().setSize(width*0.8,width*0.8);
-                imgbutton.get().resizeImage(width*0.8);
+                icon = getIcon("iconSlot" + i);
+                imgbutton = t.button(icon, style, () -> {
+                    useSchematic(Core.settings.getString("quickschemSlot" + i), "quickschemSlot" + i);
+                });
+        
+                imgbutton.update(b -> b.setDisabled(!Core.settings.getString("quickschemSlot" + i)))
+                    .width(width).height(width).name("imgbuttonores")
+                    .tooltip(Core.settings.getString("quickschemSlot" + i, "_"));
+        
+                imgbutton.getImage().setScaling(Scaling.stretch);
+                imgbutton.getImage().setSize(width * 0.8, width * 0.8);
+                imgbutton.resizeImage(width * 0.8);
             }
             t.top().left().marginTop(271);
         });
