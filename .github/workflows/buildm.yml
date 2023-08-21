@@ -1,6 +1,6 @@
 name: AutoBuild-Android
 
-on: [workflow_dispatch]
+on: [push, workflow_dispatch]
 
 jobs:
   runPush:
@@ -13,6 +13,10 @@ jobs:
         with:
           java-version: 16
       - name: build
+        env:
+          keystore_password: ${{ secrets.KEYSTORE_PASSWORD_SECRET }}
+          keystore_alias_password: ${{ secrets.KEYSTORE_PASSWORD_SECRET }}
+          keystore_alias: key0
         run: |
           ./gradlew android:assembleRelease
       - name: Upload
