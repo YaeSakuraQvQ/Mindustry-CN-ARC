@@ -12,6 +12,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 16
+      - name: Set up keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" > bekeystore_base64.txt
+          base64 --decode --ignore-garbage bekeystore_base64.txt > bekeystore.jks
       - name: build
         env:
           keystore_password: ${{ secrets.KEYSTORE_PASSWORD_SECRET }}
