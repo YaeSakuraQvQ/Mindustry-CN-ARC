@@ -18,10 +18,13 @@ import arc.util.Tmp;
 import mindustry.content.Fx;
 import mindustry.entities.Effect;
 import mindustry.game.EventType;
+import mindustry.gen.Icon;
+import mindustry.gen.Iconc;
 import mindustry.gen.Player;
 import mindustry.gen.Unit;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
+import mindustry.graphics.Pal;
 import mindustry.ui.dialogs.BaseDialog;
 
 import java.lang.reflect.Field;
@@ -149,6 +152,21 @@ public class arcPlayerEffect {
 
         // 特效轨迹
         if (show && Mathf.chanceDelta(effectChance)) playerEffect.at(unit.x, unit.y, effectColor);
+        Draw.reset();
+    }
+
+    public static void drawPlayerBuildRange(Unit unit) {
+        Draw.z(Layer.effect - 2f);
+        Draw.color(Pal.heal);
+
+        Lines.stroke(2f);
+
+        for (int i = 0; i < 3; i++) {
+            float rot = player.unit().rotation + i * 360f / 3 + 15f;
+            Lines.arc(unit.x, unit.y, unit.type.buildRange, 0.25f, rot, (int) (50 + unit.type.buildRange / 10));
+            Draw.rect(Icon.wrench.getRegion(), unit.x + player.unit().type.buildRange * Mathf.cos((float) Math.toRadians(rot-15f)),  unit.y + player.unit().type.buildRange * Mathf.sin((float) Math.toRadians(rot-15f)),8f,8f);
+        }
+
         Draw.reset();
     }
 

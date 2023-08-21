@@ -16,6 +16,7 @@ import arc.scene.utils.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.arcModule.toolpack.picToMindustry;
+import mindustry.arcModule.ui.dialogs.MessageDialog;
 import mindustry.content.Blocks;
 import mindustry.content.Planets;
 import mindustry.content.UnitTypes;
@@ -33,6 +34,7 @@ import mindustry.world.meta.StatUnit;
 import java.util.regex.*;
 
 import static mindustry.Vars.*;
+import static mindustry.arcModule.RFuncs.getPrefix;
 import static mindustry.content.Items.*;
 
 public class SchematicsDialog extends BaseDialog{
@@ -50,6 +52,8 @@ public class SchematicsDialog extends BaseDialog{
 
     private String surpuloTags = UnitTypes.gamma.emoji(), erekirTags = UnitTypes.emanate.emoji();
     private  Seq<String> planetTags = new Seq<String>().add(surpuloTags,erekirTags);
+    public static final String ShareType = "[blue]<Schem>";
+    private boolean fromShare = false;
 
     public SchematicsDialog(){
         super("@schematics");
@@ -388,11 +392,47 @@ public class SchematicsDialog extends BaseDialog{
                     }
                     dialog.hide();
                 }).marginLeft(12f);
+                t.row();
+                t.button("分享蓝图", Icon.export, style, () -> {
+                    try {
+                        Http.HttpRequest req = Http.post("https://pastebin.com/api/api_post.php", "api_dev_key=sdBDjI5mWBnHl9vBEDMNiYQ3IZe0LFEk&api_option=paste&api_paste_expire_date=10M&api_paste_code=" + schematics.writeBase64(s));
+                        req.submit(r -> {
+                            String code = r.getResultAsString();
+                            Core.app.post(() -> Call.sendChatMessage(getPrefix("blue", "Schem") + " " + code.substring(code.lastIndexOf('/') + 1)));
+                        });
+                        req.error(e -> Core.app.post(() -> ui.showException("分享失败", e)));
+                    } catch (Exception e) {
+                        ui.showException("分享失败", e);
+                    }
+                    dialog.hide();
+                }).marginLeft(12f);
             });
         });
 
         dialog.addCloseButton();
         dialog.show();
+    }
+
+    public boolean resolveSchematic(String msg, @Nullable Player sender) {
+        if ((!msg.contains(ShareType)) || (!MessageDialog.arcMsgType.schematic.show)) {
+            return false;
+        }
+        int start = msg.indexOf(' ', msg.indexOf(ShareType) + ShareType.length());
+        Http.get("https://pastebin.com/raw/" + msg.substring(start + 1), r -> {
+            String base64 = r.getResultAsString().replace(" ", "+");
+            Core.app.post(() -> {
+                try {
+                    Schematic s = Schematics.readBase64(base64);
+                    s.removeSteamID();
+                    if (sender != null) s.tags.put("name", "来自" + sender.plainName() + "的蓝图");
+                    fromShare = true;
+                    SchematicsDialog.this.showInfo(s);
+                } catch(Throwable e) {
+                    ui.showException(e);
+                }
+            });
+        });
+        return true;
     }
 
     private String arcSchematicsInfo(Schematic schem,boolean description){
@@ -1092,6 +1132,15 @@ public class SchematicsDialog extends BaseDialog{
             buttons.button("@back", Icon.left, this::hide);
             buttons.button("@editor.export", Icon.upload, () -> showExport(schem));
             buttons.button("@edit", Icon.edit, () -> showEdit(schem));
+            if (fromShare) {
+                fromShare = false;
+                buttons.button("@save", Icon.save, () -> {
+                    schematics.add(schem);
+                    setup();
+                    ui.showInfoFade("@schematic.saved");
+                    checkTags(schem);
+                });
+            }
             show();
         }
     }

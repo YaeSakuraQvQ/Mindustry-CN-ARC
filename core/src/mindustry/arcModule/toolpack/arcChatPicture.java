@@ -33,6 +33,7 @@ public class arcChatPicture {
     static int curPicture = 0;
 
     public static boolean resolveMessage(String text, @Nullable Player playersender) {
+        if (!Core.settings.getBool("arcShareMedia")) return false;
         if (!text.contains(ShareType) || !text.contains("http")) {
             return false;
         }

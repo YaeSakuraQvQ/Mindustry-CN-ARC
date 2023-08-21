@@ -55,7 +55,7 @@ public class MusicDialog extends BaseDialog {
     public static final String version = "1.2.3";
     public static final String ShareType = "[pink]<Music>";
     public float vol;
-    public Music player;
+    public Music player, sounds;
     private static final String E = "UTF-8";
     private static final ArrayList<MusicApi> apis = new ArrayList<>();
     private final ArrayList<MusicList> lists = new ArrayList<>();
@@ -105,8 +105,10 @@ public class MusicDialog extends BaseDialog {
                 if (check()) setup();
             });
             player = new Music();
-            player.setVolume(2);
-            vol = Core.settings.getFloat("musicVolume", 100f);;
+            sounds = new Music();
+            vol = Core.settings.getFloat("musicVolume", 100f);
+            player.setVolume(vol / 100 * 2);
+            sounds.setVolume(vol / 100 * 2);
             loaded = true;
             setup();
             switchDialog = new BaseDialog("切换api");
@@ -133,6 +135,18 @@ public class MusicDialog extends BaseDialog {
             nextLrcColor = "[" + Core.settings.getString("nextLrcColor", "white") + "]";
             buildLRC();
             Events.run(EventType.Trigger.update, this::updateProgress);
+            if (Core.settings.getBool("arcShareMedia")){
+                netClient.addPacketHandler("forceAudio", url -> Http.get(url, r -> {
+                    try {
+                        Fi tmp = tmpDir.child("server.mp3");
+                        tmp.writeBytes(r.getResult());
+                        sounds.load(tmp);
+                        sounds.play();
+                    } catch (Exception ignored) {
+                    }
+                }));
+            }
+
         } catch (Exception ignored) {
         }
     }
@@ -242,11 +256,13 @@ public class MusicDialog extends BaseDialog {
                             vol = Math.min(vol + 10, 100);
                             Core.settings.put("musicVolume", vol);
                             player.setVolume(vol / 100 * 2);
+                            sounds.setVolume(vol / 100 * 2);
                         }).margin(3f).pad(2).padTop(6f).top().right().size(32);
                         ttt.button(Icon.downSmall, RStyles.clearLineNonei, () -> {
                             vol = Math.max(vol - 10, 0);
                             Core.settings.put("musicVolume", vol);
                             player.setVolume(vol / 100 * 2);
+                            sounds.setVolume(vol / 100 * 2);
                         }).margin(3f).pad(2).padTop(6f).top().right().size(32);
                         ttt.button(Icon.refreshSmall, RStyles.clearLineNoneTogglei, () -> {
                             player.setLooping(!player.isLooping());
@@ -387,6 +403,7 @@ public class MusicDialog extends BaseDialog {
     }
 
     public boolean resolveMsg(String msg, @Nullable Player sender) {
+        if (!Core.settings.getBool("arcShareMedia")) return false;
         if ((!msg.contains(ShareType)) || (!loaded) || (!MessageDialog.arcMsgType.music.show)) {
             return false;
         }
@@ -1223,11 +1240,13 @@ public class MusicDialog extends BaseDialog {
                         vol = Math.min(vol + 10, 100);
                         Core.settings.put("musicVolume", vol);
                         player.setVolume(vol / 100 * 2);
+                        sounds.setVolume(vol / 100 * 2);
                     }).margin(3f).pad(2).padTop(6f).top().right().size(32);
                     tt.button(Icon.downSmall, RStyles.clearLineNonei, () -> {
                         vol = Math.max(vol - 10, 0);
                         Core.settings.put("musicVolume", vol);
                         player.setVolume(vol / 100 * 2);
+                        sounds.setVolume(vol / 100 * 2);
                     }).margin(3f).pad(2).padTop(6f).top().right().size(32);
                     tt.button(Icon.refreshSmall, RStyles.clearLineNoneTogglei, () -> {
                         player.setLooping(!player.isLooping());

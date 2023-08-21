@@ -1,5 +1,6 @@
 package mindustry.world.blocks.distribution;
 
+import arc.Core;
 import arc.graphics.g2d.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
@@ -122,6 +123,7 @@ public class DirectionalUnloader extends Block{
                 Draw.color(unloadItem.color);
                 Draw.rect(centerRegion, x, y);
                 Draw.color();
+                if(Core.settings.getBool("arcchoiceuiIcon"))    Draw.rect(unloadItem.uiIcon, x, y,4f,4f);
             }else{
                 Draw.rect(arrowRegion, x, y, rotdeg());
             }

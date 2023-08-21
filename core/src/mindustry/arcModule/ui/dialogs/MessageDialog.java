@@ -21,6 +21,7 @@ import mindustry.input.DesktopInput;
 
 import mindustry.ui.Styles;
 import mindustry.ui.dialogs.BaseDialog;
+import mindustry.ui.dialogs.SchematicsDialog;
 import mindustry.world.blocks.storage.CoreBlock;
 
 import java.text.SimpleDateFormat;
@@ -270,6 +271,7 @@ public class MessageDialog extends BaseDialog {
             if (resolveMarkMsg(message, playersender)) return true;
             if (arcChatPicture.resolveMessage(message, playersender)) return true;
             if (ui.MusicDialog.resolveMsg(message, playersender)) return true;
+            if (ui.schematics.resolveSchematic(message, playersender)) return true;
 
             if (playersender != null) {
                 addMsg(new MessageDialog.advanceMsg(MessageDialog.arcMsgType.chat, message, playersender.name(), new Vec2(playersender.x, playersender.y)));
@@ -418,6 +420,7 @@ public class MessageDialog extends BaseDialog {
         markPlayer("标记", "玩家", Color.valueOf("#7FFFD4")),
         arcChatPicture("分享", "图片", Color.yellow),
         music("分享", "音乐", Color.pink),
+        schematic("分享", "蓝图", Color.blue),
         district("规划区", "", Color.violet),
 
         serverTips("服务器", "小贴士", Color.valueOf("#98FB98"), false),

@@ -151,17 +151,8 @@ public class JoinDialog extends BaseDialog{
         remote.clear();
 
         remote.button((Core.settings.getBool("showAccessibleServer")? "显示":"隐藏") + "版本不对的服务器",()->{Core.settings.put("showAccessibleServer",!Core.settings.getBool("showAccessibleServer"));setupRemote();}).fillX().row();
-        remote.button("replay", () -> replayController.shouldRecord(!replayController.shouldRecord())).update(b -> b.setText(replayController.shouldRecord() ? "关闭回放录制" : "开启回放录制")).visible(() -> Core.settings.getBool("developMode")).fillX().row();
-        remote.button("加载回放文件", () -> {
-            platform.showFileChooser(true, "打开回放文件", "mrep", f -> {
-                Core.app.post(() -> {
-                    try {
-                        replayController.startPlay(new Reads(new DataInputStream(new InflaterInputStream(new FileInputStream(f.file())))));
-                    } catch (FileNotFoundException ignored) {
-                    }
-                });
-            });
-        }).fillX().visible(() -> Core.settings.getBool("developMode")).row();
+        remote.button("replay", () -> replayController.shouldRecord(!replayController.shouldRecord())).update(b -> b.setText(replayController.shouldRecord() ? "关闭回放录制" : "开启回放录制")).fillX().row();
+        remote.button("加载回放文件", () -> platform.showFileChooser(true, "打开回放文件", "mrep", f -> Core.app.post(() -> replayController.startPlay(f.file())))).fillX().row();
         for(Server server : servers){
             if(server.lastHost != null){
                 int ServerVersion = server.lastHost.version;

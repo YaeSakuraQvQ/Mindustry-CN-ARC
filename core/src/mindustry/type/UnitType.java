@@ -1291,7 +1291,7 @@ public class UnitType extends UnlockableContent{
                 Lines.dashCircle(unit.x, unit.y, maxRange);
             }
 
-            if (!control.input.commandMode && Core.settings.getBool("alwaysShowUnitRTSAi") && unit.isCommandable() && arcInfoControl()) {
+            if (!control.input.commandMode && Core.settings.getBool("alwaysShowUnitRTSAi") && unit.isCommandable() && unit.command().command != null && unit.command().command.name.equals("move") && arcInfoControl()) {
                 Draw.z(Layer.effect);
                 CommandAI ai = unit.command();
                 //draw target line
@@ -1505,6 +1505,39 @@ public class UnitType extends UnlockableContent{
             Lines.circle(unit.x, unit.y, unit.hitSize / 2f);
         }
 
+        if(Core.settings.getBool("unitbuildplan") && !unit.plans().isEmpty()) {
+
+            if (unit != player.unit()) {
+                for (BuildPlan b : unit.plans()) {
+                    unit.drawPlan(b, 0.5f);
+                }
+            }
+            Draw.color(Pal.gray);
+            Lines.stroke(2f);
+            float x = unit.x, y = unit.y, s = unit.hitSize / 2f;
+            for (BuildPlan b : unit.plans()) {
+                Tmp.v2.trns(Angles.angle(x, y, b.drawx(), b.drawy()), s);
+                Tmp.v3.trns(Angles.angle(x, y, b.drawx(), b.drawy()), b.block.size * 2f);
+                Lines.circle(b.drawx(), b.drawy(), b.block.size * 2f);
+                Lines.line(x + Tmp.v2.x, y + Tmp.v2.y, b.drawx() - Tmp.v3.x, b.drawy() - Tmp.v3.y);
+                x = b.drawx();
+                y = b.drawy();
+                s = b.block.size * 2f;
+            }
+
+            Draw.color(unit.team.color);
+            Lines.stroke(0.75f);
+            x = unit.x; y = unit.y; s = unit.hitSize / 2f;
+            for (BuildPlan b : unit.plans()) {
+                Tmp.v2.trns(Angles.angle(x, y, b.drawx(), b.drawy()), s);
+                Tmp.v3.trns(Angles.angle(x, y, b.drawx(), b.drawy()), b.block.size * 2f);
+                Lines.circle(b.drawx(), b.drawy(), b.block.size * 2f);
+                Lines.line(x + Tmp.v2.x, y + Tmp.v2.y, b.drawx() - Tmp.v3.x, b.drawy() - Tmp.v3.y);
+                x = b.drawx();
+                y = b.drawy();
+                s = b.block.size * 2f;
+            }
+        }
     }
 
 

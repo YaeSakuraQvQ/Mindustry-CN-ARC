@@ -608,6 +608,8 @@ public class SettingsMenuDialog extends BaseDialog{
 
             arc.checkPref("unitLogicMoveLine", false);
             arc.checkPref("unitLogicTimerBars", false);
+            arc.checkPref("arcBuildInfo",false);
+            arc.checkPref("unitbuildplan", false);
 
             arc.addCategory("arcRTSSupporter");
             arc.checkPref("arcCommandTable", true);
@@ -632,7 +634,6 @@ public class SettingsMenuDialog extends BaseDialog{
             arc.checkPref("ShowInfoPopup", true);
             arc.checkPref("arcShareWaveInfo", false);
             arc.checkPref("arcAlwaysTeamColor", false);
-            arc.checkPref("arcAutoGG", false);
 
             arc.addCategory("arcPlayerEffect");
             arc.stringInput("playerEffectColor", "ffd37f");
@@ -782,6 +783,8 @@ public class SettingsMenuDialog extends BaseDialog{
             specmode.addCategory("specGameMode");
             specmode.checkPref("autoSelSchematic", false);
             specmode.checkPref("researchViewer", false);
+            specmode.checkPref("bossKeyValid",false);
+            specmode.checkPref("arcShareMedia",true);
             specmode.checkPref("developMode", false);
             //////////cheating
             cheating.addCategory("arcWeakCheat");

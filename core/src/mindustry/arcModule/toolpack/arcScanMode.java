@@ -19,6 +19,7 @@ import mindustry.content.Items;
 import mindustry.gen.Building;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
+import mindustry.graphics.Pal;
 import mindustry.type.Item;
 import mindustry.ui.Styles;
 import mindustry.world.Block;
@@ -35,6 +36,7 @@ import mindustry.world.meta.BlockGroup;
 
 import static mindustry.Vars.*;
 import static mindustry.arcModule.RFuncs.calWaveTimer;
+import static mindustry.arcModule.toolpack.arcPlayerEffect.drawPlayerBuildRange;
 import static mindustry.arcModule.toolpack.arcWaveSpawner.*;
 
 public class arcScanMode {
@@ -103,6 +105,12 @@ public class arcScanMode {
         detailSpawner();
         //detailTransporter();
         detailTransporter2();
+        detailBuildMode();
+    }
+
+    public static void detailBuildMode(){
+        if (!Core.settings.getBool("arcBuildInfo")) return;
+        if (control.input.isBuilding || control.input.selectedBlock() || !player.unit().plans().isEmpty()) drawPlayerBuildRange(player.unit());
     }
 
     private static void detailCursor() {

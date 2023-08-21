@@ -718,7 +718,7 @@ public class Control implements ApplicationListener, Loadable{
         if(Float.isNaN(camera.position.x)) camera.position.x = world.unitWidth()/2f;
         if(Float.isNaN(camera.position.y)) camera.position.y = world.unitHeight()/2f;
 
-        if (Vars.clientLoaded && Core.input.keyTap(Binding.bossKey)) {
+        if (Core.settings.getBool("bossKeyValid") && Vars.clientLoaded && Core.input.keyTap(Binding.bossKey)) {
             if (Core.input.keyDown(KeyCode.controlLeft)) {
                 if (!settings.getBool("bossKeyPressing", false)) return;
                 calcDialog.hide();
@@ -726,11 +726,6 @@ public class Control implements ApplicationListener, Loadable{
                 settings.put("bossKeyPressing", false);
             } else {
                 if (settings.getBool("bossKeyPressing", false)) return;
-                if (!settings.getBool("bossKeyPressed", false)) {
-                    ui.showInfo("你按下了老板键\n使用LCTRL+老板键还原\n（再按一次生效）");
-                    settings.put("bossKeyPressed", true);
-                    return;
-                }
                 settings.put("bossKeyPressing", true);
                 loadIcon("icons/calc.png");
                 settings.put("musicvol", 0);

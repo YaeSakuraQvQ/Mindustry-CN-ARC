@@ -66,8 +66,8 @@ public class arcWaveInfoDialog extends BaseDialog {
 
     //波次生成
     Float difficult = 1f;
-    Seq<UnitType> spawnUnit = content.units().copy().filter(unitType -> !(unitType instanceof MissileUnitType || unitType.controller instanceof BuilderAI || unitType.controller instanceof MinerAI || unitType.controller instanceof RepairAI));
-    Seq<UnitType> allowUnit = content.units().copy().filter(unitType -> !(unitType instanceof MissileUnitType));
+    Seq<UnitType> spawnUnit = content.units().copy().retainAll(unitType -> !(unitType instanceof MissileUnitType || unitType.controller instanceof BuilderAI || unitType.controller instanceof MinerAI || unitType.controller instanceof RepairAI));
+    Seq<UnitType> allowUnit = content.units().copy().retainAll(unitType -> !(unitType instanceof MissileUnitType));
     boolean surplusUnit = true, ErekirUnit = true;
     boolean showUnitSelect = true;
     boolean flyingUnit = true, navalUnit = true, supportUnit = true;
@@ -337,7 +337,7 @@ public class arcWaveInfoDialog extends BaseDialog {
                                    if (!state.isGame()) waveTime.setText("");
                                    else {
                                        int deltaTime = thisTime - (int) (state.wave <= 1 ? (firstWaveTime - state.wavetime) : (firstWaveTime + state.rules.waveSpacing * (state.wave - 1) - state.wavetime));
-                                       waveTime.setText(fixedColorTime(deltaTime,false));
+                                       waveTime.setText(arcColorTime(deltaTime,false));
                                    }
                                 });
                             }).width(120f).left();
@@ -1053,14 +1053,14 @@ public class arcWaveInfoDialog extends BaseDialog {
                         ct.add("环境").width(50f);
                         ct.button("Surplus", flatToggleMenut, () -> {
                             surplusUnit = !surplusUnit;
-                            for (UnitType unit : allowUnit.copy().filter(unitType -> !(unitType instanceof ErekirUnitType))) {
+                            for (UnitType unit : allowUnit.copy().retainAll(unitType -> !(unitType instanceof ErekirUnitType))) {
                                 filterUnit(unit, surplusUnit);
                             }
                             rebuild[0].run();
                         }).checked(surplusUnit).width(120f);
                         ct.button("Erekir", flatToggleMenut, () -> {
                             ErekirUnit = !ErekirUnit;
-                            for (UnitType unit : allowUnit.copy().filter(unitType -> unitType instanceof ErekirUnitType)) {
+                            for (UnitType unit : allowUnit.copy().retainAll(unitType -> unitType instanceof ErekirUnitType)) {
                                 filterUnit(unit, ErekirUnit);
                             }
                             rebuild[0].run();
@@ -1071,21 +1071,21 @@ public class arcWaveInfoDialog extends BaseDialog {
                         ct.add("兵种").width(50f);
                         ct.button("空军", flatToggleMenut, () -> {
                             flyingUnit = !flyingUnit;
-                            for (UnitType unit : allowUnit.copy().filter(unitType -> unitType.flying)) {
+                            for (UnitType unit : allowUnit.copy().retainAll(unitType -> unitType.flying)) {
                                 filterUnit(unit, flyingUnit);
                             }
                             rebuild[0].run();
                         }).checked(flyingUnit).width(70f);
                         ct.button("海军", flatToggleMenut, () -> {
                             navalUnit = !navalUnit;
-                            for (UnitType unit : allowUnit.copy().filter(unitType -> unitType.naval)) {
+                            for (UnitType unit : allowUnit.copy().retainAll(unitType -> unitType.naval)) {
                                 filterUnit(unit, navalUnit);
                             }
                             rebuild[0].run();
                         }).checked(navalUnit).width(70f);
                         ct.button("支援", flatToggleMenut, () -> {
                             supportUnit = !supportUnit;
-                            for (UnitType unit : allowUnit.copy().filter(unitType -> unitType.controller instanceof BuilderAI || unitType.controller instanceof MinerAI || unitType.controller instanceof RepairAI)) {
+                            for (UnitType unit : allowUnit.copy().retainAll(unitType -> unitType.controller instanceof BuilderAI || unitType.controller instanceof MinerAI || unitType.controller instanceof RepairAI)) {
                                 filterUnit(unit, supportUnit);
                             }
                             rebuild[0].run();

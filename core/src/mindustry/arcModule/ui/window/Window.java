@@ -2,35 +2,43 @@ package mindustry.arcModule.ui.window;
 
 import arc.Core;
 import arc.graphics.Color;
+import arc.graphics.Pixmap;
 import arc.graphics.Texture;
+import arc.graphics.g2d.NinePatch;
 import arc.graphics.g2d.TextureRegion;
 import arc.input.KeyCode;
 import arc.math.geom.Vec2;
-import arc.scene.event.HandCursorListener;
+import arc.scene.Element;
 import arc.scene.event.InputEvent;
 import arc.scene.event.InputListener;
 import arc.scene.event.Touchable;
+import arc.scene.style.Drawable;
+import arc.scene.style.NinePatchDrawable;
+import arc.scene.style.TextureRegionDrawable;
 import arc.scene.ui.Image;
+import arc.scene.ui.Label;
 import arc.scene.ui.layout.Table;
 import arc.util.Align;
-import arc.util.Log;
 import arc.util.Tmp;
 import mindustry.gen.Icon;
-import mindustry.logic.LCanvas;
+import mindustry.gen.Tex;
 import mindustry.ui.Styles;
-import mindustry.Vars;
+
+import static mindustry.Vars.getThemeColor;
+import static mindustry.Vars.ui;
 
 public class Window {
     public WindowTable table;
     WindowManager manager;
     String title;
-    Table controlBar, cont;
+    Table cont;
     TextureRegion icon;
-    Image iconImage;
-    boolean removed = false;
+    public Image iconImage;
+    boolean removed = false, minSized = false;
+    float minWidth = 200, minHeight = 200;
 
-    Window() {
-        this(Vars.ui.WindowManager);
+    public Window() {
+        this(ui.WindowManager);
     }
 
     Window(WindowManager manager) {
@@ -59,12 +67,13 @@ public class Window {
 
     public Window setTitle(String title) {
         this.title = title;
+        table.lastLabelWidth = 0;
         return this;
     }
 
     public Window setBody(Table body) {
         cont.clear();
-        cont.add(body);
+        cont.add(body).grow();
         return this;
     }
 
@@ -99,154 +108,256 @@ public class Window {
         table.remove();
     }
 
-    private enum ResizeDirection {
-        TOP_LEFT,
-        TOP_RIGHT,
-        BOTTOM_LEFT,
-        BOTTOM_RIGHT,
-        LEFT,
-        RIGHT,
-        TOP,
-        BOTTOM
+    public void setMinSize(float width, float height) {
+        minWidth = width;
+        minHeight = height;
+    }
+
+    private static class ResizeDirection {
+        public static byte X = 1, Y = 2;
+        public static byte FlipX = 4, FlipY = 8;
+        public static byte RIGHT = X;
+        public static byte TOP = Y;
+        public static byte LEFT = (byte) (RIGHT | FlipX);
+        public static byte BOTTOM = (byte) (TOP | FlipY);
+        public static byte BOTTOM_LEFT = (byte) (BOTTOM | LEFT);
+        public static byte BOTTOM_RIGHT = (byte) (BOTTOM | RIGHT);
+        public static byte TOP_LEFT = (byte) (TOP | LEFT);
+        public static byte TOP_RIGHT = (byte) (TOP | RIGHT);
     }
 
     private class WindowTable extends Table {
-        private float offsetX, offsetY, dragStartX, dragStartY;
-        private boolean dragging, resizing;
-        private ResizeDirection resizeDirection;
+        private boolean resizing = false;
+        private byte resizeDirection;
+        private float lastX, lastY, lastHeight, lastWidth;
+        private final Label layoutLabel = new Label("");
+        private float lastLabelWidth = 0;
+        String cachedTitle = "";
+
         public WindowTable(float width, float height) {
             setColor(new Color(127, 127, 127, 255));
             margin(0f);
             touchable = Touchable.childrenOnly;
-            setBackground(Styles.black3);
+            Drawable color = ((TextureRegionDrawable) Tex.whiteui).tint(getThemeColor());
+            Pixmap pix = new Pixmap(3, 3);
+            pix.fill(getThemeColor());
+            pix.set(1, 1, Color.clear);
+            setBackground(new NinePatchDrawable(new NinePatch(new Texture(pix), 1, 1, 1, 1)));
+            pix.dispose();
             table(t -> {
-                controlBar = t;
+                t.setBackground(color);
                 iconImage = new Image(icon);
                 t.add(iconImage).size(12).pad(10, 12, 10, 12);
                 t.table(tt -> {
-                    tt.label(() -> title).grow();
-                    tt.addListener(new InputListener(){
-                        float lastx, lasty;
+                    tt.add("").update(l -> l.setText(calcString(title, l.getWidth()))).grow();
+                    tt.addListener(new InputListener() {
+                        float lastX, lastY;
 
                         @Override
-                        public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
+                        public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
+                            if (fillParent) return true;
                             Vec2 v = localToParentCoordinates(Tmp.v1.set(x, y));
-                            lastx = v.x;
-                            lasty = v.y;
+                            lastX = v.x;
+                            lastY = v.y;
                             toFront();
                             return true;
                         }
 
                         @Override
-                        public void touchDragged(InputEvent event, float x, float y, int pointer){
+                        public void touchDragged(InputEvent event, float x, float y, int pointer) {
+                            if (resizing || fillParent) return;
                             Vec2 v = localToParentCoordinates(Tmp.v1.set(x, y));
-                            translation.add(v.x - lastx, v.y - lasty);
-                            lastx = v.x;
-                            lasty = v.y;
+                            WindowTable.this.x += v.x - lastX;
+                            WindowTable.this.y += v.y - lastY;
+                            lastX = v.x;
+                            lastY = v.y;
                         }
                     });
                 }).grow();
-                t.button("一", Styles.cleart, this::remove).size(46, 28).pad(1).right();
+                t.button("一", Styles.cleart, () -> {
+                    if (cont.visible) {
+                        minSized = true;
+                        if (fillParent) {
+                            setFillParent(false);
+                        } else {
+                            savePos();
+                        }
+                        cont.visible = false;
+                        setHeight(32);
+                        setWidth(200);
+                    } else {
+                        minSized = false;
+                        if (fillParent) {
+                            setFillParent(true);
+                        } else {
+                            loadPos();
+                        }
+                        cont.visible = true;
+                    }
+                }).size(46, 28).pad(1).right();
                 t.button(Icon.copySmall, Styles.clearNonei, () -> {
+                    if (fillParent) {
+                        loadPos();
+                        setFillParent(false);
+                    } else {
+                        savePos();
+                        x = y = 0;
+                        setFillParent(true);
+                    }
                 }).size(46, 28).pad(1).right();
                 t.button(Icon.cancelSmall, Styles.clearNonei, this::remove).size(46, 28).pad(1).right();
                 t.touchable = Touchable.enabled;
             }).height(32).top().growX().row();
-            pane(t -> {
-                t.setFillParent(true);
-                t.add().grow();
-                t.label(() -> String.valueOf(resizeDirection)).growX();
-                cont = t;
-                t.touchable = Touchable.enabled;
-            }).grow();
-            /*addListener(new InputListener() {
+            table(tt -> {
+                tt.align(Align.left);
+                tt.add().grow();
+                cont = tt;
+                tt.touchable = Touchable.enabled;
+            }).grow().pad(1);
+            addListener(new InputListener() {
+                float lastX, lastY;
+
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
-                    offsetX = x;
-                    offsetY = y;
-                    dragStartX = getX(Align.bottomLeft);
-                    dragStartY = getY(Align.bottomLeft);
-
-                    if (x < 10 && y < 10) {
+                    if (fillParent || minSized) return true;
+                    Vec2 v = localToParentCoordinates(Tmp.v1.set(x, y));
+                    lastX = v.x;
+                    lastY = v.y;
+                    toFront();
+                    if (x < 7 && y < 7) {
                         resizing = true;
                         resizeDirection = ResizeDirection.BOTTOM_LEFT;
-                    } else if (x > getWidth() - 10 && y < 10) {
+                    } else if (x > getWidth() - 7 && y < 7) {
                         resizing = true;
                         resizeDirection = ResizeDirection.BOTTOM_RIGHT;
-                    } else if (x < 10 && y > getHeight() - 10) {
+                    } else if (x < 7 && y > getHeight() - 7) {
                         resizing = true;
                         resizeDirection = ResizeDirection.TOP_LEFT;
-                    } else if (x > getWidth() - 10 && y > getHeight() - 10) {
+                    } else if (x > getWidth() - 7 && y > getHeight() - 7) {
                         resizing = true;
                         resizeDirection = ResizeDirection.TOP_RIGHT;
-                    } else if (x < 10) {
+                    } else if (x < 7) {
                         resizing = true;
                         resizeDirection = ResizeDirection.LEFT;
-                    } else if (x > getWidth() - 10) {
+                    } else if (x > getWidth() - 7) {
                         resizing = true;
                         resizeDirection = ResizeDirection.RIGHT;
-                    } else if (y < 10) {
+                    } else if (y < 7) {
                         resizing = true;
                         resizeDirection = ResizeDirection.BOTTOM;
-                    } else if (y > getHeight() - 10) {
+                    } else if (y > getHeight() - 7) {
                         resizing = true;
                         resizeDirection = ResizeDirection.TOP;
                     } else {
-                        dragging = true;
+                        resizing = false;
                     }
                     return true;
                 }
 
                 @Override
                 public void touchDragged(InputEvent event, float x, float y, int pointer) {
-                    if (dragging) {
-                        setPosition(dragStartX + x - offsetX, dragStartY + y - offsetY);
-                    } else if (resizing) {
-                        float dx = x - offsetX;
-                        float dy = y - offsetY;
-
-                        switch (resizeDirection) {
-                            case TOP_LEFT -> {
-                                setSize(getWidth() - dx, getHeight() - dy);
-                                setPosition(getX(Align.bottomLeft) + dx, getY(Align.bottomLeft) + dy);
-                            }
-                            case TOP_RIGHT -> {
-                                setSize(getWidth() + dx, getHeight() - dy);
-                                setPosition(getX(Align.bottomLeft), getY(Align.bottomLeft) + dy);
-                            }
-                            case BOTTOM_LEFT -> {
-                                setSize(getWidth() - dx, getHeight() + dy);
-                                setPosition(getX(Align.bottomLeft) + dx, getY(Align.bottomLeft));
-                            }
-                            case BOTTOM_RIGHT -> setSize(getWidth() + dx, getHeight() + dy);
-                            case LEFT -> {
-                                setSize(getWidth() - dx, getHeight());
-                                setPosition(getX(Align.bottomLeft) + dx, getY(Align.bottomLeft));
-                            }
-                            case RIGHT -> setSize(getWidth() + dx, getHeight());
-                            case TOP -> {
-                                setSize(getWidth(), getHeight() - dy);
-                                setPosition(getX(Align.bottomLeft), getY(Align.bottomLeft) + dy);
-                            }
-                            case BOTTOM -> setSize(getWidth(), getHeight() + dy);
+                    if (!resizing) return;
+                    Vec2 v = localToParentCoordinates(Tmp.v1.set(x, y));
+                    float deltaX = 0, deltaY = 0;
+                    float transX = 0, transY = 0;
+                    if ((resizeDirection & ResizeDirection.X) != 0) {
+                        if ((resizeDirection & ResizeDirection.FlipX) == 0) {
+                            deltaX = v.x - lastX;
+                        } else {
+                            deltaX = lastX - v.x;
+                            transX = v.x - lastX;
                         }
                     }
+                    if ((resizeDirection & ResizeDirection.Y) != 0) {
+                        if ((resizeDirection & ResizeDirection.FlipY) == 0) {
+                            deltaY = v.y - lastY;
+                        } else {
+                            deltaY = lastY - v.y;
+                            transY = v.y - lastY;
+                        }
+                    }
+                    if (getWidth() + deltaX < minWidth) {
+                        transX = deltaX = 0;
+                    } else {
+                        lastX = v.x;
+                    }
+                    if (getHeight() + deltaY < minHeight) {
+                        transY = deltaY = 0;
+                    } else {
+                        lastY = v.y;
+                    }
+                    WindowTable.this.x += transX;
+                    WindowTable.this.y += transY;
+                    setSize(getWidth() + deltaX, getHeight() + deltaY);
                 }
 
                 @Override
                 public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button) {
-                    dragging = false;
                     resizing = false;
                 }
-            });*/
+
+                @Override
+                public boolean mouseMoved(InputEvent event, float x, float y) {
+                    if (fillParent || minSized) return true;
+                    if (x < 7 && y < 7 || x > getWidth() - 7 && y > getHeight() - 7) {
+                        Core.graphics.cursor(ui.resizeRightCursor);
+                    } else if (x > getWidth() - 7 && y < 7 || x < 7 && y > getHeight() - 7) {
+                        Core.graphics.cursor(ui.resizeLeftCursor);
+                    } else if (x < 7 || x > getWidth() - 7) {
+                        Core.graphics.cursor(ui.resizeHorizontalCursor);
+                    } else if (y < 7 || y > getHeight() - 7) {
+                        Core.graphics.cursor(ui.resizeVerticalCursor);
+                    } else {
+                        Core.graphics.restoreCursor();
+                    }
+                    return true;
+                }
+
+                @Override
+                public void exit(InputEvent event, float x, float y, int pointer, Element toActor) {
+                    if (pointer == -1) {
+                        Core.graphics.restoreCursor();
+                    }
+                }
+            });
             setWidth(width);
             setHeight(height);
+            update(() -> {
+                if (fillParent) toFront();
+            });
         }
 
         @Override
         public boolean remove() {
             manager.removeWindow(Window.this);
             return super.remove();
+        }
+
+        private String calcString(String input, float width) {
+            if (width == lastLabelWidth) return cachedTitle;
+            lastLabelWidth = width;
+            if (input.length() == 0) return "";
+            layoutLabel.setText("....");
+            float p = layoutLabel.getPrefWidth();
+            for (int i = 1 , l = input.length(); i < l; i++) {
+                layoutLabel.setText(input.substring(0, i));
+                if (layoutLabel.getPrefWidth() + p > width) return cachedTitle = (i - 1 > 0 ? input.substring(0, i - 1) : "") + "...";
+            }
+            return cachedTitle = input;
+        }
+
+        private void savePos() {
+            lastX = x;
+            lastY = y;
+            lastWidth = getWidth();
+            lastHeight = getHeight();
+        }
+
+        private void loadPos() {
+            x = lastX;
+            y = lastY;
+            setWidth(lastWidth);
+            setHeight(lastHeight);
         }
     }
 }

@@ -1,5 +1,6 @@
 package mindustry.world.blocks.units;
 
+import arc.Core;
 import arc.graphics.g2d.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -47,6 +48,7 @@ public class UnitCargoUnloadPoint extends Block{
                 Draw.color(item.color);
                 Draw.rect(topRegion, x, y);
                 Draw.color();
+                if(Core.settings.getBool("arcchoiceuiIcon"))    Draw.rect(item.uiIcon, x, y,4f,4f);
             }
         }
 

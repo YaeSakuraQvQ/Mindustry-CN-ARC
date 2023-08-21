@@ -116,7 +116,7 @@ public class ServerControl implements ApplicationListener{
             return useColors ? addColors(text) : removeColors(text);
         };
 
-        Time.setDeltaProvider(() -> Core.graphics.getDeltaTime() * 60f);
+        Time.setDeltaProvider(() -> Core.graphics.getDeltaTime() * 60f * gameSpeed);
 
         registerCommands();
 

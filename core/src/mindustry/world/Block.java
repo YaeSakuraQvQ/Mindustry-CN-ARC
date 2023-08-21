@@ -753,7 +753,12 @@ public class Block extends UnlockableContent implements Senseable{
 
     public void drawPlan(BuildPlan plan, Eachable<BuildPlan> list, boolean valid, float alpha){
         Draw.reset();
-        Draw.mixcol(!valid ? Pal.breakInvalid : Color.white, (!valid ? 0.4f : 0.24f) + Mathf.absin(Time.globalTime, 6f, 0.28f));
+        if (!valid)  Draw.mixcol(Pal.breakInvalid, 0.4f + Mathf.absin(Time.globalTime, 6f, 0.28f));
+        else {
+            if (player.unit().within(plan.x * tilesize,plan.y * tilesize,player.unit().type.buildRange))
+                Draw.mixcol(Color.white, 0.24f + Mathf.absin(Time.globalTime, 6f, 0.28f));
+            else Draw.mixcol(Color.valueOf("#FFE4B5"), 0.33f + Mathf.absin(Time.globalTime, 6f, 0.28f));
+        }
         Draw.alpha(alpha);
         float prevScale = Draw.scl;
         Draw.scl *= plan.animScale;

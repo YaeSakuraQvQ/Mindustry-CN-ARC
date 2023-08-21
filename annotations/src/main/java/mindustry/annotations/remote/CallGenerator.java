@@ -119,7 +119,7 @@ public class CallGenerator{
             boolean writePlayerSkipCheck = ent.where == Loc.both && i == 0;
 
             if(writePlayerSkipCheck){ //write begin check
-                builder.beginControlFlow("if(mindustry.Vars.net.server())");
+                builder.beginControlFlow("if(mindustry.Vars.net.server() || mindustry.Vars.replayController.writing)");
             }
 
             if(BaseProcessor.isPrimitive(typeName)){ //check if it's a primitive, and if so write it

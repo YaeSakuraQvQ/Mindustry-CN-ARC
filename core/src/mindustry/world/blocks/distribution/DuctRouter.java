@@ -1,5 +1,6 @@
 package mindustry.world.blocks.distribution;
 
+import arc.Core;
 import arc.graphics.g2d.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
@@ -84,6 +85,7 @@ public class DuctRouter extends Block{
                 Draw.color(sortItem.color);
                 Draw.rect("center", x, y);
                 Draw.color();
+                if(Core.settings.getBool("arcchoiceuiIcon"))    Draw.rect(sortItem.uiIcon, x, y,4f,4f);
             }else{
                 Draw.rect(topRegion, x, y, rotdeg());
             }

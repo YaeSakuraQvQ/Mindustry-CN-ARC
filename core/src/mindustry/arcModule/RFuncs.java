@@ -37,10 +37,6 @@ public class RFuncs {
             if (c.hasColor) c.localizedName = colorized(blockColor(c), c.localizedName);
             else if (c.itemDrop != null) c.localizedName = colorized(c.itemDrop.color, c.localizedName);
         });
-        //content.getBy(ContentType.weather).each(  c ->  ((Weather)c).localizedName = "[#" + c..color + "]" + ((Weather)c).localizedName);
-        //content.sectors().each(c -> c.localizedName = "[#" + c.planet.atmosphereColor + "]" + c.localizedName);
-
-        //content.units().each(c -> c.localizedName = "[#" + c.outlineColor + "]" + c.localizedName);
     }
 
     private static String colorized(Color color, String name) {
@@ -128,28 +124,29 @@ public class RFuncs {
         return builder.toString();
     }
 
-    public static String fixedColorTime(int timer) {
-        return fixedColorTime(timer, true);
+    public static String arcColorTime(int timer) {
+        return arcColorTime(timer, true);
     }
 
-    public static String fixedColorTime(int timer, boolean units) {
+    public static String arcColorTime(int timer, boolean units){
         StringBuilder str = new StringBuilder();
-        str.append(timer > 0 ? "[orange]" : "[acid]");
+        String color = timer > 0 ? "[orange]" : "[acid]";
         timer = Math.abs(timer);
+        str.append(color);
         int m = timer / 60 / 60;
         int s = timer / 60 % 60;
         int ms = timer % 60;
         if (m > 0) {
-            str.append(m).append(": ");
+            str.append(m).append("[white]: ").append(color);
             if (s < 10) {
                 str.append("0");
             }
 
             str.append(s);
-            if (units) str.append("min");
+            if (units) str.append("[white]min");
         } else {
-            str.append(s).append(".").append(ms);
-            if (units) str.append('s');
+            str.append(s).append("[white].").append(color).append(ms);
+            if (units) str.append("[white]s");
         }
         return str.toString();
     }

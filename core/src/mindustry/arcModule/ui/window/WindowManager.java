@@ -10,21 +10,31 @@ import java.util.ArrayList;
 public class WindowManager {
     public Group group = new WidgetGroup();
     ArrayList<Window> windows = new ArrayList<>();
+
     public WindowManager() {
         Core.scene.add(group);
         group.setFillParent(true);
         group.setTransform(true);
         group.touchable = Touchable.childrenOnly;
+        group.update(() -> group.toFront());
     }
+
     public Window createWindow() {
         Window w = new Window(this);
-        Core.scene.add(w.table);
+        group.addChild(w.table);
         windows.add(w);
         w.center();
         return w;
     }
+
     public void removeWindow(Window w) {
         w.remove();
         windows.remove(w);
+    }
+
+    public void closeAll() {
+        while (!windows.isEmpty()) {
+            windows.get(0).remove();
+        }
     }
 }

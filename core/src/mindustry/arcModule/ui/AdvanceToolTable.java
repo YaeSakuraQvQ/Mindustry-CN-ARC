@@ -59,9 +59,6 @@ public class AdvanceToolTable extends Table {
     private Boolean showPayload = false;
     private boolean showSelectPayload = false;
     private Boolean showPayloadBlock = false;
-    public float timeAcce = 1f;
-    public float targetfps = 60;
-    public boolean fpslock = false;
     private float elevation = 0f;
 
     private final Vec2 initA = new Vec2(0, 0), initB = new Vec2(0, 0), finalA = new Vec2(0, 0);
@@ -74,9 +71,6 @@ public class AdvanceToolTable extends Table {
                 Core.settings.put("forcePlacement", false);
                 Core.settings.put("allBlocksReveal", false);
             }
-            timeAcce = 1;
-            fpslock = false;
-            Time.setDeltaProvider(() -> Math.min(Core.graphics.getDeltaTime() * 60f, 3f));
         });
     }
 
@@ -137,30 +131,23 @@ public class AdvanceToolTable extends Table {
                         tt.table(tBox -> {
                             tBox.background(Tex.buttonEdge3);
                             tBox.add("沙漏：").left();
+
                             tBox.button("/2", cleart, () -> {
-                                timeAcce /= 2;
-                                fpslock = false;
-                                Time.setDeltaProvider(() -> Math.min(Core.graphics.getDeltaTime() * 60 * timeAcce, 3 * timeAcce));
-                                ui.announce("当前时间倍率：" + timeAcce);
+                                changeGameSpeed(gameSpeed / 2f);
                             }).tooltip("[acid]将时间流速放慢到一半").size(40f, 30f);
+
                             tBox.button("×2", cleart, () -> {
-                                timeAcce *= 2;
-                                fpslock = false;
-                                Time.setDeltaProvider(() -> Math.min(Core.graphics.getDeltaTime() * 60 * timeAcce, 3 * timeAcce));
-                                ui.announce("当前时间倍率：" + timeAcce);
+                                changeGameSpeed(gameSpeed * 2f);
                             }).tooltip("[acid]将时间流速加快到两倍").size(40f, 30f);
+
                             tBox.button("[red]S", cleart, () -> {
-                                timeAcce = 0;
-                                fpslock = false;
-                                Time.setDeltaProvider(() -> Math.min(Core.graphics.getDeltaTime() * 60 * timeAcce, 3 * timeAcce));
-                                ui.announce("当前时间倍率：" + timeAcce);
+                                changeGameSpeed(0);
                             }).tooltip("[acid]暂停时间").size(30f, 30f);
+
                             tBox.button("[green]N", cleart, () -> {
-                                timeAcce = 1;
-                                fpslock = false;
-                                Time.setDeltaProvider(() -> Math.min(Core.graphics.getDeltaTime() * 60f, 3f));
-                                ui.announce("当前时间倍率：" + timeAcce);
+                                changeGameSpeed(1);
                             }).tooltip("[acid]恢复原速").size(30f, 30f);
+                            /*
                             tBox.button("[white]F", cleart, () -> {
                                 timeAcce = 1;
                                 fpslock = true;
@@ -179,6 +166,7 @@ public class AdvanceToolTable extends Table {
                                 int num = Integer.parseInt(s);
                                 return 10 <= num && num < 10000;
                             }).tooltip("允许的范围：10~9999").size(90f, 30f);
+                            */
                         }).left();
                     }).left().row();
                 }

@@ -256,7 +256,7 @@ public class BeControl{
         Http.get("https://api.github.com/repos/Jackson11500/Mindustry-CN-ARC-Builds/releases/latest")
         .error(e -> {
             //don't log the error, as it would clog output if there is no internet. make sure it's handled to prevent infinite loading.
-            done.get(false);
+            Core.app.post(() -> done.get(false));
         })
         .submit(res -> {
             Jval val = Jval.read(res.getResultAsString());
@@ -291,26 +291,24 @@ public class BeControl{
         Http.get("https://api.github.com/repos/CN-ARC/Mindustry-CN-ARC/commits").submit(res -> {
             Jval val = Jval.read(res.getResultAsString());
             Jval.JsonArray list =  val.asArray();
-            list.each(commit->{
-                String time = commit.get("commit").get("author").getString("date");
-                String author = commit.get("commit").get("author").getString("name");
-                String content = commit.get("commit").getString("message");
-                commits.append("[#008000]").append(time);
-                for(int i=time.length();i<30;i++)
-                    commits.append(" ");
-                commits.append("[#1E90FF]").append(author);
-                commits.append("\n");
-                commits.append("[white]").append(content);
-                commits.append("\n");
-                /*
-                upTable.table(upt->{
-                    upt.add(time).color(Color.valueOf("#008000")).width(270f).left();
-                    upt.add(author).color(Color.valueOf("#1E90FF")).width(80f).padLeft(10f);
-                }).fillX().row();
-                upTable.add(content).color(Color.white).padBottom(3f).left();
-                upTable.row();*/
+            
+            // 抛回主线程处理提交
+            Core.app.post(() -> {
+                list.each(commit->{
+                    String time = commit.get("commit").get("author").getString("date");
+                    String author = commit.get("commit").get("author").getString("name");
+                    String content = commit.get("commit").getString("message");
+                    
+                    commits.append("[#008000]").append(time);
+                    for(int i=time.length();i<30;i++)
+                        commits.append(" ");
+                    commits.append("[#1E90FF]").append(author);
+                    commits.append("\n");
+                    commits.append("[white]").append(content);
+                    commits.append("\n");
+                });
+                commitLabel.setText(commits.toString());
             });
-            commitLabel.setText(commits.toString());
         });
     }
 
