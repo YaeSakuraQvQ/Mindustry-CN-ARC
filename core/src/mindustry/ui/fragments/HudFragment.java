@@ -180,6 +180,31 @@ public class HudFragment{
             t.top().right();
         });
 
+        //quickschemUI
+        parent.fill(cons(t => {
+            let style = Styles.clearNonei;
+            const width = 30*3/5;
+            for(let h = 0;h<20;h++){
+                const i = h;
+                if(h > 1 && h % 5 == 0){
+                    t.row();
+                }
+                let icon = getIcon("iconSlot"+i);
+                let imgbutton = t.button(icon, style, run(()=>{
+                    useSchematic(Core.settings.getString("quickschemSlot"+i), "quickschemSlot"+i);
+                }));
+    
+                imgbutton.update(b => b.setDisabled(!Core.settings.getString("quickschemSlot"+i)))
+                .width(width).height(width).name("imgbuttonores")
+                .tooltip(Core.settings.getString("quickschemSlot"+i, "_"));
+                
+                imgbutton.get().getImage().setScaling(Scaling.stretch);
+                imgbutton.get().getImage().setSize(width*0.8,width*0.8);
+                imgbutton.get().resizeImage(width*0.8);
+            }
+            t.top().left().marginTop(271);
+        }));
+
         ui.hints.build(parent);
 
         //menu at top left
