@@ -180,15 +180,15 @@ public class HudFragment{
             t.top().right();
         });
 
-        //quickschemUI
-        parent.fill(t -> {
-            int width = 30 * 3 / 5;
+        //TODO quickschemUI
+        /**parent.fill(t -> {
+            float width = 30 * 3 / 5;
             for (int h = 0; h < 20; h++) {
                 int i = h;
                 if (h > 1 && h % 5 == 0) {
                     t.row();
                 }
-                TextureRegion icon = getIcon("iconSlot" + i);
+                String icon = getIcon("iconSlot" + i);
                 ImageButton imgbutton = t.button(icon, Styles.clearNonei, () -> {
                     useSchematic(Core.settings.getString("quickschemSlot" + i), "quickschemSlot" + i);
                 });
@@ -202,7 +202,7 @@ public class HudFragment{
                 imgbutton.resizeImage(width * 0.8);
             }
             t.top().left().marginTop(271);
-        });
+        });*/
 
         ui.hints.build(parent);
 
