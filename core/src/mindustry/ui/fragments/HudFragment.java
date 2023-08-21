@@ -182,15 +182,14 @@ public class HudFragment{
 
         //quickschemUI
         parent.fill(t -> {
-            style = Styles.clearNonei;
             int width = 30 * 3 / 5;
             for (int h = 0; h < 20; h++) {
                 int i = h;
                 if (h > 1 && h % 5 == 0) {
                     t.row();
                 }
-                icon = getIcon("iconSlot" + i);
-                imgbutton = t.button(icon, style, () -> {
+                TextureRegion icon = getIcon("iconSlot" + i);
+                ImageButton imgbutton = t.button(icon, Styles.clearNonei, () -> {
                     useSchematic(Core.settings.getString("quickschemSlot" + i), "quickschemSlot" + i);
                 });
         
