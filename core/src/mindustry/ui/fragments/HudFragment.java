@@ -183,18 +183,18 @@ public class HudFragment{
         //quickschemUI
         parent.fill(t -> {
             let style = Styles.clearNonei;
-            const width = 30*3/5;
+            int width = 30*3/5;
             for(let h = 0;h<20;h++){
-                const i = h;
+                int i = h;
                 if(h > 1 && h % 5 == 0){
                     t.row();
                 }
                 let icon = getIcon("iconSlot"+i);
-                let imgbutton = t.button(icon, style, run(()=>{
+                let imgbutton = t.button(icon, style, run(()->{
                     useSchematic(Core.settings.getString("quickschemSlot"+i), "quickschemSlot"+i);
                 }));
     
-                imgbutton.update(b => b.setDisabled(!Core.settings.getString("quickschemSlot"+i)))
+                imgbutton.update(b -> b.setDisabled(!Core.settings.getString("quickschemSlot"+i)))
                 .width(width).height(width).name("imgbuttonores")
                 .tooltip(Core.settings.getString("quickschemSlot"+i, "_"));
                 
