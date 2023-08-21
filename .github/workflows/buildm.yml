@@ -17,6 +17,7 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 --decode > bekeystore.jks
+          ls -la # 添加这一行，以便查看当前目录中的文件
       - name: build
         env:
           keystore_password: ${{ secrets.KEYSTORE_PASSWORD_SECRET }}
