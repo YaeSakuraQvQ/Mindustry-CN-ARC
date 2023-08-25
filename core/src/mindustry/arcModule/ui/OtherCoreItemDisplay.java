@@ -160,6 +160,16 @@ public class OtherCoreItemDisplay extends Table {
                 teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.unitDamage(team.team), 2)).get().setFontScale(fontScl);
             }
             teamsTable.row();
+            teamsTable.image(Blocks.repairTurret.uiIcon).size(15, 15).left().get();
+            for (Teams.TeamData team : teams) {
+                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.unitHealth(team.team), 2)).get().setFontScale(fontScl);
+            }
+            teamsTable.row();
+            teamsTable.image(UnitTypes.zenith.uiIcon).size(15, 15).left().get();
+            for (Teams.TeamData team : teams) {
+                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.unitCrashDamage(team.team), 2)).get().setFontScale(fontScl);
+            }
+            teamsTable.row();
             teamsTable.image(UnitTypes.poly.uiIcon).size(15, 15).left().get();
             for (Teams.TeamData team : teams) {
                 teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.buildSpeed(team.team), 2)).get().setFontScale(fontScl);
