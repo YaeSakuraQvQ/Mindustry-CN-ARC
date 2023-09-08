@@ -316,11 +316,11 @@ public class Renderer implements ApplicationListener{
         Draw.sort(true);
 
         Events.fire(Trigger.draw);
+        MapPreviewLoader.checkPreviews();
         //klp大佬nb，赞美大佬(我自己动的是FogControl.java里的isVisibleTile，结果还得改雾的透明度qwq)
         if (Core.settings.getBool("无迷雾", false)) {
             Vars.state.rules.fog = false;
         }
-        MapPreviewLoader.checkPreviews();
 
         if(pixelator.enabled()){
             pixelator.register();
