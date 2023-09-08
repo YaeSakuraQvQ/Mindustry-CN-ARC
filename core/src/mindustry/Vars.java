@@ -46,7 +46,7 @@ public class Vars implements Loadable{
     public static int changeLogRead = 18;
     public static Seq<District.advDistrict> districtList = new Seq<>();
     public static Seq<hiddenMenu> menuLists = new Seq<>();
-    public static String userContentURL = "https://gh.squirrel.gq/https://raw.github.com";
+    public static String userContentURL = "https://ghps.cc/https://raw.github.com";
     public static boolean replaying = false;
     public static ReplayController replayController;
     public static float gameSpeed = 1f;

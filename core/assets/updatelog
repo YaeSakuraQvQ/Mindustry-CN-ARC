@@ -1,3 +1,35 @@
+[cyan]------------------------[v146-9/4]---------------------------
+Fixed a variety of issues with unit & block cost multiplier rules
+Fixed many various crashes
+Fixed various Steam achievements not triggering
+Fixed pathfinding not being able to path through solid enemy blocks
+Fixed naval units sometimes attempting to pathfind through land
+Fixed game data not exporting with large saves on iOS
+Fixed water tiles with space background resulting in a black background
+Fixed internal legacy blocks being logic constants
+Fixed power node double-click leading to interaction rate limit triggering
+Fixed units sometimes being unkillable
+Fixed units with long paths sometimes recalculating forever
+Fixed serious issue with player units getting bugged in certain maps with puddles
+Fixed Neoplasia reactor sometimes not exploding
+Fixed units randomly dying when hitting corners
+Fixed piercing bullets permaturely hitting blocks "under" bullets
+Fixed missiles dealing double damage to units
+Fixed FPS not limiting accurately
+Added setting to disable all lighting
+Added logic unit autoPathfind command (default wave pathfinding)
+Made logic unbind command set @unit to null
+Made "any" environment accessible outside of sandbox
+Made payload loaders no longer accept inputs from payload unloaders
+Added logic sensors for shields, content ID (inverse of lookup command)
+Added logic particle effect instruction
+Added logic sync instruction
+Setting factory output points now updates "last accessed"
+Disabled team switching menu in multiplayer outside of sandbox/PvP
+Decreased canvas block silicon cost slightly
+Scathe ammo usage decreased to 15
+Buffed Precept unit
+
 [cyan]------------------------[v145-6/18]---------------------------
 Fixed logic icons for certain content being squished
 Fixed a freeze caused by stack routers

@@ -13,6 +13,7 @@ import mindustry.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.entities.abilities.Ability;
+import mindustry.entities.abilities.*;
 import mindustry.entities.bullet.*;
 import mindustry.gen.*;
 import mindustry.maps.*;
@@ -24,7 +25,6 @@ import mindustry.world.blocks.environment.*;
 import mindustry.world.blocks.production.BurstDrill;
 import mindustry.world.blocks.production.Drill;
 import mindustry.world.blocks.production.Separator;
-import mindustry.world.consumers.ConsumeItems;
 
 import static mindustry.Vars.*;
 
@@ -382,7 +382,7 @@ public class StatValues{
                         b.image(liquid.uiIcon).size(40).pad(10f).left().scaling(Scaling.fit);
                         b.table(info -> {
                             info.add(liquid.localizedName).left().row();
-                            info.add(Strings.autoFixed(maxUsed * 60f, 1) + StatUnit.perSecond.localized()).left().color(Color.lightGray);
+                            info.add(Strings.autoFixed(maxUsed * 60f, 2) + StatUnit.perSecond.localized()).left().color(Color.lightGray);
                         });
 
                         b.table(bt -> {
@@ -391,7 +391,7 @@ public class StatValues{
                             float reloadRate = (baseReload ? 1f : 0f) + maxUsed * multiplier * liquid.heatCapacity;
                             float standardReload = baseReload ? reload : reload / (maxUsed * multiplier * 0.4f);
                             float result = standardReload / (reload / reloadRate);
-                            bt.add(Core.bundle.format("bullet.reload", Strings.autoFixed(result * 100, 1))).pad(5);
+                            bt.add(Core.bundle.format("bullet.reload", Strings.autoFixed(result * 100, 2))).pad(5);
                         }).right().grow().pad(10f).padRight(15f);
                     }).growX().pad(5).row();
                 }
@@ -414,7 +414,7 @@ public class StatValues{
                         b.image(liquid.uiIcon).size(40).pad(10f).left().scaling(Scaling.fit);
                         b.table(info -> {
                             info.add(liquid.localizedName).left().row();
-                            info.add(Strings.autoFixed(amount * 60f, 1) + StatUnit.perSecond.localized()).left().color(Color.lightGray);
+                            info.add(Strings.autoFixed(amount * 60f, 2) + StatUnit.perSecond.localized()).left().color(Color.lightGray);
                         });
                         b.table(bt -> {
                             bt.right().defaults().padRight(3).left();
@@ -459,7 +459,7 @@ public class StatValues{
     public static StatValue weapons(UnitType unit, Seq<Weapon> weapons){
         return table -> {
             table.row();
-            for(int i = 0; i < weapons.size;i ++){
+            for(int i = 0; i < weapons.size; i++){
                 Weapon weapon = weapons.get(i);
 
                 if(weapon.flipSprite || !weapon.hasStats(unit)){
@@ -478,6 +478,23 @@ public class StatValues{
                 }).growX().pad(5).margin(10);
                 table.row();
             }
+        };
+    }
+
+    public static StatValue abilities(Seq<Ability> abilities){
+        return table -> {
+            table.row();
+            table.table(t -> abilities.each(ability -> {
+                if(ability.display){
+                    t.row();
+                    t.table(Styles.grayPanel, a -> {
+                        a.add("[accent]" + ability.localized()).padBottom(4);
+                        a.row();
+                        a.left().top().defaults().left();
+                        ability.addStats(a);
+                    }).pad(5).margin(10).growX();
+                }
+            }));
         };
     }
 
@@ -651,51 +668,52 @@ public class StatValues{
                         sep(bt, Core.bundle.format("bullet.suppression", Strings.autoFixed(type.suppressionDuration / 60f, 2), Strings.fixed(type.suppressionRange / tilesize, 1)));
                     }
 
-                    if(type.fragBullet != null){
-                        bt.row();
-
-                        Table fc = new Table();
-                        ammo(ObjectMap.of(t, type.fragBullet), indent + 1, false).display(fc);
-                        Collapser coll = new Collapser(fc, true);
-                        coll.setDuration(0.1f);
-
-                        bt.table(ft -> {
-                            ft.left().defaults().left();
-
-                            ft.add(Core.bundle.format("bullet.frags", type.fragBullets));
-                            ft.button(Icon.downOpen, Styles.emptyi, () -> coll.toggle(false)).update(i -> i.getStyle().imageUp = (!coll.isCollapsed() ? Icon.upOpen : Icon.downOpen)).size(8).padLeft(16f).expandX();
+                    if(type instanceof EmpBulletType eb) {
+                        collapser(bt, Strings.format("[stat]EMP~@[lightgray]格[]~[white]\uE810[]@%/[white]\uE86D[]@%~[white]\uF899[][green]@%[]/[negstat]@%[]",
+                                Strings.autoFixed(eb.radius / tilesize, 0),
+                                Strings.autoFixed(eb.powerDamageScl * 100, 0),
+                                Strings.autoFixed(eb.unitDamageScl * 100, 0),
+                                Strings.autoFixed(eb.timeIncrease * 100, 0),
+                                Strings.autoFixed(eb.powerSclDecrease * 100, 0)
+                        ), ec -> {
+                            ec.defaults().padLeft(5f);
+                            sep(ec,Strings.format("[stat]对敌方电网建筑造成@%子弹伤害", Strings.autoFixed(eb.powerDamageScl * 100, 0)));
+                            sep(ec,Strings.format("[stat]对敌方单位造成@%子弹伤害", Strings.autoFixed(eb.unitDamageScl * 100, 0)));
+                            sep(ec,Strings.format("[stat]对我方耗电建筑超速至@%", Strings.autoFixed(eb.timeIncrease * 100, 0)));
+                            sep(ec,Strings.format("[stat]对敌方电网建筑减速至@%", Strings.autoFixed(eb.powerSclDecrease * 100, 0)));
                         });
-                        bt.row();
-                        bt.add(coll);
+                    }
+
+                    if(type.fragBullet != null){
+                        collapser(bt, Core.bundle.format("bullet.frags", type.fragBullets), fc -> {
+                            ammo(ObjectMap.of(t, type.fragBullet), indent + 1, false).display(fc);
+                        });
                     }
 
                     if(type.intervalBullet != null){
-                        bt.row();
-
-                        Table ic = new Table();
-                        ammo(ObjectMap.of(t, type.intervalBullet), indent + 1, false).display(ic);
-                        Collapser coll = new Collapser(ic, true);
-                        coll.setDuration(0.1f);
-
-                        bt.table(it -> {
-                            it.left().defaults().left();
-
-                            it.add(Core.bundle.format("bullet.interval", Strings.autoFixed(type.intervalBullets / type.bulletInterval * 60, 2)));
-                            it.button(Icon.downOpen, Styles.emptyi, () -> coll.toggle(false)).update(i -> i.getStyle().imageUp = (!coll.isCollapsed() ? Icon.upOpen : Icon.downOpen)).size(8).padLeft(16f).expandX();
+                        collapser(bt, Core.bundle.format("bullet.interval", Strings.autoFixed(type.intervalBullets / type.bulletInterval * 60, 2)), ic -> {
+                            ammo(ObjectMap.of(t, type.intervalBullet), indent + 1, false).display(ic);
                         });
-                        bt.row();
-                        bt.add(coll);
                     }
 
                     Seq<BulletType> spawn = type.spawnBullets.copy();
-                    while (spawn.any()) {//显示所有spawnBullets
-                        BulletType bullet = spawn.first();
-                        Boolf<BulletType> pred = b -> bullet.damage == b.damage && bullet.splashDamage == b.splashDamage;
-                        //通过pred的的子弹被认为和当前子弹是一样的，合并显示
-                        sep(bt, "[stat]" + spawn.count(pred) + "x[lightgray]生成子弹：");
-                        bt.row();
-                        ammo(ObjectMap.of(t, bullet), indent + 1, false).display(bt);
-                        spawn.removeAll(pred);//删除已经显示的子弹
+                    if (spawn.any()) {
+                        collapser(bt, Strings.format("[stat]@x[lightgray]生成子弹：", spawn.size), sc -> {
+                            while (spawn.any()) {
+                                BulletType bullet = spawn.first();
+                                Boolf<BulletType> pred = b -> bullet.damage == b.damage && bullet.splashDamage == b.splashDamage;
+                                //通过pred的的子弹被认为和当前子弹是一样的，合并显示
+                                int count = spawn.count(pred);
+                                if (count == type.spawnBullets.size) {
+                                    ammo(ObjectMap.of(t, bullet), indent + 1, false).display(sc);
+                                } else {
+                                    sep(sc, Strings.format(" [stat]@x[lightgray]子弹：", count)).padLeft(0f);//不知道为什么padLeft0刚刚好，就这样了
+                                    ammo(ObjectMap.of(t, bullet), indent + 2, false).display(sc);
+                                }
+                                bt.row();
+                                spawn.removeAll(pred);
+                            }
+                        });
                     }
                 }).padLeft(indent * 5).padTop(5).padBottom(compact ? 0 : 5).growX().margin(compact ? 0 : 10);
 
@@ -726,9 +744,28 @@ public class StatValues{
     }
 
     //for AmmoListValue
-    private static void sep(Table table, String text){
+    private static Cell<Label> sep(Table table, String text){
         table.row();
-        table.add(text);
+        return table.add(text);
+    }
+    private static void collapser(Table table, String text, Cons<Table> cons){
+        table.row();
+
+        Table collt = new Table();
+        collt.left().defaults().left();
+        cons.get(collt);
+
+        Collapser coll = new Collapser(collt, true);
+        coll.setDuration(0.1f);
+
+        table.table(tt -> {
+            tt.add(text);
+            tt.button(Icon.downOpen, Styles.emptyi, () -> coll.toggle(false))
+                    .update(i -> i.getStyle().imageUp = (!coll.isCollapsed() ? Icon.upOpen : Icon.downOpen))
+                    .size(8).padLeft(16f).expandX();
+        });
+        table.row();
+        table.add(coll);
     }
 
     //for AmmoListValue

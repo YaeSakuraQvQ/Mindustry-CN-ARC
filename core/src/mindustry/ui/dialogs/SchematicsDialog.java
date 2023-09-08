@@ -89,7 +89,7 @@ public class SchematicsDialog extends BaseDialog{
                 Core.app.setClipboardText(blueprintlink);
             }
         });
-        buttons.button("[violet]转换器[white] " + Blocks.canvas.emoji() + Blocks.logicDisplay.emoji() + Blocks.sorter.emoji(),Icon.image, picToMindustry::new);
+        buttons.button("[violet]转换器[white] " + Blocks.canvas.emoji() + Blocks.logicDisplay.emoji() + Blocks.sorter.emoji(), Icon.image, picToMindustry::show);
         buttons.button("快捷蓝图", Icon.settings, () -> {
             quickschem = !quickschem;
         }).update(button -> button.setChecked(quickschem));
@@ -237,7 +237,7 @@ public class SchematicsDialog extends BaseDialog{
                             }else{
                                 buttons.button(Icon.trash, style, () -> {
                                     if(s.mod != null){
-                                        ui.showInfo(Core.bundle.format("mod.item.remove", s.mod.meta.displayName()));
+                                        ui.showInfo(Core.bundle.format("mod.item.remove", s.mod.meta.displayName));
                                     }else{
                                         ui.showConfirm("@confirm", "@schematic.delete.confirm", () -> {
                                             schematics.remove(s);

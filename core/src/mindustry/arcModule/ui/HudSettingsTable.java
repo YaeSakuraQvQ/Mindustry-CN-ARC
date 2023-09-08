@@ -24,6 +24,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.Fonts;
 import mindustry.ui.Styles;
+import mindustry.ui.dialogs.BaseDialog;
 
 import static mindustry.Vars.*;
 import static arc.Core.bundle;
@@ -127,7 +128,7 @@ public class HudSettingsTable extends Table {
                     t.button("[cyan]技", NCtextStyle, () -> Call.sendChatMessage("/skill")).size(30).tooltip("技能！");
                     t.button("[cyan]版", NCtextStyle, () -> Call.sendChatMessage("/broad")).size(30).tooltip("服务器信息版");
                     t.button("[red]版", textStyle, () -> {
-                        Core.settings.put("ShowInfoPopup", !Core.settings.getBool("ShowInfoPopup"));
+                        settings.put("ShowInfoPopup", !Core.settings.getBool("ShowInfoPopup"));
                     }).checked(a -> Core.settings.getBool("ShowInfoPopup")).size(30, 30).tooltip("关闭所有信息版");
                     t.button("[white]法", NCtextStyle, () -> {
                         ui.showConfirm("受不了，直接投降？", () -> Call.sendChatMessage("/vote gameover"));
@@ -146,8 +147,23 @@ public class HudSettingsTable extends Table {
                             return;
                         }
                     }).size(30.0F, 30.0F).tooltip("唤起被隐藏的菜单");
+                    if (settings.getInt("arcQuickMsg",0) == 0)
+                        t.button("\uE87C", NCtextStyle, this::arcQuickMsgTable).size(30, 30).tooltip("快捷消息");
                 }).left();
                 sp.row();
+                if (settings.getInt("arcQuickMsg")>0){
+                    sp.table(t -> {
+                        for (int i =0; i<settings.getInt("arcQuickMsg"); i++){
+                            if (i % settings.getInt("arcQuickMsgKey",8) == 0) t.row();
+                            int finalI = i;
+                            t.button(settings.getString(getArcQuickMsgShortName(i)),NCtextStyle,()->
+                                Call.sendChatMessage(settings.getString(getArcQuickMsgName(finalI)))
+                            ).size(30);
+                        }
+                        t.button("\uE87C", NCtextStyle, this::arcQuickMsgTable).size(30, 30).tooltip("快捷消息");
+                    }).left();
+                    sp.row();
+                }
                 sp.table(t -> {
                     t.button("[cyan]块", textStyle, () -> {
                         int blockRenderLevel = Core.settings.getInt("blockRenderLevel");
@@ -218,6 +234,53 @@ public class HudSettingsTable extends Table {
             expandList = !expandList;
             rebuild();
         }).width(32f).fillY();
+    }
+
+    private void arcQuickMsgTable() {
+        BaseDialog dialog = new BaseDialog("快捷信息");
+        dialog.cont.table(t->{
+            t.add("在此编辑快速消息，可在快捷设置面板显示。如设置：\n[white]法 /vote gameover\n" +
+                    "这一指令会添加一个“[white]法的按钮，点击会自动输入/vote gameover。\n" +
+                    "由于懒得写更新，请修改滑块后[orange]关闭此窗口后再打开一次[white]\n" +
+                    "快捷设置面板同样需要[orange]关闭后再打开一次[white]才能生效").center().fillX().row();
+            t.table(tt->{
+                tt.add("快捷消息个数： ");
+                Label label = tt.add(String.valueOf(settings.getInt("arcQuickMsg",0))).get();
+                tt.slider(0,50,1, settings.getInt("arcQuickMsg",0), i-> {
+                    settings.put("arcQuickMsg",(int)i);
+                    label.setText(String.valueOf(settings.getInt("arcQuickMsg")));
+                }).width(200f).row();
+                tt.add("每行多少个按键： ");
+                Label label2 = tt.add(String.valueOf(settings.getInt("arcQuickMsgKey",0))).get();
+                tt.slider(3,10,1, settings.getInt("arcQuickMsgKey",0),i-> {
+                    settings.put("arcQuickMsgKey",(int)i);
+                    label2.setText(String.valueOf(settings.getInt("arcQuickMsgKey")));
+                ;}).width(200f);
+            }).row();
+            t.pane(tt->{
+                tt.add("第i个").width(50f);
+                tt.add("按钮显示\n(建议单个字符)").width(100f);
+                tt.add("              输入信息").width(400f).center().row();
+
+                for (int i =0; i<settings.getInt("arcQuickMsg",0); i++){
+                    tt.add(i + "  ");
+                    int finalI = i;
+                    tt.field(settings.getString(getArcQuickMsgShortName(finalI),"?"), text->settings.put(getArcQuickMsgShortName(finalI),text)).maxTextLength(10);
+                    tt.field(settings.getString(getArcQuickMsgName(finalI),"未输入指令"), text->settings.put(getArcQuickMsgName(finalI),text)).maxTextLength(300).width(350f);
+                    tt.row();
+                }
+            });
+        });
+        dialog.addCloseButton();
+        dialog.show();
+    }
+
+    private String getArcQuickMsgShortName(int i){
+        return "arcQuickMsgShort" + i;
+    }
+
+    private String getArcQuickMsgName(int i){
+        return "arcQuickMsg" + i;
     }
 
     public interface StringProcessor {

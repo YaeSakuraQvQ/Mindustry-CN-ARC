@@ -34,7 +34,7 @@ import static mindustry.logic.GlobalVars.*;
 abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, Itemsc, Rotc, Unitc, Weaponsc, Drawc, Boundedc, Syncc, Shieldc, Displayable, Ranged, Minerc, Builderc, Senseable, Settable{
 
     @Import boolean hovering, dead, disarmed;
-    @Import float x, y, rotation, elevation, maxHealth, drag, armor, hitSize, health, ammo, dragMultiplier;
+    @Import float x, y, rotation, elevation, maxHealth, drag, armor, hitSize, health, shield, ammo, dragMultiplier;
     @Import Team team;
     @Import int id;
     @Import @Nullable Tile mineTile;
@@ -209,6 +209,7 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
             case itemCapacity -> type.itemCapacity;
             case rotation -> rotation;
             case health -> health;
+            case shield -> shield;
             case maxHealth -> maxHealth;
             case ammo -> !state.rules.unitAmmo ? type.ammoCapacity : ammo;
             case ammoCapacity -> type.ammoCapacity;
@@ -262,7 +263,12 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
     @Override
     public void setProp(LAccess prop, double value){
         switch(prop){
-            case health -> health = (float)Mathf.clamp(value, 0, maxHealth);
+            case health -> {
+                health = (float)Mathf.clamp(value, 0, maxHealth);
+                if(health <= 0f && !dead){
+                    kill();
+                }
+            }
             case x -> x = World.unconv((float)value);
             case y -> y = World.unconv((float)value);
             case rotation -> rotation = (float)value;
@@ -292,13 +298,15 @@ abstract class UnitComp implements Healthc, Physicsc, Hitboxc, Statusc, Teamc, I
                 //only serverside
                 if(((Object)this) instanceof Payloadc pay && !net.client()){
                     if(value instanceof Block b){
-                        Building build = b.newBuilding().create(b, team());
-                        if(pay.canPickup(build)) pay.addPayload(new BuildPayload(build));
+                        if(b.synthetic()){
+                            Building build = b.newBuilding().create(b, team());
+                            if(pay.canPickup(build)) pay.addPayload(new BuildPayload(build));
+                        }
                     }else if(value instanceof UnitType ut){
                         Unit unit = ut.create(team());
                         if(pay.canPickup(unit)) pay.addPayload(new UnitPayload(unit));
                     }else if(value == null && pay.payloads().size > 0){
-                        pay.dropLastPayload();
+                        pay.payloads().pop();
                     }
                 }
             }

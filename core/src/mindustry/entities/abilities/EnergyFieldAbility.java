@@ -1,9 +1,11 @@
 package mindustry.entities.abilities;
 
+import arc.*;
 import arc.audio.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.content.*;
@@ -12,9 +14,9 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
+import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
-import static mindustry.arcModule.RFuncs.abilitysFormat;
 
 public class EnergyFieldAbility extends Ability{
     private static final Seq<Healthc> all = new Seq<>();
@@ -28,6 +30,9 @@ public class EnergyFieldAbility extends Ability{
     public boolean targetGround = true, targetAir = true, hitBuildings = true, hitUnits = true;
     public int maxTargets = 25;
     public float healPercent = 3f;
+    /** Multiplies healing to units of the same type by this amount. */
+    public float sameTypeHealMult = 1f;
+    public boolean displayHeal = true;
 
     public float layer = Layer.bullet - 0.001f, blinkScl = 20f, blinkSize = 0.1f;
     public float effectRadius = 5f, sectorRad = 0.14f, rotateSpeed = 0.5f;
@@ -47,16 +52,25 @@ public class EnergyFieldAbility extends Ability{
     }
 
     @Override
-    public String description(UnitType unit){
-        return abilitysFormat("@s~@格~@目标~@伤害~@s@~@%修复",
-                reload / 60f,
-                range / tilesize,
-                maxTargets = 25,
-                damage,
-                statusDuration / 60f,
-                status.emoji(),
-                healPercent
-                );
+    public void addStats(Table t){
+        t.add(Core.bundle.format("bullet.damage", damage));
+        t.row();
+        t.add("[lightgray]" + Stat.reload.localized() + ": [white]" + Strings.autoFixed(60f / reload, 2) + " " + StatUnit.perSecond.localized());
+        t.row();
+        t.add("[lightgray]" + Stat.shootRange.localized() + ": [white]" +  Strings.autoFixed(range / tilesize, 2) + " " + StatUnit.blocks.localized());
+        t.row();
+        t.add(Core.bundle.format("ability.energyfield.maxtargets", maxTargets));
+
+        if(displayHeal){
+            t.row();
+            t.add(Core.bundle.format("bullet.healpercent", Strings.autoFixed(healPercent, 2)));
+            t.row();
+            t.add(Core.bundle.format("ability.energyfield.sametypehealmultiplier", Math.round(sameTypeHealMult * 100f)));
+        }
+        if(status != StatusEffects.none){
+            t.row();
+            t.add(status.emoji() + " " + status.localizedName);
+        }
     }
 
     @Override
@@ -136,7 +150,8 @@ public class EnergyFieldAbility extends Ability{
                 if(((Teamc)other).team() == unit.team){
                     if(other.damaged()){
                         anyNearby = true;
-                        other.heal(healPercent / 100f * other.maxHealth());
+                        float healMult = (other instanceof Unit u && u.type == unit.type) ? sameTypeHealMult : 1f;
+                        other.heal(healPercent / 100f * other.maxHealth() * healMult);
                         healEffect.at(other);
                         damageEffect.at(rx, ry, 0f, color, other);
                         hitEffect.at(rx, ry, unit.angleTo(other), color);

@@ -1,5 +1,6 @@
 package mindustry.arcModule.ui;
 
+import arc.func.Boolf;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.Interval;
@@ -8,6 +9,9 @@ import mindustry.core.*;
 import mindustry.entities.Units;
 import mindustry.type.*;
 import mindustry.ui.*;
+import mindustry.world.Block;
+import mindustry.world.blocks.power.BeamNode;
+import mindustry.world.blocks.power.PowerNode;
 import mindustry.world.blocks.storage.CoreBlock;
 import mindustry.world.blocks.storage.CoreBlock.*;
 import arc.Core;
@@ -16,7 +20,7 @@ import arc.scene.event.*;
 import static mindustry.Vars.*;
 
 public class RCoreItemsDisplay extends CoreItemsDisplay {
-    private Interval timer = new Interval();
+    private Interval timer = new Interval(), timer2 = new Interval();
     private final ObjectSet<Item> usedItems = new ObjectSet<>();
     private final ObjectSet<UnitType> usedUnits = new ObjectSet<>();
     private int[] updateItems = new int[content.items().size];
@@ -24,6 +28,13 @@ public class RCoreItemsDisplay extends CoreItemsDisplay {
     private ItemSeq planItems = new ItemSeq();
     private CoreBuild core;
     private int arccoreitems = -1;
+    private ObjectIntMap<Block> planBlock = new ObjectIntMap<>();
+    private Boolf<Block> planBlockFilter = b -> {
+        return b.category != Category.distribution
+                && b.category != Category.liquid
+                && !(b instanceof PowerNode)
+                && !(b instanceof BeamNode);
+    };
 
     public RCoreItemsDisplay() {
         arccoreitems = Core.settings.getInt("arccoreitems");
@@ -83,6 +94,7 @@ public class RCoreItemsDisplay extends CoreItemsDisplay {
                 rebuild();
             }
 
+            if (timer2.get(2f)) rebuild();
             touchable = Touchable.disabled;
         });
 
@@ -181,5 +193,19 @@ public class RCoreItemsDisplay extends CoreItemsDisplay {
             });
         }
 
+        i = 0;
+        row();
+        planBlock.clear();
+        control.input.allPlans().each(p -> planBlock.put(p.block, planBlock.get(p.block, 0) + (p.breaking ? -1 : 1)));
+        for (Block block : content.blocks().select(planBlockFilter)) {
+            int count = planBlock.get(block, 0);
+            if (count != 0) {
+                image(block.uiIcon).size(iconMed).padRight(3);
+                label(() -> (count > 0 ? "[green]+" : "[red]") + count).padRight(3).minWidth(52f).left();
+                if (++i % Core.settings.getInt("arcCoreItemsCol") == 0) {
+                    row();
+                }
+            }
+        }
     }
 }

@@ -1,13 +1,11 @@
 package mindustry.entities.abilities;
 
 import arc.math.*;
+import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.type.*;
-
-import static mindustry.Vars.tilesize;
-import static mindustry.arcModule.RFuncs.abilitysFormat;
 
 /** Spawns a certain amount of units upon death. */
 public class SpawnDeathAbility extends Ability{
@@ -28,23 +26,10 @@ public class SpawnDeathAbility extends Ability{
     }
 
     @Override
-    public String description(UnitType unit){
-        if (randAmount > 0) {
-            return abilitysFormat("(@~@)@@~@格",
-                    amount,
-                    amount + randAmount,
-                    this.unit.localizedName,
-                    this.unit.emoji(),
-                    spread / tilesize
-            );
-        }
-        return abilitysFormat("@@@~@格",
-                amount,
-                this.unit.localizedName,
-                this.unit.emoji(),
-                spread / tilesize
-        );
+    public void addStats(Table t){
+        t.add((randAmount > 0 ? amount + "-" + (amount + randAmount) : amount) + " " + unit.emoji() + " " + unit.localizedName);
     }
+
     @Override
     public void death(Unit unit){
         if(!Vars.net.client()){

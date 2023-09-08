@@ -10,8 +10,8 @@ import arc.scene.ui.layout.Table;
 import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import arc.util.Strings;
-import arc.util.Time;
 import arc.util.Tmp;
+import mindustry.Vars;
 import mindustry.arcModule.*;
 import mindustry.arcModule.ui.dialogs.TeamSelectDialog;
 import mindustry.content.Blocks;
@@ -44,6 +44,8 @@ import static mindustry.ui.Styles.*;
 public class AdvanceToolTable extends Table {
     private boolean show = false;
     private boolean showGameMode = false, showEntities = false, showTeamChange = false, showTimeControl = false, showCreator = false;
+
+    private boolean enableRTSCode = false;
 
     //unitFactory
     private int unitCount = 1;
@@ -444,6 +446,10 @@ public class AdvanceToolTable extends Table {
                     unitFactory.closeOnBack();
                 }).fillX();
             }
+            if (enableRTSCode) {
+                table.row();
+                table.button("RTS价格代码生成", Icon.logic, this::generateRTSCode).fillX();
+            }
         };
         rebuild[0].run();
 
@@ -471,14 +477,14 @@ public class AdvanceToolTable extends Table {
                     int i = 0;
                     for (UnitType units : content.units()) {
                         if (i++ % 8 == 0) list.row();
-                        list.button(units.emoji(), cleart, () -> {
+                        list.button(units.emoji() + (enableRTSCode ? getPrice(units) : ""), cleart, () -> {
                             if (unit.type != units) {
                                 changeUnitType(unit, units);
                                 rebuildTable[0].run();
                             }
                             showUnitSelect = !showUnitSelect;
                             rebuildTable[0].run();
-                        }).tooltip(units.localizedName).size(50f);
+                        }).tooltip(units.localizedName).width(enableRTSCode ? 100f : 50f).height(50f);
                     }
                 }).row();
             }
@@ -802,5 +808,32 @@ public class AdvanceToolTable extends Table {
             }
         }
         return 0;
+    }
+
+    private int getPrice(UnitType unitType) {
+        return (int) (unitType.health * (1 + unitType.range / 8 / 50) / 20);
+    }
+
+    private void generateRTSCode() {
+        StringBuilder code = new StringBuilder();
+        Vars.content.units().each(unitType -> {
+            code.append("set 单位 @").append(unitType.name).append("\n");
+            code.append("set 价格 ").append(getPrice(unitType)).append("\n");
+            code.append("set 工厂 ");
+            if (unitType.flying) {
+                if (unitType.health < 400) code.append("空1");
+                else code.append("空2");
+            } else {
+                if (unitType.allowLegStep || unitType.naval) code.append("海爬");
+                else code.append("陆");
+                if (unitType.health < 720) code.append("1");
+                else code.append("2");
+            }
+            code.append("\n");
+            code.append("set 名称 \"").append(unitType.emoji()).append(" ").append(unitType.localizedName).append(" ").append(unitType.name).append("\"\n");
+            code.append("set @counter c返回").append("\n");
+
+        });
+        Core.app.setClipboardText(code.toString());
     }
 }

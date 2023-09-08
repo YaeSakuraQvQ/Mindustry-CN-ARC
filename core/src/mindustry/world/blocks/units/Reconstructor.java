@@ -244,7 +244,7 @@ public class Reconstructor extends UnitBlock{
 
         @Override
         public int getMaximumAccepted(Item item){
-            return capacities[item.id];
+            return Mathf.round(capacities[item.id] * state.rules.unitCost(team));
         }
 
         @Override
@@ -354,6 +354,7 @@ public class Reconstructor extends UnitBlock{
         @Override
         public double sense(LAccess sensor){
             if(sensor == LAccess.progress) return Mathf.clamp(fraction());
+            if(sensor == LAccess.itemCapacity) return Mathf.round(itemCapacity * state.rules.unitCost(team));
             return super.sense(sensor);
         }
 

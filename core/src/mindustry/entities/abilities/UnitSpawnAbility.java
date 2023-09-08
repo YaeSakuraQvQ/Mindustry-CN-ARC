@@ -3,6 +3,7 @@ package mindustry.entities.abilities;
 import arc.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
+import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.content.*;
@@ -11,9 +12,9 @@ import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
+import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
-import static mindustry.arcModule.RFuncs.abilitysFormat;
 
 public class UnitSpawnAbility extends Ability{
     public UnitType unit;
@@ -34,12 +35,10 @@ public class UnitSpawnAbility extends Ability{
     }
 
     @Override
-    public String description(UnitType unit){
-        return abilitysFormat("@s~@@",
-                spawnTime / 60f,
-                this.unit.localizedName,
-                this.unit.emoji()
-                );
+    public void addStats(Table t){
+        t.add("[lightgray]" + Stat.buildTime.localized() + ": [white]" + Strings.autoFixed(spawnTime / 60f, 2) + " " + StatUnit.seconds.localized());
+        t.row();
+        t.add(unit.emoji() + " " + unit.localizedName);
     }
 
     @Override
@@ -71,4 +70,8 @@ public class UnitSpawnAbility extends Ability{
         }
     }
 
+    @Override
+    public String localized(){
+        return Core.bundle.format("ability.unitspawn", unit.localizedName);
+    }
 }

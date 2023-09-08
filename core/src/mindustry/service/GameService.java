@@ -116,6 +116,12 @@ public class GameService{
             installMod.complete();
         }
 
+        Events.on(ClientLoadEvent.class, e -> {
+            if(mods.list().size > 0){
+                installMod.complete();
+            }
+        });
+
         if(Core.bundle.get("yes").equals("router")){
             routerLanguage.complete();
         }
@@ -191,7 +197,7 @@ public class GameService{
             }
         });
 
-        Events.on(BlockBuildBeginEvent.class, e -> {
+        Events.on(BlockBuildEndEvent.class, e -> {
             if(campaign() && state.rules.sector == SectorPresets.groundZero.sector && e.tile.block() == Blocks.coreNucleus){
                 nucleusGroundZero.complete();
             }

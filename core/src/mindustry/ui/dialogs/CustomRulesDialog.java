@@ -181,13 +181,6 @@ public class CustomRulesDialog extends BaseDialog{
         check("@rules.hidebannedblocks", b -> rules.hideBannedBlocks = b, () -> rules.hideBannedBlocks);
         check("@bannedblocks.whitelist", b -> rules.blockWhitelist = b, () -> rules.blockWhitelist);
 
-        //TODO objectives would be nice
-        if(experimental && false){
-            main.button("@objectives", () -> {
-
-            }).left().width(300f).row();
-        }
-
         title("@rules.title.unit");
         check("@rules.unitammo", b -> rules.unitAmmo = b, () -> rules.unitAmmo);
         check("@rules.unitcapvariable", b -> rules.unitCapVariable = b, () -> rules.unitCapVariable);

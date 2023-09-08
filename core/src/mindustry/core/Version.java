@@ -16,10 +16,10 @@ public class Version{
     /** Number specifying the major version, e.g. '4' */
     public static int number;
     /** Build number, e.g. '43'. set to '-1' for custom builds. */
-    public static int build = 145;
+    public static int build = 146;
     /** Revision number. Used for hotfixes. Does not affect server compatibility. */
 
-    public static int revision = 1;
+    public static int revision = 0;
 
     /** Whether version loading is enabled. */
     public static boolean enabled = true;

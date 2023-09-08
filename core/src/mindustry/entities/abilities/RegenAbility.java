@@ -1,10 +1,10 @@
 package mindustry.entities.abilities;
 
+import arc.Core;
+import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.gen.*;
-import mindustry.type.UnitType;
-
-import static mindustry.arcModule.RFuncs.abilitysFormat;
+import mindustry.world.meta.*;
 
 public class RegenAbility extends Ability{
     /** Amount healed as percent per tick. */
@@ -13,14 +13,17 @@ public class RegenAbility extends Ability{
     public float amount = 0f;
 
     @Override
-    public String description(UnitType unit){
-        if (percentAmount > 0f && amount > 0f) {
-            return abilitysFormat( "@%+@/s", percentAmount * 100f, amount);
-        } else if (percentAmount > 0f) {
-            return abilitysFormat( "@%/s", percentAmount * 100f);
+    public void addStats(Table t){
+        if(amount > 0.01f){
+            t.add("[lightgray]" + Stat.repairSpeed.localized() + ": [white]" + Strings.autoFixed(amount * 60f, 2) + StatUnit.perSecond.localized());
+            t.row();
         }
-        else return abilitysFormat( "@/s", amount);
+
+        if(percentAmount > 0.01f){
+            t.add(Core.bundle.format("bullet.healpercent", Strings.autoFixed(percentAmount * 60f, 2)) + StatUnit.perSecond.localized()); //stupid but works
+        }
     }
+
     @Override
     public void update(Unit unit){
         unit.heal((unit.maxHealth * percentAmount / 100f + amount) * Time.delta);

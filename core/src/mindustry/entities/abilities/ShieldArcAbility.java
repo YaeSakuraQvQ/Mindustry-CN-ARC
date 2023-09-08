@@ -13,9 +13,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.type.*;
 import mindustry.ui.*;
-
-import static mindustry.Vars.tilesize;
-import static mindustry.arcModule.RFuncs.abilitysFormat;
+import mindustry.world.meta.*;
 
 public class ShieldArcAbility extends Ability{
     private static Unit paramUnit;
@@ -70,13 +68,13 @@ public class ShieldArcAbility extends Ability{
     protected float widthScale, alpha;
 
     @Override
-    public String description(UnitType unit){
-        return abilitysFormat("@盾容~@格~@恢复~@s冷却",
-                max,
-                radius / tilesize,
-                regen * 60f,
-                cooldown / 60f
-                );
+    public void addStats(Table t){
+        t.add("[lightgray]" + Stat.health.localized() + ": [white]" + Math.round(max));
+        t.row();
+        t.add("[lightgray]" + Stat.repairSpeed.localized() + ": [white]" + Strings.autoFixed(regen * 60f, 2) + StatUnit.perSecond.localized());
+        t.row();
+        t.add("[lightgray]" + Stat.cooldownTime.localized() + ": [white]" + Strings.autoFixed(cooldown / 60f, 2) + " " + StatUnit.seconds.localized());
+        t.row();
     }
 
     @Override

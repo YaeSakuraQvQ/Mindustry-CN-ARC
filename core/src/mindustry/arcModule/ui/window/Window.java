@@ -1,10 +1,12 @@
 package mindustry.arcModule.ui.window;
 
 import arc.Core;
+import arc.func.Cons;
 import arc.graphics.Color;
-import arc.graphics.Pixmap;
 import arc.graphics.Texture;
-import arc.graphics.g2d.NinePatch;
+import arc.graphics.g2d.Draw;
+import arc.graphics.g2d.Fill;
+import arc.graphics.g2d.Lines;
 import arc.graphics.g2d.TextureRegion;
 import arc.input.KeyCode;
 import arc.math.geom.Vec2;
@@ -12,16 +14,14 @@ import arc.scene.Element;
 import arc.scene.event.InputEvent;
 import arc.scene.event.InputListener;
 import arc.scene.event.Touchable;
-import arc.scene.style.Drawable;
-import arc.scene.style.NinePatchDrawable;
-import arc.scene.style.TextureRegionDrawable;
 import arc.scene.ui.Image;
 import arc.scene.ui.Label;
 import arc.scene.ui.layout.Table;
+import arc.struct.ObjectMap;
+import arc.struct.Seq;
 import arc.util.Align;
 import arc.util.Tmp;
 import mindustry.gen.Icon;
-import mindustry.gen.Tex;
 import mindustry.ui.Styles;
 
 import static mindustry.Vars.getThemeColor;
@@ -34,8 +34,11 @@ public class Window {
     Table cont;
     TextureRegion icon;
     public Image iconImage;
-    boolean removed = false, minSized = false;
+    boolean removed = false, minSized = false, resizable = true, maxSizable = true, minSizable = true;
+    boolean cursorRestored = true;
     float minWidth = 200, minHeight = 200;
+    private final ObjectMap<Enum<WindowEvents>, Seq<Cons<Window>>> events = new ObjectMap<>();
+    private static Window front = null;
 
     public Window() {
         this(ui.WindowManager);
@@ -58,22 +61,26 @@ public class Window {
         this.title = title;
         this.icon = icon;
         table = new WindowTable(width, height);
+        front = this;
     }
 
     public Window setIcon(TextureRegion icon) {
         iconImage.setDrawable(icon);
+        fire(WindowEvents.iconChanged);
         return this;
     }
 
     public Window setTitle(String title) {
         this.title = title;
         table.lastLabelWidth = 0;
+        fire(WindowEvents.titleChanged);
         return this;
     }
 
     public Window setBody(Table body) {
         cont.clear();
         cont.add(body).grow();
+        fire(WindowEvents.bodyChanged);
         return this;
     }
 
@@ -106,11 +113,72 @@ public class Window {
         if (removed) return;
         removed = true;
         table.remove();
+        fire(WindowEvents.close);
     }
 
     public void setMinSize(float width, float height) {
         minWidth = width;
         minHeight = height;
+    }
+
+    public boolean isResizable() {
+        return resizable;
+    }
+
+    public void setResizable(boolean resizable) {
+        this.resizable = resizable;
+    }
+
+    public boolean isMaxSizable() {
+        return maxSizable;
+    }
+
+    public void setMaxSizable(boolean maxSizable) {
+        this.maxSizable = maxSizable;
+        if (!maxSizable) table.cancelMaximize();
+    }
+
+    public boolean isMinSizable() {
+        return minSizable;
+    }
+
+    public void setMinSizable(boolean minSizable) {
+        this.minSizable = minSizable;
+        if (!minSizable) table.cancelMinimize();
+    }
+
+    public boolean maximize(boolean maximize) {
+        if (!maxSizable) return false;
+        if (maximize) {
+            return table.maximize();
+        } else {
+            return table.cancelMaximize();
+        }
+    }
+
+    public boolean minimize(boolean minimize) {
+        if (!minSizable) return false;
+        if (minimize) {
+            return table.minimize();
+        } else {
+            return table.cancelMinimize();
+        }
+    }
+
+    public void addListener(Enum<WindowEvents> type, Cons<Window> listener){
+        events.get(type, () -> new Seq<>(Cons.class)).add(listener);
+    }
+
+    public void fire(Enum<WindowEvents> type){
+        Seq<Cons<Window>> listeners = events.get(type);
+
+        if(listeners != null){
+            int len = listeners.size;
+            Cons<Window>[] items = listeners.items;
+            for(int i = 0; i < len; i++){
+                items[i].get(this);
+            }
+        }
     }
 
     private static class ResizeDirection {
@@ -135,21 +203,18 @@ public class Window {
         String cachedTitle = "";
 
         public WindowTable(float width, float height) {
+            setClip(true);
             setColor(new Color(127, 127, 127, 255));
             margin(0f);
             touchable = Touchable.childrenOnly;
-            Drawable color = ((TextureRegionDrawable) Tex.whiteui).tint(getThemeColor());
-            Pixmap pix = new Pixmap(3, 3);
-            pix.fill(getThemeColor());
-            pix.set(1, 1, Color.clear);
-            setBackground(new NinePatchDrawable(new NinePatch(new Texture(pix), 1, 1, 1, 1)));
-            pix.dispose();
-            table(t -> {
-                t.setBackground(color);
+            add(new Table(t -> {
                 iconImage = new Image(icon);
                 t.add(iconImage).size(12).pad(10, 12, 10, 12);
                 t.table(tt -> {
-                    tt.add("").update(l -> l.setText(calcString(title, l.getWidth()))).grow();
+                    tt.add("").update(l -> {
+                        l.setText(calcString(title, l.getWidth()));
+                        l.setColor(front == Window.this ? Color.black : Color.gray);
+                    }).grow();
                     tt.addListener(new InputListener() {
                         float lastX, lastY;
 
@@ -175,38 +240,29 @@ public class Window {
                     });
                 }).grow();
                 t.button("一", Styles.cleart, () -> {
-                    if (cont.visible) {
-                        minSized = true;
-                        if (fillParent) {
-                            setFillParent(false);
-                        } else {
-                            savePos();
-                        }
-                        cont.visible = false;
-                        setHeight(32);
-                        setWidth(200);
+                    if (minSized) {
+                        cancelMinimize();
                     } else {
-                        minSized = false;
-                        if (fillParent) {
-                            setFillParent(true);
-                        } else {
-                            loadPos();
-                        }
-                        cont.visible = true;
+                        minimize();
                     }
-                }).size(46, 28).pad(1).right();
+                }).size(46, 28).pad(1).disabled(e -> !minSizable).right();
                 t.button(Icon.copySmall, Styles.clearNonei, () -> {
                     if (fillParent) {
-                        loadPos();
-                        setFillParent(false);
+                        cancelMaximize();
                     } else {
-                        savePos();
-                        x = y = 0;
-                        setFillParent(true);
+                        maximize();
                     }
-                }).size(46, 28).pad(1).right();
+                }).size(46, 28).pad(1).disabled(e -> !maxSizable).right();
                 t.button(Icon.cancelSmall, Styles.clearNonei, this::remove).size(46, 28).pad(1).right();
                 t.touchable = Touchable.enabled;
+            }) {
+                @Override
+                public void draw() {
+                    Draw.color(front == Window.this ? getThemeColor() : Color.white);
+                    Fill.rect(x + width / 2, y + height / 2, width, height);
+                    super.draw();
+                    Draw.reset();
+                }
             }).height(32).top().growX().row();
             table(tt -> {
                 tt.align(Align.left);
@@ -219,11 +275,12 @@ public class Window {
 
                 @Override
                 public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button) {
-                    if (fillParent || minSized) return true;
+                    if (fillParent || minSized || !resizable) return false;
                     Vec2 v = localToParentCoordinates(Tmp.v1.set(x, y));
                     lastX = v.x;
                     lastY = v.y;
                     toFront();
+                    front = Window.this;
                     if (x < 7 && y < 7) {
                         resizing = true;
                         resizeDirection = ResizeDirection.BOTTOM_LEFT;
@@ -250,7 +307,10 @@ public class Window {
                         resizeDirection = ResizeDirection.TOP;
                     } else {
                         resizing = false;
+                        return false;
                     }
+                    Window.this.fire(WindowEvents.resizeStart);
+                    touchable = Touchable.disabled;
                     return true;
                 }
 
@@ -289,11 +349,14 @@ public class Window {
                     WindowTable.this.x += transX;
                     WindowTable.this.y += transY;
                     setSize(getWidth() + deltaX, getHeight() + deltaY);
+                    Window.this.fire(WindowEvents.resizing);
                 }
 
                 @Override
                 public void touchUp(InputEvent event, float x, float y, int pointer, KeyCode button) {
                     resizing = false;
+                    touchable = Touchable.enabled;
+                    Window.this.fire(WindowEvents.resizeFinish);
                 }
 
                 @Override
@@ -307,16 +370,19 @@ public class Window {
                         Core.graphics.cursor(ui.resizeHorizontalCursor);
                     } else if (y < 7 || y > getHeight() - 7) {
                         Core.graphics.cursor(ui.resizeVerticalCursor);
-                    } else {
+                    } else if (!cursorRestored) {
                         Core.graphics.restoreCursor();
+                        return cursorRestored = true;
                     }
+                    cursorRestored = false;
                     return true;
                 }
 
                 @Override
                 public void exit(InputEvent event, float x, float y, int pointer, Element toActor) {
-                    if (pointer == -1) {
+                    if (pointer == -1 && !cursorRestored) {
                         Core.graphics.restoreCursor();
+                        cursorRestored = true;
                     }
                 }
             });
@@ -325,6 +391,13 @@ public class Window {
             update(() -> {
                 if (fillParent) toFront();
             });
+        }
+
+        @Override
+        public void draw() {
+            super.draw();
+            Draw.color(front == Window.this ? getThemeColor() : Color.gray);
+            Lines.rect(x - 1, y - 1, width + 1, height + 1);
         }
 
         @Override
@@ -358,6 +431,51 @@ public class Window {
             y = lastY;
             setWidth(lastWidth);
             setHeight(lastHeight);
+        }
+
+        private boolean maximize() {
+            if (fillParent) return false;
+            savePos();
+            x = y = 0;
+            setFillParent(true);
+            Window.this.fire(WindowEvents.maximize);
+            return true;
+        }
+
+        private boolean cancelMaximize() {
+            if (!fillParent) return false;
+            loadPos();
+            setFillParent(false);
+            Window.this.fire(WindowEvents.restoreSize);
+            return true;
+        }
+
+        private boolean minimize() {
+            if (minSized) return false;
+            minSized = true;
+            if (fillParent) {
+                setFillParent(false);
+            } else {
+                savePos();
+            }
+            cont.visible = false;
+            setHeight(32);
+            setWidth(200);
+            Window.this.fire(WindowEvents.minimize);
+            return true;
+        }
+
+        private boolean cancelMinimize() {
+            if (!minSized) return false;
+            minSized = false;
+            if (fillParent) {
+                setFillParent(true);
+            } else {
+                loadPos();
+            }
+            cont.visible = true;
+            Window.this.fire(WindowEvents.restoreSize);
+            return true;
         }
     }
 }

@@ -28,6 +28,7 @@ import mindustry.game.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.graphics.MultiPacker.*;
+import mindustry.logic.*;
 import mindustry.type.ammo.*;
 import mindustry.ui.*;
 import mindustry.world.*;
@@ -41,7 +42,7 @@ import static arc.graphics.g2d.Draw.*;
 import static mindustry.Vars.*;
 import static mindustry.arcModule.toolpack.arcPlayerEffect.drawPlayerEffect;
 
-public class UnitType extends UnlockableContent{
+public class UnitType extends UnlockableContent implements Senseable{
     public static final float shadowTX = -12, shadowTY = -13;
     private static final Vec2 legOffset = new Vec2();
 
@@ -688,7 +689,7 @@ public class UnitType extends UnlockableContent{
         stats.add(Stat.aiController,aiController.get().getClass().getSimpleName());
 
         if(abilities.any()){
-            stats.add(Stat.abilities, StatValues.abilities(this, abilities));
+            stats.add(Stat.abilities, StatValues.abilities(abilities));
         }
 
         stats.add(Stat.unitrange, (int)(maxRange / tilesize), StatUnit.blocks);
@@ -698,6 +699,9 @@ public class UnitType extends UnlockableContent{
         stats.add(Stat.estimateDPS,estimateDps());
         stats.add(Stat.ammoType, ammoType.icon());
         stats.add(Stat.ammoCapacity, ammoCapacity);
+        if (crushDamage > 0) {
+            stats.add("碾压伤害(每格)", StatCat.combat, crushDamage * 60f, StatUnit.perSecond);
+        }
 
         stats.add(Stat.flying, flying);
 
@@ -783,10 +787,10 @@ public class UnitType extends UnlockableContent{
 
         if(pathCost == null){
             pathCost =
-                    example instanceof WaterMovec ? ControlPathfinder.costNaval :
-                            allowLegStep ? ControlPathfinder.costLegs :
-                                    hovering ? ControlPathfinder.costHover :
-                                            ControlPathfinder.costGround;
+                naval ? ControlPathfinder.costNaval :
+                allowLegStep || example instanceof Crawlc ? ControlPathfinder.costLegs :
+                hovering ? ControlPathfinder.costHover :
+                ControlPathfinder.costGround;
         }
 
         if(flying){
@@ -1035,6 +1039,8 @@ public class UnitType extends UnlockableContent{
     public void createIcons(MultiPacker packer){
         super.createIcons(packer);
 
+        if(constructor == null) throw new IllegalArgumentException("No constructor set up for unit '" + name + "'. Make sure you assign a valid value to `constructor`, e.g. `constructor = UnitEntity::new`");
+
         sample = constructor.get();
 
         var toOutline = new Seq<TextureRegion>();
@@ -1219,6 +1225,24 @@ public class UnitType extends UnlockableContent{
         }
 
         return super.researchRequirements();
+    }
+
+    @Override
+    public double sense(LAccess sensor){
+        return switch(sensor){
+            case health, maxHealth -> health;
+            case size -> hitSize / tilesize;
+            case itemCapacity -> itemCapacity;
+            case speed -> speed * 60f / tilesize;
+            case id -> getLogicId();
+            default -> Double.NaN;
+        };
+    }
+
+    @Override
+    public Object senseObject(LAccess sensor){
+        if(sensor == LAccess.name) return name;
+        return noSensed;
     }
 
     @Override
