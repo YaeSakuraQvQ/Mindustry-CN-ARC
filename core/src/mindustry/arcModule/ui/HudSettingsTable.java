@@ -18,10 +18,7 @@ import arc.util.*;
 import mindustry.Vars;
 import mindustry.content.StatusEffects;
 import mindustry.game.EventType;
-import mindustry.input.*;
-import mindustry.entities.Lightning;
 import mindustry.gen.*;
-import mindustry.graphics.*;
 import mindustry.ui.Fonts;
 import mindustry.ui.Styles;
 import mindustry.ui.dialogs.BaseDialog;
@@ -182,6 +179,7 @@ public class HudSettingsTable extends Table {
                     }).checked(a->Core.settings.getBool("bulletShow")).size(30,30).tooltip("子弹显示");
                     t.button("[cyan]雾",textStyle, () ->{
                         state.rules.fog = !state.rules.fog;
+                        renderer.fogEnabled = !renderer.fogEnabled;
                     }).checked(a->state.rules.fog).size(30,30).tooltip("战争迷雾");
                     t.button("[violet]锁",textStyle,()->{
                         Core.settings.put("removeLogicLock", !Core.settings.getBool("removeLogicLock"));
