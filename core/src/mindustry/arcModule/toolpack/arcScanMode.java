@@ -17,6 +17,7 @@ import arc.util.Time;
 import arc.util.Tmp;
 import mindustry.content.Items;
 import mindustry.gen.Building;
+import mindustry.gen.Icon;
 import mindustry.graphics.Drawf;
 import mindustry.graphics.Layer;
 import mindustry.graphics.Pal;
@@ -36,7 +37,7 @@ import mindustry.world.meta.BlockGroup;
 
 import static mindustry.Vars.*;
 import static mindustry.arcModule.RFuncs.calWaveTimer;
-import static mindustry.arcModule.toolpack.arcPlayerEffect.drawPlayerBuildRange;
+import static mindustry.arcModule.toolpack.arcPlayerEffect.drawNSideRegion;
 import static mindustry.arcModule.toolpack.arcWaveSpawner.*;
 
 public class arcScanMode {
@@ -110,7 +111,13 @@ public class arcScanMode {
 
     public static void detailBuildMode(){
         if (!Core.settings.getBool("arcBuildInfo")) return;
-        if (control.input.isBuilding || control.input.selectedBlock() || !player.unit().plans().isEmpty()) drawPlayerBuildRange(player.unit());
+        if (control.input.droppingItem) {
+            Color color = player.within(Core.input.mouseWorld(control.input.getMouseX(), control.input.getMouseY()), itemTransferRange)? Color.gold: Color.red;
+            drawNSideRegion(player.unit().x, player.unit().y, 3, player.unit().type.buildRange, player.unit().rotation, color, 0.25f, player.unit().stack.item.uiIcon, false);
+        }else if (control.input.isBuilding || control.input.selectedBlock() || !player.unit().plans().isEmpty()) {
+            drawNSideRegion(player.unit().x, player.unit().y, 3, player.unit().type.buildRange, player.unit().rotation, Pal.heal, 0.25f, Icon.wrench.getRegion(),true);
+        }
+
     }
 
     private static void detailCursor() {
@@ -144,7 +151,7 @@ public class arcScanMode {
         totalEffHealth = 0;
         totalDps = 0;
         checkInit();
-        waveInfo thisWave = arcWave.get(Math.min(state.wave, Math.max(arcWave.size - 1, 0)));
+        waveInfo thisWave = arcWave.get(Math.min(state.wave - 1, Math.max(arcWave.size - 1, 0)));
         for (Tile tile : spawner.getSpawns()) {
             if (Mathf.dst(tile.worldx(), tile.worldy(), Core.input.mouseWorldX(), Core.input.mouseWorldY()) < state.rules.dropZoneRadius) {
                 float curve = Mathf.curve(Time.time % 240f, 120f, 240f);

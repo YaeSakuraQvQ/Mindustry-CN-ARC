@@ -352,13 +352,12 @@ public class arcWaveInfoDialog extends BaseDialog {
                 }).scrollX(false).growX().row();
                 tb.table(tbb -> {
                     tbb.button("刷新波次显示", () -> setup()).width(200f);
-                    TextField sField = tbb.field(calWinWave() * waveMulti + "", text -> {
-                        waveMulti = Float.parseFloat(text) / calWinWave();
-                        setup();
+                    TextField sField = tbb.field(calWinWave() * (int) waveMulti + "", text -> {
+                        waveMulti = (Float.parseFloat(text) / calWinWave());
                     }).valid(Strings::canParsePositiveFloat).width(200f).get();
                     tbb.slider(0.25f, 10f, 0.25f, 1f, t -> {
                         waveMulti = t;
-                        sField.setText(calWinWave() * waveMulti + "");
+                        sField.setText(calWinWave() * (int) waveMulti + "");
                     }).width(300f);
                 });
             }
@@ -390,10 +389,13 @@ public class arcWaveInfoDialog extends BaseDialog {
                     t.button(b -> {
                         b.left();
                         b.image(group.type.uiIcon).size(32f).padRight(3).scaling(Scaling.fit);
-                        //if(group.effect != null && group.effect != StatusEffects.none) b.image(group.effect.uiIcon).size(20f).padRight(3).scaling(Scaling.fit);
                         b.add(group.type.typeColor() + group.type.localizedName);
                         if (group.effect != null && group.effect != StatusEffects.none)
                             b.image(group.effect.uiIcon).size(20f).padRight(3).scaling(Scaling.fit);
+                        if (group.items != null && group.items.amount > 0)
+                            b.image(group.items.item.uiIcon).size(20f).padRight(3).scaling(Scaling.fit);
+                        if (group.payloads != null && group.payloads.size > 0)
+                            b.image(Icon.uploadSmall).size(20f).padRight(3).scaling(Scaling.fit);
 
                         b.add().growX();
 
@@ -574,7 +576,8 @@ public class arcWaveInfoDialog extends BaseDialog {
         dialog.cont.pane(p -> {
             int i = 0;
             for (UnitType type : content.units()) {
-                if (type.isHidden() && !(Core.settings.getBool("developmode") && type.hasEmoji())) continue;
+                if (type.internal) continue;
+                if (type.isHidden() && !(Core.settings.getBool("developmode"))) continue;
                 p.button(t -> {
                     t.left();
                     t.image(type.uiIcon).size(8 * 4).scaling(Scaling.fit).padRight(2f);
@@ -1039,14 +1042,14 @@ public class arcWaveInfoDialog extends BaseDialog {
                 c.row();
                 if (showUnitSelect) {
                     c.table(list -> {
-                        int i = 0;
                         for (UnitType unit : content.units()) {
-                            if (i++ % 8 == 0) list.row();
+                            if (unit.internal) continue;
                             list.button(unit.emoji(), flatToggleMenut, () -> {
                                 if (spawnUnit.contains(unit)) spawnUnit.remove(unit);
                                 else spawnUnit.add(unit);
                                 rebuild[0].run();
                             }).tooltip(unit.localizedName).checked(spawnUnit.contains(unit)).size(50f);
+                            if (list.getChildren().size % 8 ==0) list.row();
                         }
                     }).row();
                     c.table(ct -> {

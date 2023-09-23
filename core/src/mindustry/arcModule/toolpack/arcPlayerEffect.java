@@ -6,6 +6,7 @@ import arc.func.Cons;
 import arc.graphics.Color;
 import arc.graphics.g2d.Draw;
 import arc.graphics.g2d.Lines;
+import arc.graphics.g2d.TextureRegion;
 import arc.math.Mathf;
 import arc.scene.event.Touchable;
 import arc.scene.ui.Dialog;
@@ -155,19 +156,24 @@ public class arcPlayerEffect {
         Draw.reset();
     }
 
-    public static void drawPlayerBuildRange(Unit unit) {
+    public static void drawNSideRegion(float x, float y, int n, float range, float rotation, Color color, float fraction, TextureRegion region, boolean regionColor){
         Draw.z(Layer.effect - 2f);
-        Draw.color(Pal.heal);
+        Draw.color(color);
 
         Lines.stroke(2f);
 
-        for (int i = 0; i < 3; i++) {
-            float rot = player.unit().rotation + i * 360f / 3 + 15f;
-            Lines.arc(unit.x, unit.y, unit.type.buildRange, 0.25f, rot, (int) (50 + unit.type.buildRange / 10));
-            Draw.rect(Icon.wrench.getRegion(), unit.x + player.unit().type.buildRange * Mathf.cos((float) Math.toRadians(rot-15f)),  unit.y + player.unit().type.buildRange * Mathf.sin((float) Math.toRadians(rot-15f)),8f,8f);
+        for (int i = 0; i < n; i++) {
+            float frac = 360f * (1 - fraction * n)/n/2;
+            float rot = rotation + i * 360f / n + frac;
+            if (!regionColor){
+                Draw.color(color);
+                Lines.arc(x, y, range, 0.25f, rot, (int) (50 + range / 10));
+                Draw.color();
+            }else{
+                Lines.arc(x, y, range, 0.25f, rot, (int) (50 + range / 10));
+            }
+            Draw.rect(region, x + range * Mathf.cos((float) Math.toRadians(rot-frac)),  y + range * Mathf.sin((float) Math.toRadians(rot-frac)),12f,12f);
         }
-
         Draw.reset();
     }
-
 }

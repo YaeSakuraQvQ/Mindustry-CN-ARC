@@ -34,7 +34,7 @@ public class HudSettingsTable extends Table {
     protected Seq<Setting> list = new Seq<>();
     private boolean expandList = false;
     private int unitTransparency = Core.settings.getInt("unitTransparency");
-    private Boolean unitHide = false;
+    public Boolean unitHide = false;
 
     private TextButton.TextButtonStyle textStyle, NCtextStyle;
 
@@ -148,13 +148,13 @@ public class HudSettingsTable extends Table {
                         t.button("\uE87C", NCtextStyle, this::arcQuickMsgTable).size(30, 30).tooltip("快捷消息");
                 }).left();
                 sp.row();
-                if (settings.getInt("arcQuickMsg")>0){
+                if (settings.getInt("arcQuickMsg") > 0) {
                     sp.table(t -> {
-                        for (int i =0; i<settings.getInt("arcQuickMsg"); i++){
-                            if (i % settings.getInt("arcQuickMsgKey",8) == 0) t.row();
+                        for (int i = 0; i < settings.getInt("arcQuickMsg"); i++) {
+                            if (i % settings.getInt("arcQuickMsgKey", 8) == 0) t.row();
                             int finalI = i;
-                            t.button(settings.getString(getArcQuickMsgShortName(i)),NCtextStyle,()->
-                                Call.sendChatMessage(settings.getString(getArcQuickMsgName(finalI)))
+                            t.button(settings.getString(getArcQuickMsgShortName(i)), NCtextStyle, () ->
+                                    Call.sendChatMessage(settings.getString(getArcQuickMsgName(finalI)))
                             ).size(30);
                         }
                         t.button("\uE87C", NCtextStyle, this::arcQuickMsgTable).size(30, 30).tooltip("快捷消息");
@@ -166,11 +166,7 @@ public class HudSettingsTable extends Table {
                         int blockRenderLevel = Core.settings.getInt("blockRenderLevel");
                         Core.settings.put("blockRenderLevel", (blockRenderLevel + 1) % 3);
                     }).size(30, 30).tooltip("建筑显示");
-                    t.button("[cyan]兵", textStyle, () -> {
-                        unitTransparency = unitHide ? unitTransparency : Core.settings.getInt("unitTransparency");
-                        unitHide = !unitHide;
-                        Core.settings.put("unitTransparency", unitHide ? 0 : unitTransparency);
-                    }).checked(a -> !unitHide).size(30, 30).tooltip("兵种显示");
+                    t.button("[cyan]兵", textStyle, this::forceHideUnit).checked(a -> !unitHide).size(30, 30).tooltip("兵种显示");
                     t.button("[cyan]箱", textStyle, () -> {
                         Core.settings.put("unithitbox", !Core.settings.getBool("unithitbox"));
                     }).checked(a -> Core.settings.getBool("unithitbox")).size(30, 30).tooltip("碰撞箱显示");
@@ -236,35 +232,36 @@ public class HudSettingsTable extends Table {
 
     private void arcQuickMsgTable() {
         BaseDialog dialog = new BaseDialog("快捷信息");
-        dialog.cont.table(t->{
+        dialog.cont.table(t -> {
             t.add("在此编辑快速消息，可在快捷设置面板显示。如设置：\n[white]法 /vote gameover\n" +
                     "这一指令会添加一个“[white]法的按钮，点击会自动输入/vote gameover。\n" +
                     "由于懒得写更新，请修改滑块后[orange]关闭此窗口后再打开一次[white]\n" +
                     "快捷设置面板同样需要[orange]关闭后再打开一次[white]才能生效").center().fillX().row();
-            t.table(tt->{
+            t.table(tt -> {
                 tt.add("快捷消息个数： ");
-                Label label = tt.add(String.valueOf(settings.getInt("arcQuickMsg",0))).get();
-                tt.slider(0,50,1, settings.getInt("arcQuickMsg",0), i-> {
-                    settings.put("arcQuickMsg",(int)i);
+                Label label = tt.add(String.valueOf(settings.getInt("arcQuickMsg", 0))).get();
+                tt.slider(0, 50, 1, settings.getInt("arcQuickMsg", 0), i -> {
+                    settings.put("arcQuickMsg", (int) i);
                     label.setText(String.valueOf(settings.getInt("arcQuickMsg")));
                 }).width(200f).row();
                 tt.add("每行多少个按键： ");
-                Label label2 = tt.add(String.valueOf(settings.getInt("arcQuickMsgKey",0))).get();
-                tt.slider(3,10,1, settings.getInt("arcQuickMsgKey",0),i-> {
-                    settings.put("arcQuickMsgKey",(int)i);
+                Label label2 = tt.add(String.valueOf(settings.getInt("arcQuickMsgKey", 0))).get();
+                tt.slider(3, 10, 1, settings.getInt("arcQuickMsgKey", 0), i -> {
+                    settings.put("arcQuickMsgKey", (int) i);
                     label2.setText(String.valueOf(settings.getInt("arcQuickMsgKey")));
-                ;}).width(200f);
+                    ;
+                }).width(200f);
             }).row();
-            t.pane(tt->{
+            t.pane(tt -> {
                 tt.add("第i个").width(50f);
                 tt.add("按钮显示\n(建议单个字符)").width(100f);
                 tt.add("              输入信息").width(400f).center().row();
 
-                for (int i =0; i<settings.getInt("arcQuickMsg",0); i++){
+                for (int i = 0; i < settings.getInt("arcQuickMsg", 0); i++) {
                     tt.add(i + "  ");
                     int finalI = i;
-                    tt.field(settings.getString(getArcQuickMsgShortName(finalI),"?"), text->settings.put(getArcQuickMsgShortName(finalI),text)).maxTextLength(10);
-                    tt.field(settings.getString(getArcQuickMsgName(finalI),"未输入指令"), text->settings.put(getArcQuickMsgName(finalI),text)).maxTextLength(300).width(350f);
+                    tt.field(settings.getString(getArcQuickMsgShortName(finalI), "?"), text -> settings.put(getArcQuickMsgShortName(finalI), text)).maxTextLength(10);
+                    tt.field(settings.getString(getArcQuickMsgName(finalI), "未输入指令"), text -> settings.put(getArcQuickMsgName(finalI), text)).maxTextLength(300).width(350f);
                     tt.row();
                 }
             });
@@ -273,11 +270,17 @@ public class HudSettingsTable extends Table {
         dialog.show();
     }
 
-    private String getArcQuickMsgShortName(int i){
+    public void forceHideUnit() {
+        unitTransparency = unitHide ? unitTransparency : Core.settings.getInt("unitTransparency");
+        unitHide = !unitHide;
+        Core.settings.put("unitTransparency", unitHide ? 0 : unitTransparency);
+    }
+
+    private String getArcQuickMsgShortName(int i) {
         return "arcQuickMsgShort" + i;
     }
 
-    private String getArcQuickMsgName(int i){
+    private String getArcQuickMsgName(int i) {
         return "arcQuickMsg" + i;
     }
 

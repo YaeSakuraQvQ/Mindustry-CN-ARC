@@ -17,6 +17,7 @@ import mindustry.ai.*;
 import mindustry.ai.Pathfinder.*;
 import mindustry.ai.types.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.arcModule.NumberFormat;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -513,25 +514,15 @@ public class UnitType extends UnlockableContent implements Senseable{
     public void landed(Unit unit){}
 
     private void displayStatusEffect(Unit unit,Table table){
-        for(StatusEffect e : content.statusEffects()){
-            if(unit.hasEffect(e)){
-                table.row();
-                table.table(t->{
-                    int i = 0;
-                    for(StatusEffect eff : content.statusEffects()){
-                        if(unit.hasEffect(eff)){
-                            i+=1;
-                            if((i-1) % 5 != 0) t.add().width(20f);
-                            t.add(new ItemImage(eff.uiIcon,(unit.getEffectTime(eff) >= 1000000f || unit.getEffectTime(eff) == -1f)?"inf" : UI.formatTime(unit.getEffectTime(eff))));
-                            if(i % 5==0)
-                                t.row();
-                        }
-                    }
-                }).growX().left();
-                break;
+        if (unit.statuses().isEmpty()) return;
+        table.row().table(t -> {
+            for(StatusEntry entry : unit.statuses().copy()) {
+                if (t.getChildren().size % 5 == 0) t.row();
+                t.add(new ItemImage(entry.effect.uiIcon,
+                        entry.effect.permanent || entry.time > Time.toHours * 10f ? "Inf" : UI.formatTime(entry.time)
+                )).padLeft(8f);
             }
-        }
-
+        });
     }
 
     private void updateStatusTable(Unit unit){
@@ -588,11 +579,9 @@ public class UnitType extends UnlockableContent implements Senseable{
             bars.add(new Bar(() -> {
                 updateStatusTable(unit);
                 if(unit.shield() > 0){
-                    return UI.formatAmount((long)unit.health) + "[gray]+[white]" + UI.formatAmount((long)unit.shield);
-                }else if(unit.maxHealth == unit.health){
-                    return UI.formatAmount((long)unit.health);
+                    return NumberFormat.autoFixed(unit.health) + "[gray]+[white]" + NumberFormat.autoFixed(unit.shield);
                 }else{
-                    return UI.formatAmount((long)unit.health) + "/" + UI.formatAmount((long)unit.maxHealth) + " (" + (int)(100 * unit.health / unit.maxHealth) + "%)";
+                    return NumberFormat.formatPercent("\uE813", unit.health, unit.maxHealth, 4);
                 }
             }, () -> Pal.health, unit::healthf).blink(Color.white));
             bars.row();
@@ -601,8 +590,18 @@ public class UnitType extends UnlockableContent implements Senseable{
                 bars.add(new Bar(() -> ammoType.icon() + " " + Core.bundle.format("stat.ammoDetail", unit.ammo, ammoCapacity), () -> ammoType.barColor(), () -> unit.ammo / ammoCapacity));
                 bars.row();
             }
-            if(unit instanceof Payloadc payload && payload.payloadUsed() > 0){
-                bars.add(new Bar("装载：" + String.format("%.2f", payload.payloadUsed() / 9) + "/" + String.format("%.2f", unit.type().payloadCapacity / 9), Pal.items, () -> payload.payloadUsed() / unit.type().payloadCapacity));
+
+            for(Ability ability : unit.abilities){
+                ability.displayBars(unit, bars);
+            }
+
+            if(unit instanceof Payloadc payload){
+                bars.add(new Bar(NumberFormat.formatPercent("装载：",
+                        payload.payloadUsed() / tilesize / tilesize, true,
+                        unit.type().payloadCapacity / tilesize / tilesize, true,
+                        StatUnit.blocksSquared.localized(),
+                        4
+                ), Pal.items, () -> payload.payloadUsed() / unit.type().payloadCapacity));
                 bars.row();
 
                 var count = new float[]{-1};
@@ -1477,15 +1476,15 @@ public class UnitType extends UnlockableContent implements Senseable{
             }
 
             float index = 0f;
-            float iconSize = Mathf.ceil(unit.hitSize() / 4f);
-            for(StatusEffect eff : Vars.content.statusEffects()){
-                if(unit.hasEffect(eff)){
-                    Draw.rect(eff.uiIcon,
-                            unit.x - unit.hitSize() * 0.6f + 0.5f * iconSize * Mathf.mod(index, 4f),
-                            unit.y + (unit.hitSize() / 2f) + 3f + 4f * Mathf.floor(index / 4f),
-                            4f, 4f);
-                    index++;
-                }
+            float iconSize = 4f;
+            int iconColumns = Math.max((int) (unit.hitSize() / (iconSize + 1f)), 4);
+            float iconWidth = Math.min(unit.hitSize() / iconColumns, iconSize + 1f);
+            for(var entry : unit.statuses()){
+                Draw.rect(entry.effect.uiIcon,
+                        unit.x - unit.hitSize() * 0.6f + iconWidth * (index % iconColumns),
+                        unit.y + (unit.hitSize() / 2f) + 3f + iconSize * Mathf.floor(index / iconColumns),
+                        iconSize, iconSize);
+                index++;
             }
 
             index = 0f;

@@ -1,6 +1,7 @@
 package mindustry.arcModule.ui.auxilliary;
 
 import arc.*;
+import arc.graphics.g2d.TextureRegion;
 import arc.scene.style.*;
 import arc.scene.ui.TextField;
 import arc.scene.ui.layout.Scl;
@@ -9,10 +10,10 @@ import mindustry.ai.types.*;
 import mindustry.arcModule.*;
 import mindustry.arcModule.ai.*;
 import mindustry.arcModule.toolpack.arcPlayerEffect;
+import mindustry.content.Blocks;
 import mindustry.entities.units.*;
 import mindustry.game.*;
 import mindustry.gen.*;
-import mindustry.type.*;
 import mindustry.ui.dialogs.BaseDialog;
 import mindustry.world.Block;
 
@@ -41,15 +42,15 @@ public class AIToolsTable extends BaseToolsTable {
     public void setup() {
         clear();
         button(Icon.settingsSmall, clearLineNoneTogglei, 30, this::arcAISettingDialog).checked(t -> false);
-        aiButton(new ArcMinerAI(), mono, "矿机AI");
-        aiButton(new ArcBuilderAI(), poly, "重建AI");
-        aiButton(new ArcRepairAI(), mega, "修复AI");
-        aiButton(new DefenderAI(), oct, "保护AI");
+        if (false) aiButton(new ATRIAI(), Blocks.worldProcessor.region, "ATRI AI");
+        aiButton(new ArcMinerAI(), mono.region, "矿机AI");
+        aiButton(new ArcBuilderAI(), poly.region, "重建AI");
+        aiButton(new ArcRepairAI(), mega.region, "修复AI");
+        aiButton(new DefenderAI(), oct.region, "保护AI");
         button(Icon.spray1Small, clearLineNoneTogglei, arcPlayerEffect::arcPlayerEffectSetting).checked(t->false);
     }
-
-    private void aiButton(AIController ai, UnitType symbol, String describe) {
-        var button = button(new TextureRegionDrawable(symbol.uiIcon), clearLineNoneTogglei, 30, () -> selectAI(ai))
+    private void aiButton(AIController ai, TextureRegion textureRegion, String describe) {
+        var button = button(new TextureRegionDrawable(textureRegion), clearLineNoneTogglei, 30, () -> selectAI(ai))
                 .checked(b -> selectAI == ai).size(40).get();
 
         ElementUtils.tooltip(button, describe);

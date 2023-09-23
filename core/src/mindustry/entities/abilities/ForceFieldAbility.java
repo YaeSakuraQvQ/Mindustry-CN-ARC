@@ -8,6 +8,7 @@ import arc.math.geom.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.arcModule.NumberFormat;
 import mindustry.content.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
@@ -16,8 +17,6 @@ import mindustry.ui.*;
 import mindustry.world.meta.*;
 
 import static mindustry.Vars.*;
-
-import static mindustry.Vars.tilesize;
 import static mindustry.arcModule.RFuncs.abilitysFormat;
 
 public class ForceFieldAbility extends Ability{
@@ -140,7 +139,7 @@ public class ForceFieldAbility extends Ability{
 
     @Override
     public void displayBars(Unit unit, Table bars){
-        bars.add(new Bar("stat.shieldhealth", Pal.accent, () -> unit.shield / max)).row();
+        bars.add(new Bar(() -> NumberFormat.formatPercent((unit.shield < 0? "[red]":"") + "\uE84D", unit.shield, max), () -> Pal.accent, () -> unit.shield / max)).row();
     }
 
     public void checkRadius(Unit unit){

@@ -14,6 +14,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.pooling.*;
 import mindustry.annotations.Annotations.*;
+import mindustry.arcModule.NumberFormat;
 import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
@@ -617,7 +618,7 @@ public class Block extends UnlockableContent implements Senseable{
 
     public void addLiquidBar(Liquid liq){
         addBar("liquid-" + liq.name, entity -> !liq.unlockedNow() ? null : new Bar(
-                () -> entity.liquids.get(liq) <= 0.001f ? Core.bundle.get("bar.liquid") : liq.localizedName + " " + liq.emoji() + " " + (entity == null || entity.liquids == null ? 0f : (int)(entity.liquids.get(liq) * 100f) / 100f + ((liquidCapacity - entity.liquids.get(liq)<1f)?"":"/" + liquidCapacity)),
+                () -> NumberFormat.formatPercent(liq.localizedName + " " + liq.emoji(), entity.liquids.get(liq), liquidCapacity),
                 liq::barColor,
                 () -> entity.liquids.get(liq) / liquidCapacity
         ));
@@ -627,17 +628,15 @@ public class Block extends UnlockableContent implements Senseable{
     public <T extends Building> void addLiquidBar(Func<T, Liquid> current){
         addBar("liquid", entity -> new Bar(
                 () -> current.get((T)entity) == null || entity.liquids.get(current.get((T)entity)) <= 0.001f ? Core.bundle.get("bar.liquid") :
-                        UI.simpleFormat(current.get((T)entity).localizedName + " " + current.get((T)entity).emoji(),entity.liquids.get(current.get((T)entity)),liquidCapacity),
+                        NumberFormat.formatPercent(current.get((T)entity).localizedName + " " + current.get((T)entity).emoji(), entity.liquids.get(current.get((T)entity)), liquidCapacity),
                 () -> current.get((T)entity) == null ? Color.clear : current.get((T)entity).barColor(),
                 () -> current.get((T)entity) == null ? 0f : entity.liquids.get(current.get((T)entity)) / liquidCapacity)
         );
     }
 
     public void setBars(){
-        addBar("health", entity -> new Bar(() -> {
-            if (entity.maxHealth == entity.health) {return Strings.autoFixed(entity.maxHealth,1);}
-            else {return entity.health + " / " + entity.maxHealth + " (" + (int)(100 * entity.health / entity.maxHealth) + "%)";}
-        }, () -> Pal.health, entity::healthf).blink(Color.white));
+        addBar("health", entity -> new Bar(() -> NumberFormat.formatPercent("\uE813", entity.health, entity.maxHealth, 4),
+                () -> Pal.health, entity::healthf).blink(Color.white));
 
         if(consPower != null){
 
@@ -646,8 +645,10 @@ public class Block extends UnlockableContent implements Senseable{
 
             addBar("power", entity -> new Bar(
                     () -> buffered ? Core.bundle.format("bar.poweramount", Float.isNaN(entity.power.status * capacity) ? "<ERROR>" : UI.formatAmount((int)(entity.power.status * capacity))) :
-                                     Iconc.power + " " + UI.formatFloat(entity.power.status * consPower.usage * 60 * entity.timeScale() * (entity.shouldConsume() ? 1f : 0f)) +
-                                             " [lightgray](" + (int)(entity.timeScale() * 100 * (entity.shouldConsume() ? 1f : 0f) * entity.efficiency) + " %)",
+                            NumberFormat.formatPercent(String.valueOf(Iconc.power),
+                                    entity.power.status * consPower.usage * 60 * entity.timeScale() * (entity.shouldConsume() ? 1f : 0f),
+                                    consPower.usage * 60 * entity.timeScale() * (entity.shouldConsume() ? 1f : 0f),
+                                     NumberFormat.buildPercent((int)(entity.timeScale() * 100 * (entity.shouldConsume() ? 1f : 0f) * entity.efficiency))),
                     () -> Pal.powerBar,
                     () -> Mathf.zero(consPower.requestedPower(entity)) && entity.power.graph.getPowerProduced() + entity.power.graph.getBatteryStored() > 0f ? 1f : entity.power.status)
             );

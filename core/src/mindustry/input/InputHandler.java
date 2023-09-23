@@ -37,6 +37,7 @@ import mindustry.world.*;
 import mindustry.world.blocks.ConstructBlock.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.distribution.*;
+import mindustry.world.blocks.logic.CanvasBlock;
 import mindustry.world.blocks.payloads.*;
 import mindustry.world.blocks.storage.*;
 import mindustry.world.blocks.storage.CoreBlock.*;
@@ -1105,6 +1106,19 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
             plan.x = World.toTile(wx - plan.block.offset) + ox;
             plan.y = World.toTile(wy - plan.block.offset) + oy;
             plan.rotation = plan.block.planRotation(Mathf.mod(plan.rotation + direction, 4));
+
+            if (plan.block instanceof CanvasBlock cb) {
+                CanvasBlock.CanvasBuild temp = cb.new CanvasBuild();
+                Pixmap pix = cb.makePixmap((byte[]) plan.config), pix2 = new Pixmap(cb.canvasSize, cb.canvasSize);
+                pix.each((px,py) -> pix2.setRaw(
+                        direction >= 0 ? py : cb.canvasSize - py - 1,
+                        direction >= 0 ? cb.canvasSize - px - 1 : px,
+                        pix.getRaw(px, py)));
+                plan.config = temp.packPixmap(pix2);
+                temp.remove();
+                pix.dispose();
+                pix2.dispose();
+            }
         });
     }
 
@@ -1136,6 +1150,14 @@ public abstract class InputHandler implements InputProcessor, GestureListener{
 
             //flip rotation
             plan.block.flipRotation(plan, x);
+
+            if (plan.block instanceof CanvasBlock cb) {
+                CanvasBlock.CanvasBuild temp = cb.new CanvasBuild();
+                Pixmap pix = cb.makePixmap((byte[]) plan.config);
+                plan.config = temp.packPixmap(x ? pix.flipX() : pix.flipY());
+                temp.remove();
+                pix.dispose();
+            }
         });
     }
 

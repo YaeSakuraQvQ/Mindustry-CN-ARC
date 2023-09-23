@@ -80,6 +80,9 @@ public class Stats{
     public void add(String name, StatCat category, String format, Object... args) {
         add(ArcStat.get(name, category), format, args);
     }
+    public void addPercent(String name, StatCat category, float value) {
+        addPercent(ArcStat.get(name, category), value);
+    }
 
     /** Adds a stat value. */
     public void add(Stat stat, StatValue value){

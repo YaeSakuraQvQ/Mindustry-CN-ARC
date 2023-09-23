@@ -3,6 +3,7 @@ package mindustry.ui.dialogs;
 import arc.*;
 import arc.func.*;
 import arc.graphics.*;
+import arc.math.geom.Vec3;
 import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.ImageButton.*;
@@ -17,6 +18,7 @@ import mindustry.game.*;
 import mindustry.game.Rules.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.graphics.g3d.PlanetParams;
 import mindustry.type.*;
 import mindustry.type.Weather.*;
 import mindustry.ui.*;
@@ -357,6 +359,33 @@ public class CustomRulesDialog extends BaseDialog{
                 main = wasMain;
             }, () -> shown[0]).growX().row();
         }
+
+        title("地图背景[lightgray]需要设置空地板");
+        check("自定义背景", t -> {
+            rules.planetBackground = t ? new PlanetParams(){{planet = Planets.sun;zoom=1f;camPos = new Vec3(1.2388899f, 1.6047299f, 2.4758825f);}} : null;
+            setup();
+        }, () -> rules.planetBackground != null);
+        if (rules.planetBackground != null){
+            main.table(Tex.button, t -> {
+                t.margin(10f);
+                var group = new ButtonGroup<>();
+                var style = Styles.flatTogglet;
+
+                t.defaults().size(140f, 50f);
+
+                for(Planet planet : content.planets()){
+                    t.button(planet.localizedName, style, () -> rules.planetBackground.planet = planet).group(group).checked(b -> rules.planetBackground.planet == planet);
+                    if(t.getChildren().size % 3 == 0){
+                        t.row();
+                    }
+                }
+            }).left().fill(false).expand(false, false).row();
+            number("放缩", f -> rules.planetBackground.zoom = f, () -> rules.planetBackground.zoom, 0.0001f, 999);
+            number("位置x", f -> rules.planetBackground.camPos.x = f, () -> rules.planetBackground.camPos.x);
+            number("位置y", f -> rules.planetBackground.camPos.y = f, () -> rules.planetBackground.camPos.y);
+            number("位置z", f -> rules.planetBackground.camPos.z = f, () -> rules.planetBackground.camPos.z);
+        }
+
     }
 
     void team(String text, Cons<Team> cons, Prov<Team> prov){

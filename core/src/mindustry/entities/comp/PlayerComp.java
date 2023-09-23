@@ -298,7 +298,7 @@ abstract class PlayerComp implements UnitController, Entityc, Syncc, Timerc, Dra
         font.getData().setScale(0.25f / Scl.scl(1f));
         layout.setText(font, name);
 
-        if(!isLocal()){
+        if(Core.settings.getBool("arcSelfName") || !isLocal()){
             Draw.color(0f, 0f, 0f, 0.3f);
             Fill.rect(unit.x, unit.y + nameHeight - layout.height / 2, layout.width + 2, layout.height + 3);
             Draw.color();

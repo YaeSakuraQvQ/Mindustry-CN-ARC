@@ -21,6 +21,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.Vars;
+import mindustry.arcModule.NumberFormat;
 import mindustry.arcModule.ui.*;
 import mindustry.arcModule.ui.dialogs.*;
 import mindustry.arcModule.ui.window.*;
@@ -754,84 +755,7 @@ public class UI implements ApplicationListener, Loadable{
     }
 
     public static String formatAmount(long number){
-        //prevent things like bars displaying erroneous representations of casted infinities
-        if(number == Long.MAX_VALUE) return "∞";
-        if(number == Long.MIN_VALUE) return "-∞";
-
-        long mag = Math.abs(number);
-        String sign = number < 0 ? "-" : "";
-        if(mag >= 1_000_000_000){
-            return sign + Strings.fixed(mag / 1_000_000_000f, 1) + "[gray]" + billions + "[]";
-        }else if(mag >= 1_000_000){
-            return sign + Strings.fixed(mag / 1_000_000f, 1) + "[gray]" +millions + "[]";
-        }else if(mag >= 25_000){
-            return sign + mag / 1000 + "[gray]" + thousands + "[]";
-        }else if(mag >= 2500){
-            return sign + Strings.fixed(mag / 1000f, 1) + "[gray]" + thousands + "[]";
-        }else{
-            return number + "";
-        }
-    }
-
-    public static String formatAmount(long number,int decimal){
-        //prevent things like bars displaying erroneous representations of casted infinities
-        if(number == Long.MAX_VALUE) return "∞";
-        if(number == Long.MIN_VALUE) return "-∞";
-
-        long mag = Math.abs(number);
-        String sign = number < 0 ? "-" : "";
-        if(mag >= 1_000_000_000){
-            return sign + Strings.fixed(mag / 1_000_000_000f, decimal) + "[gray]" + billions+ "[]";
-        }else if(mag >= 1_000_000){
-            return sign + Strings.fixed(mag / 1_000_000f, decimal) + "[gray]" +millions + "[]";
-        }else if(mag >= 25_000){
-            return sign + mag / 1000 + "[gray]" + thousands + "[]";
-        }else if(mag >= 2500){
-            return sign + Strings.fixed(mag / 1000f, decimal) + "[gray]" + thousands + "[]";
-        }else{
-            return Strings.autoFixed(mag, decimal) + "";
-        }
-    }
-
-    public static String whiteformatAmount(long number){
-        //prevent overflow
-        if(number == Long.MIN_VALUE) number ++;
-
-        long mag = Math.abs(number);
-        String sign = number < 0 ? "-" : "";
-        if(mag >= 1_000_000_000){
-            return sign + Strings.fixed(mag / 1_000_000_000f, 1) + billions+ "";
-        }else if(mag >= 1_000_000){
-            return sign + Strings.fixed(mag / 1_000_000f, 1) + millions + "";
-        }else if(mag >= 25_000){
-            return sign + mag / 1000 + thousands + "";
-        }else if(mag >= 2500){
-            return sign + Strings.autoFixed(mag / 1000f, 1) + thousands + "";
-        }else{
-            return number + "";
-        }
-    }
-
-    public static String colorFormatAmount(float number){
-        if (number == 0) return "";
-        //prevent overflow
-        if(number == Long.MIN_VALUE) number ++;
-
-        long mag = (long) Math.abs(number);
-        String sign = number < 0 ? "[orange]-" : "[green]";
-        if(mag >= 1_000_000_000){
-            return sign + Strings.fixed(mag / 1_000_000_000f, 1) + billions+ "";
-        }else if(mag >= 1_000_000){
-            return sign + Strings.fixed(mag / 1_000_000f, 1) + millions + "";
-        }else if(mag >= 25_000){
-            return sign + mag / 1000 + thousands + "";
-        }else if(mag >= 2500){
-            return sign + Strings.fixed(mag / 1000f, 1) + thousands + "";
-        }else if(mag >= 100){
-            return sign + (int)mag + "";
-        }else{
-            return sign + Strings.autoFixed(mag, 1) + "";
-        }
+        return NumberFormat.formatInteger(number);
     }
 
     public static int roundAmount(int number){
@@ -851,46 +775,5 @@ public class UI implements ApplicationListener, Loadable{
             return number;
         }
 
-    }
-
-    public static String formatFloat(float number){
-        if (Math.abs(number - Math.round(number)) < 0.01) return String.format("%.0f", number);
-        return String.format("%.2f", number);
-    }
-
-    public static String arcFixed(float number, int maxDeci){
-
-        String sign = number < 0 ? "-" : "";
-        number = Math.abs(number);
-        if(number >= 1_000_000_000){
-            return sign + Strings.fixed(number / 1_000_000_000f, 1) + billions+ "";
-        }else if(number >= 1_000_000){
-            return sign + Strings.fixed(number / 1_000_000f, 1) + millions + "";
-        }else if(number >= 25_000){
-            return sign + number / 1000 + thousands + "";
-        }else if(number >= 2500){
-            return sign + Strings.fixed(number / 1000f, 1) + thousands + "";
-        }else{
-            return sign + Strings.autoFixed(number,maxDeci);
-        }
-    }
-
-    public static String simpleFormat(String text,float cur,float total,int deci){
-        return text + " " + simpleView(cur,total,deci);
-    }
-
-    public static String simpleFormat(String text,float cur,float total){
-        return simpleFormat(text,cur,total,1);
-    }
-
-    public static String simpleView(float cur,float total,int deci){
-        float pre = cur/total;
-        if(pre>0.99) return arcFixed(cur,deci);
-        else if (pre<0.001) return  arcFixed(cur,deci) + "/" + arcFixed(total,deci);
-        else return arcFixed(cur,deci) + "/" + arcFixed(total,deci) + " | [lightgray]" + (int)(pre * 100) + "%";
-    }
-
-    public static String simpleView(float cur,float total){
-        return simpleView(cur,total,1);
     }
 }

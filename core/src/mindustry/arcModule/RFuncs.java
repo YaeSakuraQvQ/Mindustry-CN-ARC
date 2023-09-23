@@ -1,21 +1,12 @@
 package mindustry.arcModule;
 
 import arc.Core;
-import arc.Events;
 import arc.graphics.Color;
 import arc.graphics.g2d.PixmapRegion;
-import arc.struct.Seq;
-import arc.util.Log;
 import arc.util.Strings;
 import mindustry.*;
 import mindustry.content.*;
-import mindustry.core.*;
-import mindustry.ctype.ContentType;
-import mindustry.ctype.UnlockableContent;
 import mindustry.game.*;
-import mindustry.gen.Call;
-import mindustry.type.ItemStack;
-import mindustry.type.Weather;
 import mindustry.ui.*;
 import mindustry.world.Block;
 
@@ -39,7 +30,7 @@ public class RFuncs {
         });
     }
 
-    private static String colorized(Color color, String name) {
+    public static String colorized(Color color, String name) {
         if (colorized) return "[#" + color + "]" + name + "[]";
         else return name;
     }
@@ -116,7 +107,7 @@ public class RFuncs {
                     builder.append((char) Fonts.getUnicode(group.effect.name)).append("|");
                 }
                 if (group.getShield(waves - 1) > 0) {
-                    builder.append(UI.whiteformatAmount((int) group.getShield(waves - 1))).append("|");
+                    builder.append(NumberFormat.formatInteger((int) group.getShield(waves - 1), 2, "@@")).append("|");
                 }
                 builder.append(group.getSpawned(waves - 1)).append(")");
             }
@@ -128,7 +119,7 @@ public class RFuncs {
         return arcColorTime(timer, true);
     }
 
-    public static String arcColorTime(int timer, boolean units){
+    public static String arcColorTime(int timer, boolean units) {
         StringBuilder str = new StringBuilder();
         String color = timer > 0 ? "[orange]" : "[acid]";
         timer = Math.abs(timer);
@@ -183,8 +174,8 @@ public class RFuncs {
         StringBuilder prefix = new StringBuilder();
         if (teamMark) prefix.append("/t ");
         prefix.append(arcVersionPrefix);
-        prefix.append("[" + color + "]");
-        prefix.append("<" + type + ">");
+        prefix.append("[").append(color).append("]");
+        prefix.append("<").append(type).append(">");
         prefix.append("[white]");
         return prefix;
     }
@@ -195,5 +186,4 @@ public class RFuncs {
         }
         return Strings.format("[lightgray]" + format.replace("~", "[#" + getThemeColor() + "]~[]"), values);
     }
-
 }

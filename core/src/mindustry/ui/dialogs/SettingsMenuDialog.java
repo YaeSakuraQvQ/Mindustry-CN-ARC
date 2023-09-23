@@ -29,6 +29,7 @@ import mindustry.core.GameState;
 import mindustry.core.Version;
 import mindustry.ctype.UnlockableContent;
 import mindustry.game.EventType.Trigger;
+import mindustry.game.Schematics;
 import mindustry.gen.Icon;
 import mindustry.gen.Tex;
 import mindustry.graphics.Shaders;
@@ -369,7 +370,7 @@ public class SettingsMenuDialog extends BaseDialog{
                 game.checkPref("crashreport", true);
             }
 
-            game.sliderPref("maxSchematicSize", 32, 32, 500, 1, String::valueOf);
+            game.sliderPref("maxSchematicSize", 32, 32, 256, 1, v -> v == 256 ? "无限" : String.valueOf(v));
             game.checkPref("savecreate", true);
             game.checkPref("blockreplace", true);
             game.checkPref("conveyorpathfinding", true);
@@ -638,6 +639,7 @@ public class SettingsMenuDialog extends BaseDialog{
             arc.checkPref("arcAutoGG", false);
             arc.checkPref("arcShareWaveInfo", false);
             arc.checkPref("arcAlwaysTeamColor", false);
+            arc.checkPref("arcSelfName", false);
 
             arc.addCategory("arcPlayerEffect");
             arc.stringInput("playerEffectColor", "ffd37f");
@@ -693,6 +695,7 @@ public class SettingsMenuDialog extends BaseDialog{
             arc.checkPref("menuFlyersFollower", false);
             arc.checkPref("menuFloatText", true);
             arc.checkPref("showUpdateDialog", true);
+            arc.checkPref("arcInfSchem", false);
 
             //////////forcehide
             forcehide.addCategory("arcCDisplayBlock");

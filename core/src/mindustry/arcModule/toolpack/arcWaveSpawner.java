@@ -10,6 +10,7 @@ import arc.math.Mathf;
 import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
 import arc.util.Time;
+import mindustry.arcModule.NumberFormat;
 import mindustry.content.StatusEffects;
 import mindustry.content.UnitTypes;
 import mindustry.core.UI;
@@ -167,15 +168,15 @@ public class arcWaveSpawner {
                 t.add("[accent]" + amountL).growX().padRight(50f);
                 if (doesRow) t.row();
                 t.add("\uE813").width(50f);
-                t.add("[accent]" + UI.formatAmount(healthL, 2)).growX().padRight(50f);
+                t.add("[accent]" + NumberFormat.formatInteger(healthL)).growX().padRight(50f);
                 if (doesRow) t.row();
                 if (effHealthL != healthL) {
                     t.add("\uE810").width(50f);
-                    t.add("[accent]" + UI.formatAmount(effHealthL, 2)).growX().padRight(50f);
+                    t.add("[accent]" + NumberFormat.formatInteger(effHealthL)).growX().padRight(50f);
                     if (doesRow) t.row();
                 }
                 t.add("\uE86E").width(50f);
-                t.add("[accent]" + UI.formatAmount(dpsL, 2)).growX();
+                t.add("[accent]" + NumberFormat.formatInteger(dpsL)).growX();
             });
         }
 

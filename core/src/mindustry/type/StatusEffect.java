@@ -91,6 +91,7 @@ public class StatusEffect extends UnlockableContent{
         if(speedMultiplier != 1) stats.addPercent(Stat.speedMultiplier, speedMultiplier);
         if(reloadMultiplier != 1) stats.addPercent(Stat.reloadMultiplier, reloadMultiplier);
         if(buildSpeedMultiplier != 1) stats.addPercent(Stat.buildSpeedMultiplier, buildSpeedMultiplier);
+        if(dragMultiplier != 1) stats.addPercent("移动阻力倍率", StatCat.general, dragMultiplier);
         if(damage > 0) stats.add(Stat.damage, damage * 60f, StatUnit.perSecond);
         if(damage < 0) stats.add(Stat.healing, -damage * 60f, StatUnit.perSecond);
 

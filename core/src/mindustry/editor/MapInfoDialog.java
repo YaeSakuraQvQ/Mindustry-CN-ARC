@@ -72,11 +72,6 @@ public class MapInfoDialog extends BaseDialog{
                             arcAddStringLabel(pama, "@pvpProtect");
                         }).maxTextLength(5).left();
                         td.row();
-                        td.add("胜利波次").left();
-                        td.field(arcReadStringLabel("@winWave"), pama -> {
-                            arcAddStringLabel(pama, "@winWave");
-                        }).maxTextLength(5).left();
-                        td.row();
                         td.add("禁用队伍(如1,2,3...)").left();
                         td.field(arcReadStringLabel("@banTeam"), pama -> {
                             arcAddStringLabel(pama, "@banTeam");
@@ -86,11 +81,6 @@ public class MapInfoDialog extends BaseDialog{
                         td.field(arcReadStringLabel("@mapScript"), pama -> {
                             arcAddStringLabel(pama, "@mapScript");
                         }).maxTextLength(6).left();
-                        td.row();
-                        td.add("禁用单位(如poly,mega...)").left();
-                        td.field(arcReadStringLabel("@banUnit"), pama -> {
-                            arcAddStringLabel(pama, "@banUnit");
-                        }).maxTextLength(20).left();
                         td.row();
                         td.check("空域管制 [acid]敌方核心保护区内禁止空军", arcreadBoolLable("[@limitAir]"), islimit -> {
                             arcAddBoolLable(islimit, "[@limitAir]");

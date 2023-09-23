@@ -1,14 +1,16 @@
 package mindustry.arcModule.ui;
 
 import arc.Events;
+import arc.func.*;
 import arc.graphics.Color;
-import arc.scene.ui.ImageButton;
+import arc.graphics.g2d.TextureRegion;
 import arc.scene.ui.TextButton;
 import arc.scene.ui.layout.Table;
 import arc.struct.Seq;
-import arc.util.Strings;
+import arc.util.Nullable;
 import arc.util.Time;
 import mindustry.Vars;
+import mindustry.arcModule.NumberFormat;
 import mindustry.arcModule.ui.dialogs.TeamSelectDialog;
 import mindustry.content.Blocks;
 import mindustry.content.UnitTypes;
@@ -16,12 +18,10 @@ import mindustry.core.*;
 import mindustry.game.EventType;
 import mindustry.game.Team;
 import mindustry.game.Teams;
-import mindustry.gen.Tex;
 import mindustry.type.Item;
 import mindustry.type.UnitType;
 import mindustry.ui.Fonts;
 import mindustry.ui.Styles;
-import mindustry.ui.dialogs.BaseDialog;
 
 import static mindustry.Vars.*;
 import static mindustry.gen.Tex.*;
@@ -37,6 +37,7 @@ public class OtherCoreItemDisplay extends Table {
 
     private TextButton.TextButtonStyle textStyle;
 
+    private Seq<Teams.TeamData> forceShowTeam = new Seq<>();
 
     public OtherCoreItemDisplay() {
 
@@ -52,6 +53,10 @@ public class OtherCoreItemDisplay extends Table {
 
         teamsTable = new Table();
         rebuild();
+
+        Events.on(EventType.WorldLoadEvent.class,e->{
+            forceShowTeam.clear();
+        });
     }
 
     void rebuild() {
@@ -71,8 +76,9 @@ public class OtherCoreItemDisplay extends Table {
 
                     buttons.button("T", textStyle, () -> {
                         new TeamSelectDialog(team -> {
-                            if (teams.contains(team.data())) teams.remove(team.data());
-                            else teams.add(team.data());
+                            if (forceShowTeam.contains(team.data())) forceShowTeam.remove(team.data());
+                            else forceShowTeam.add(team.data());
+                            updateTeamList();
                             teamsRebuild();
                         }, team -> teams.contains(team.data()), false).show();
                     }).checked(gg -> false).size(40f).row();
@@ -107,8 +113,8 @@ public class OtherCoreItemDisplay extends Table {
         teamsTable.update(() -> {
             if (Time.time - lastUpd > 120f) {
                 lastUpd = Time.time;
+                updateTeamList();
                 teamsRebuild();
-                return;
             }
         });
         teams.sort(teamData -> -teamData.cores.size);
@@ -140,45 +146,15 @@ public class OtherCoreItemDisplay extends Table {
 
         if (showStat) {
             teamsTable.image().color(getThemeColor()).fillX().height(1).colspan(999).padTop(3).padBottom(3).row();
-            teamsTable.image(Blocks.siliconSmelter.uiIcon).size(15, 15).left().get();
-            for (Teams.TeamData team : teams) {
-                teamsTable.label(() -> "[#" + team.team.color + "]" + (state.rules.teams.get(team.team).cheat ? "[green]+" : "[red]×")).get().setFontScale(fontScl);
-            }
-            teamsTable.row();
-            teamsTable.image(Blocks.arc.uiIcon).size(15, 15).left().get();
-            for (Teams.TeamData team : teams) {
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.blockDamage(team.team), 2)).get().setFontScale(fontScl);
-            }
-            teamsTable.row();
-            teamsTable.image(Blocks.titaniumWall.uiIcon).size(15, 15).left().get();
-            for (Teams.TeamData team : teams) {
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.blockHealth(team.team), 2)).get().setFontScale(fontScl);
-            }
-            teamsTable.row();
-            teamsTable.image(UnitTypes.corvus.uiIcon).size(15, 15).left().get();
-            for (Teams.TeamData team : teams) {
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.unitDamage(team.team), 2)).get().setFontScale(fontScl);
-            }
-            teamsTable.row();
-            teamsTable.image(Blocks.repairTurret.uiIcon).size(15, 15).left().get();
-            for (Teams.TeamData team : teams) {
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.unitHealth(team.team), 2)).get().setFontScale(fontScl);
-            }
-            teamsTable.row();
-            teamsTable.image(UnitTypes.zenith.uiIcon).size(15, 15).left().get();
-            for (Teams.TeamData team : teams) {
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.unitCrashDamage(team.team), 2)).get().setFontScale(fontScl);
-            }
-            teamsTable.row();
-            teamsTable.image(UnitTypes.poly.uiIcon).size(15, 15).left().get();
-            for (Teams.TeamData team : teams) {
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.buildSpeed(team.team), 2)).get().setFontScale(fontScl);
-            }
-            teamsTable.row();
-            teamsTable.image(Blocks.tetrativeReconstructor.uiIcon).size(15, 15).left().get();
-            for (Teams.TeamData team : teams) {
-                teamsTable.label(() -> "[#" + team.team.color + "]" + Strings.autoFixed(state.rules.unitBuildSpeed(team.team), 2)).get().setFontScale(fontScl);
-            }
+            addTeamData(teamsTable, Blocks.siliconSmelter.uiIcon, team -> team.rules().cheat, false);
+            addTeamData(teamsTable, Blocks.arc.uiIcon, team -> state.rules.blockDamage(team));
+            addTeamData(teamsTable, Blocks.titaniumWall.uiIcon, team -> state.rules.blockHealth(team));
+            addTeamData(teamsTable, UnitTypes.corvus.uiIcon, team -> state.rules.unitDamage(team));
+            addTeamData(teamsTable, Blocks.repairTurret.uiIcon, team -> state.rules.unitHealth(team));
+            addTeamData(teamsTable, UnitTypes.zenith.uiIcon, team -> state.rules.unitCrashDamage(team));
+            addTeamData(teamsTable, UnitTypes.poly.uiIcon, team -> state.rules.buildSpeed(team));
+            addTeamData(teamsTable, Blocks.tetrativeReconstructor.uiIcon, team -> state.rules.unitBuildSpeed(team));
+            addTeamData(teamsTable, Blocks.basicAssemblerModule.uiIcon, team -> state.rules.unitCost(team));
             teamsTable.row();
         }
 
@@ -230,8 +206,58 @@ public class OtherCoreItemDisplay extends Table {
         }
     }
 
-    public void updateTeamList() {
+    private void updateTeamList() {
         teams = Vars.state.teams.getActive().copy();
+        forceShowTeam.each(team -> teams.addUnique(team));
+    }
+
+    private void addTeamData(Table table, TextureRegion icon, Floatf<Team> checked) {
+        addTeamData(table, icon, checked, 1f);
+    }
+
+    private void addTeamData(Table table, TextureRegion icon, Floatf<Team> checked, float defaultValue) {
+        boolean show = false;
+        boolean sameValue = true;
+        float value = -1;
+        for (Teams.TeamData teamData : teams) {
+            if (checked.get(teamData.team) != defaultValue) show = true;
+            if (value == -1) value = checked.get(teamData.team);
+            else if (value != checked.get(teamData.team)) sameValue = false;
+        }
+        if (show) addTeamDate(table,icon, checked,sameValue,value);
+    }
+
+    private void addTeamDate(Table table, TextureRegion icon, Floatf<Team> checked, boolean sameValue, @Nullable float value){
+        teamsTable.row();
+        table.image(icon).size(15, 15).left();
+        if (sameValue) {
+            float finalValue = value;
+            teamsTable.label(() -> getThemeColorCode() + NumberFormat.autoFixed(finalValue)).expandX().center().get().setFontScale(fontScl);
+        } else {
+            for (Teams.TeamData teamData : teams) {
+                teamsTable.label(() -> "[#" + teamData.team.color + "]" + NumberFormat.autoFixed(checked.get(teamData.team))).get().setFontScale(fontScl);
+            }
+        }
+    }
+
+    private void addTeamData(Table table, TextureRegion icon, Boolf<Team> checked, Boolean defaultValue) {
+        boolean show = false;
+        boolean sameRevert = true;
+        for (Teams.TeamData teamData : teams) {
+            if (checked.get(teamData.team) != defaultValue) show = true;
+            else sameRevert = false;
+        }
+        if (show) {
+            teamsTable.row();
+            table.image(icon).size(15, 15).left();
+            if (sameRevert)
+                teamsTable.label(() -> getThemeColorCode() + (!defaultValue ? " +" : " x")).fillX().get().setFontScale(fontScl);
+            else {
+                for (Teams.TeamData teamData : teams) {
+                    teamsTable.label(() -> "[#" + teamData.team.color + "]" + (checked.get(teamData.team) ? "+" : "×")).get().setFontScale(fontScl);
+                }
+            }
+        }
     }
 
 }

@@ -530,11 +530,16 @@ public class Vars implements Loadable{
         }
     }
     public static int getMaxSchematicSize(){
-        return  Core.settings.getInt("maxSchematicSize");
+        int s = Core.settings.getInt("maxSchematicSize");
+        return s == 501 ? Integer.MAX_VALUE : s;
     }
 
     public static int getMinimapSize(){
         return settings.getInt("minimapSize",minimapSize);
+    }
+
+    public static String getThemeColorCode(){
+        return "[#" + getThemeColor() + "]";
     }
 
     public static Color getThemeColor(){

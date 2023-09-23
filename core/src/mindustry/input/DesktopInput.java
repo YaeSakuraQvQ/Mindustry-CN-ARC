@@ -14,6 +14,7 @@ import arc.struct.ObjectMap;
 import arc.struct.Seq;
 import arc.util.*;
 import mindustry.*;
+import mindustry.ai.types.LogicAI;
 import mindustry.arcModule.Marker;
 import mindustry.content.UnitTypes;
 import mindustry.core.*;
@@ -320,7 +321,7 @@ public class DesktopInput extends InputHandler{
             if(Core.input.keyDown(Binding.control) && Core.input.keyTap(Binding.select)){
                 Unit on = selectedUnit();
                 var build = selectedControlBuild();
-                if(on != null){
+                if(!ui.hudfrag.hudSettingsTable.unitHide && on != null){
                     Call.unitControl(player, on);
                     shouldShoot = false;
                     recentRespawnTimer = 1f;
@@ -328,6 +329,14 @@ public class DesktopInput extends InputHandler{
                     Call.buildingControlSelect(player, build);
                     recentRespawnTimer = 1f;
                 }
+            }
+        }
+
+        if (Core.input.keyDown(KeyCode.shiftLeft) && Core.input.keyTap(Binding.select)) {
+            Unit u = selectedUnit();
+            if (u != null && u.controller() instanceof LogicAI ai && ai.controller != null && ai.controller.isValid()) {
+                panning = true;
+                camera.position.set(ai.controller.x, ai.controller.y);
             }
         }
 
@@ -727,6 +736,10 @@ public class DesktopInput extends InputHandler{
         }
         if (input.keyTap(Binding.toggle_block_render)) {
             settings.put("blockRenderLevel", (settings.getInt("blockRenderLevel") + 1) % 3);
+        }
+
+        if (input.keyTap(Binding.toggle_unit)) {
+            ui.hudfrag.hudSettingsTable.forceHideUnit();
         }
 
         if (input.keyTap(Binding.superUnitEffect)) {
