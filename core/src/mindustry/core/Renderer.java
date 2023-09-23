@@ -382,7 +382,7 @@ public class Renderer implements ApplicationListener{
         }
 
         Draw.draw(Layer.overlayUI, overlays::drawTop);
-        if(state.rules.fog && (fogEnabled || state.rules.pvp && player.team().id != 255)) Draw.draw(Layer.fogOfWar, fog::drawFog);
+        if(state.rules.fog && fogEnabled) Draw.draw(Layer.fogOfWar, fog::drawFog);
         Draw.draw(Layer.space, this::drawLanding);
 
         Events.fire(Trigger.drawOver);
