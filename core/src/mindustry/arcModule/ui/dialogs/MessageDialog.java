@@ -60,8 +60,6 @@ public class MessageDialog extends BaseDialog {
 
         buttons.button("区域规划器", District::districtSettingDialog);
 
-        buttons.button("控制台(WIP)", () -> ui.ConsoleDialog.show());//TODO 有几把ui问题
-
         buttons.row();
 
         buttons.button("清空", Icon.trash, () -> {

@@ -200,6 +200,9 @@ public class HudSettingsTable extends Table {
                     t.button("[acid]天", textStyle, () -> {
                         Core.settings.put("showweather", !Core.settings.getBool("showweather"));
                     }).checked(a -> Core.settings.getBool("showweather")).size(30, 30).tooltip("天气显示");
+                    t.button("[acid]信", textStyle, () -> {
+                        Core.settings.put("displayallmessage", !Core.settings.getBool("displayallmessage", false));
+                    }).checked(a -> Core.settings.getBool("displayallmessage")).size(30, 30).tooltip("开关信息板全显示");
                     if (settings.getBool("developMode"))
                         t.button(StatusEffects.burning.emoji(), textStyle, () -> {
                             state.rules.fire = !state.rules.fire;
