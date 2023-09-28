@@ -18,6 +18,10 @@ public class RFuncs {
 
     static boolean colorized = false;
 
+    public interface Stringf<T> {
+        String get(T i);
+    }
+    
     public static void colorizeContent() {
         colorized = Core.settings.getBool("colorizedContent");
         content.items().each(c -> c.localizedName = colorized(c.color, c.localizedName));
